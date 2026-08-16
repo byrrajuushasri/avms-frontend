@@ -21,27 +21,44 @@ import {
 interface MatrimonialUser {
   id: number;
   member_id: string | null;
-  profile_category: string;
-  surname: string;
+
+  profile_category: string | null;
+
+  surname: string | null;
   name: string;
+
   father_name: string | null;
   mother_name: string | null;
+
   gotram: string | null;
   nakshatram: string | null;
   padham: number | null;
   rasi: string | null;
+
   color: string | null;
   date_of_birth: string | null;
   height: string | null;
+
   education: string | null;
   occupation: string | null;
   annual_income: string | null;
-  mobile: string;
-  email: string;
+
+  mobile: string | null;
+  email: string | null;
+
   address: string | null;
+
+  family_details?: string | null;
+  brother_details?: string | null;
+  sister_details?: string | null;
+  property_details?: string | null;
+  preferred_requirements?: string | null;
+
   photo: string | null;
+
   status: string;
   membership: string;
+
   created_at: string;
   updated_at: string;
 }
@@ -99,7 +116,10 @@ export default function AdminDashboard() {
 
       console.log("Matrimonial users:", data);
 
-      setUsers(data);
+      /*
+       * Backend returns array directly
+       */
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(
         "Error fetching matrimonial users:",
@@ -152,7 +172,7 @@ export default function AdminDashboard() {
         .toLowerCase()
         .includes(searchValue) ||
 
-      (user.gender || "")
+      (user.profile_category || "")
         .toLowerCase()
         .includes(searchValue)
     );
@@ -264,6 +284,10 @@ export default function AdminDashboard() {
       name
     )}&background=f5f5f5&color=555555&bold=true`;
   };
+
+  /* =========================================================
+     PAGE
+  ========================================================= */
 
   return (
     <div className="min-h-screen bg-gray-50/80">
@@ -574,8 +598,10 @@ export default function AdminDashboard() {
                     Phone Number
                   </th>
 
+                  {/* PROFILE CATEGORY */}
+
                   <th className="px-6 py-4 text-left font-semibold">
-                    Gender
+                    Profile Category
                   </th>
 
                   <th className="px-6 py-4 text-left font-semibold">
@@ -594,7 +620,9 @@ export default function AdminDashboard() {
 
               <tbody className="divide-y divide-gray-100">
 
-                {/* LOADING */}
+                {/* =================================================
+                    LOADING
+                ================================================= */}
 
                 {loading ? (
 
@@ -631,6 +659,10 @@ export default function AdminDashboard() {
 
                 ) : currentUsers.length > 0 ? (
 
+                  /* =================================================
+                     USERS
+                  ================================================= */
+
                   currentUsers.map((user) => (
 
                     <tr
@@ -641,7 +673,9 @@ export default function AdminDashboard() {
                       "
                     >
 
-                      {/* NAME */}
+                      {/* =================================================
+                          NAME
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
@@ -650,7 +684,9 @@ export default function AdminDashboard() {
                           <img
                             src={getPhotoUrl(
                               user.photo,
-                              `${user.name} ${user.surname || ""}`
+                              `${user.name} ${
+                                user.surname || ""
+                              }`
                             )}
                             alt={user.name}
                             className="
@@ -693,7 +729,9 @@ export default function AdminDashboard() {
 
                       </td>
 
-                      {/* MEMBER ID */}
+                      {/* =================================================
+                          MEMBER ID
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
@@ -703,32 +741,38 @@ export default function AdminDashboard() {
 
                       </td>
 
-                      {/* EMAIL */}
+                      {/* =================================================
+                          EMAIL
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
                         <span className="text-sm text-gray-600 whitespace-nowrap">
-                          {user.email}
+                          {user.email || "-"}
                         </span>
 
                       </td>
 
-                      {/* PHONE */}
+                      {/* =================================================
+                          PHONE
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
                         <span className="text-sm text-gray-600 whitespace-nowrap">
-                          {user.mobile}
+                          {user.mobile || "-"}
                         </span>
 
                       </td>
 
-                      {/* GENDER */}
+                      {/* =================================================
+                          PROFILE CATEGORY
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
                         <span
-                          className={`
+                          className="
                             inline-flex
                             items-center
                             px-3
@@ -736,23 +780,18 @@ export default function AdminDashboard() {
                             rounded-full
                             text-xs
                             font-semibold
-
-                            ${
-                              user.profile_category
-                                ?.toLowerCase()
-                                .includes("female") ||
-                              user.gender === "Female"
-                                ? "bg-pink-50 text-pink-600"
-                                : "bg-blue-50 text-blue-600"
-                            }
-                          `}
+                            bg-gray-50
+                            text-gray-600
+                          "
                         >
                           {user.profile_category || "-"}
                         </span>
 
                       </td>
 
-                      {/* CREATE DATE */}
+                      {/* =================================================
+                          CREATE DATE
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
@@ -779,7 +818,9 @@ export default function AdminDashboard() {
 
                       </td>
 
-                      {/* ACTIONS */}
+                      {/* =================================================
+                          ACTIONS
+                      ================================================= */}
 
                       <td className="px-6 py-4">
 
@@ -823,7 +864,9 @@ export default function AdminDashboard() {
                               <FaEllipsisV className="text-sm" />
                             </button>
 
-                            {/* DROPDOWN */}
+                            {/* =================================================
+                                DROPDOWN
+                            ================================================= */}
 
                             {openMenuId ===
                               user.id && (
@@ -867,11 +910,13 @@ export default function AdminDashboard() {
                                     transition
                                   "
                                 >
+
                                   <FaEye className="text-gray-400 text-xs" />
 
                                   <span>
                                     View
                                   </span>
+
                                 </Link>
 
                                 {/* EDIT */}
@@ -897,11 +942,13 @@ export default function AdminDashboard() {
                                     transition
                                   "
                                 >
+
                                   <FaEdit className="text-gray-400 text-xs" />
 
                                   <span>
                                     Edit
                                   </span>
+
                                 </Link>
 
                                 {/* DIVIDER */}
@@ -933,11 +980,13 @@ export default function AdminDashboard() {
                                     text-left
                                   "
                                 >
+
                                   <FaTrash className="text-gray-400 text-xs" />
 
                                   <span>
                                     Delete
                                   </span>
+
                                 </button>
 
                               </div>
@@ -955,7 +1004,9 @@ export default function AdminDashboard() {
 
                 ) : (
 
-                  /* NO RESULTS */
+                  /* =================================================
+                     NO RESULTS
+                  ================================================= */
 
                   <tr>
 
