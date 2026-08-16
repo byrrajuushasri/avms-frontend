@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
+
 import {
   FaBars,
   FaTimes,
@@ -29,8 +31,8 @@ export default function Header() {
       icon: <FaInfoCircle />,
     },
     {
-      name: "Matches",
-      path: "/matches",
+      name: "Matrimony",
+      path: "/matrimony",
       icon: <FaUsers />,
     },
     {
@@ -52,31 +54,46 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md">
 
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
       <div className="max-w-7xl mx-auto px-5">
 
         <div className="flex justify-between items-center h-20">
 
-          {/* LOGO */}
+          {/* =================================================
+              LOGO
+          ================================================= */}
 
           <Link
             href="/"
             onClick={closeMenu}
             className="flex items-center gap-3"
           >
+            <Image
+             src="/images/logo.png"
+              alt="Arya Vysya Matrimonial"
+              width={58}
+              height={58}
+              priority
+              className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
+            />
 
             <div>
-              <h2 className="text-2xl sm:text-2xl font-bold text-rose-700">
+              <h2 className="text-xl sm:text-2xl font-bold text-rose-700 leading-tight">
                 Arya Vysya Matrimonial
               </h2>
 
-              
+              <p className="hidden sm:block text-xs text-gray-500 mt-0.5">
+                Find Your Perfect Match
+              </p>
             </div>
-
           </Link>
 
-          {/* DESKTOP MENU */}
+          {/* =================================================
+              DESKTOP MENU
+          ================================================= */}
 
           <nav className="hidden lg:flex items-center gap-8">
 
@@ -98,7 +115,9 @@ export default function Header() {
 
           </nav>
 
-          {/* DESKTOP BUTTONS */}
+          {/* =================================================
+              DESKTOP BUTTONS
+          ================================================= */}
 
           <div className="hidden lg:flex items-center gap-3">
 
@@ -142,7 +161,9 @@ export default function Header() {
 
           </div>
 
-          {/* MOBILE MENU BUTTON */}
+          {/* =================================================
+              MOBILE MENU BUTTON
+          ================================================= */}
 
           <button
             type="button"
@@ -173,15 +194,15 @@ export default function Header() {
 
       </div>
 
-      {/* MOBILE MENU */}
+      {/* =====================================================
+          MOBILE MENU
+      ===================================================== */}
 
       {menuOpen && (
 
         <div className="lg:hidden border-t border-gray-100 bg-white">
 
           <div className="px-4 py-5">
-
-            {/* MOBILE MENU CARD */}
 
             <div
               className="
@@ -194,11 +215,13 @@ export default function Header() {
               "
             >
 
-              {/* MENU ITEMS */}
+              {/* =================================================
+                  MOBILE MENU ITEMS
+              ================================================= */}
 
               <div className="p-2">
 
-                {menus.map((item, index) => (
+                {menus.map((item) => (
 
                   <Link
                     key={item.name}
@@ -220,8 +243,6 @@ export default function Header() {
                     "
                   >
 
-                    {/* ICON */}
-
                     <span
                       className="
                         w-9
@@ -238,8 +259,6 @@ export default function Header() {
                       {item.icon}
                     </span>
 
-                    {/* NAME */}
-
                     <span className="font-medium text-sm">
                       {item.name}
                     </span>
@@ -254,7 +273,9 @@ export default function Header() {
 
               <div className="border-t border-gray-200 mx-4" />
 
-              {/* MOBILE ACTIONS */}
+              {/* =================================================
+                  MOBILE ACTIONS
+              ================================================= */}
 
               <div className="p-4 space-y-3">
 
@@ -317,10 +338,6 @@ export default function Header() {
               </div>
 
             </div>
-
-            {/* MOBILE FOOTER TEXT */}
-
-             
 
           </div>
 
