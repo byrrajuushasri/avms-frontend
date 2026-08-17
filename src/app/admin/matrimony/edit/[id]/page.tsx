@@ -13,6 +13,10 @@ import {
   FaUsers,
   FaHome,
   FaHeart,
+  FaCamera,
+  FaImage,
+  FaBriefcase,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const API_URL = "http://localhost:5000";
@@ -110,8 +114,34 @@ export default function EditMatrimonialMemberPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // PHOTO
+  const [selectedPhoto, setSelectedPhoto] =
+    useState<File | null>(null);
+
+  const [photoPreview, setPhotoPreview] =
+    useState("");
+
   // =====================================================
-  // GET MEMBER DATA
+  // PHOTO URL
+  // =====================================================
+
+  const getPhotoUrl = (photo: string) => {
+    if (!photo) {
+      return "/images/default-profile.jpg";
+    }
+
+    if (
+      photo.startsWith("http://") ||
+      photo.startsWith("https://")
+    ) {
+      return photo;
+    }
+
+    return `${API_URL}/uploads/matrimonial/${photo}`;
+  };
+
+  // =====================================================
+  // GET MEMBER
   // =====================================================
 
   useEffect(() => {
@@ -121,11 +151,6 @@ export default function EditMatrimonialMemberPage() {
       try {
         setLoading(true);
         setError("");
-
-        console.log(
-          "Fetching member:",
-          `${API_URL}/matrimonial-users/${id}`,
-        );
 
         const response = await fetch(
           `${API_URL}/matrimonial-users/${id}`,
@@ -152,20 +177,24 @@ export default function EditMatrimonialMemberPage() {
           );
         }
 
-        // =================================================
-        // BACKEND snake_case -> FRONTEND camelCase
-        // =================================================
+        const photo =
+          result.photo ?? "";
 
         setProfile({
           memberId: String(
-            result.member_id ?? result.id ?? "",
+            result.member_id ??
+              result.id ??
+              "",
           ),
 
           profileCategory:
             result.profile_category ?? "",
 
-          surname: result.surname ?? "",
-          name: result.name ?? "",
+          surname:
+            result.surname ?? "",
+
+          name:
+            result.name ?? "",
 
           fatherName:
             result.father_name ?? "",
@@ -173,7 +202,8 @@ export default function EditMatrimonialMemberPage() {
           motherName:
             result.mother_name ?? "",
 
-          gotram: result.gotram ?? "",
+          gotram:
+            result.gotram ?? "",
 
           nakshatram:
             result.nakshatram ?? "",
@@ -183,7 +213,8 @@ export default function EditMatrimonialMemberPage() {
               ? String(result.padham)
               : "",
 
-          rasi: result.rasi ?? "",
+          rasi:
+            result.rasi ?? "",
 
           dateOfBirth:
             result.date_of_birth
@@ -192,13 +223,17 @@ export default function EditMatrimonialMemberPage() {
                 ).substring(0, 10)
               : "",
 
-          color: result.color ?? "",
+          color:
+            result.color ?? "",
 
-          height: result.height ?? "",
+          height:
+            result.height ?? "",
 
-          email: result.email ?? "",
+          email:
+            result.email ?? "",
 
-          mobile: result.mobile ?? "",
+          mobile:
+            result.mobile ?? "",
 
           education:
             result.education ?? "",
@@ -227,13 +262,21 @@ export default function EditMatrimonialMemberPage() {
           preferredRequirements:
             result.preferred_requirements ?? "",
 
-          status: result.status ?? "",
+          status:
+            result.status ?? "Pending",
 
           membership:
-            result.membership ?? "",
+            result.membership ?? "Free",
 
-          photo: result.photo ?? "",
+          photo,
         });
+
+        // Existing photo preview
+        if (photo) {
+          setPhotoPreview(
+            getPhotoUrl(photo),
+          );
+        }
       } catch (error) {
         console.error(
           "Fetch member error:",
@@ -254,7 +297,7 @@ export default function EditMatrimonialMemberPage() {
   }, [id]);
 
   // =====================================================
-  // HANDLE INPUT
+  // INPUT CHANGE
   // =====================================================
 
   const handleChange = (
@@ -273,7 +316,47 @@ export default function EditMatrimonialMemberPage() {
   };
 
   // =====================================================
-  // SAVE / UPDATE
+  // PHOTO CHANGE
+  // =====================================================
+
+  const handlePhotoChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    // File size check - 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert(
+        "Please select an image smaller than 5MB.",
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    // Image type check
+    if (!file.type.startsWith("image/")) {
+      alert(
+        "Please select a valid image file.",
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    setSelectedPhoto(file);
+
+    // Preview
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    setPhotoPreview(previewUrl);
+  };
+
+  // =====================================================
+  // SAVE
   // =====================================================
 
   const handleSave = async () => {
@@ -290,101 +373,161 @@ export default function EditMatrimonialMemberPage() {
 
       setSaving(true);
 
-      const payload = {
-        profile_category:
-          profile.profileCategory,
+      /*
+       * IMPORTANT:
+       * Do NOT use JSON.stringify here.
+       * We are sending multipart/form-data.
+       */
 
-        surname: profile.surname,
+      const formData = new FormData();
 
-        name: profile.name,
+      formData.append(
+        "profile_category",
+        profile.profileCategory,
+      );
 
-        father_name:
-          profile.fatherName,
+      formData.append(
+        "surname",
+        profile.surname,
+      );
 
-        mother_name:
-          profile.motherName,
+      formData.append(
+        "name",
+        profile.name,
+      );
 
-        gotram:
-          profile.gotram,
+      formData.append(
+        "father_name",
+        profile.fatherName,
+      );
 
-        nakshatram:
-          profile.nakshatram,
+      formData.append(
+        "mother_name",
+        profile.motherName,
+      );
 
-        padham:
-          profile.padham
-            ? Number(profile.padham)
-            : null,
+      formData.append(
+        "gotram",
+        profile.gotram,
+      );
 
-        rasi:
-          profile.rasi,
+      formData.append(
+        "nakshatram",
+        profile.nakshatram,
+      );
 
-        date_of_birth:
-          profile.dateOfBirth || null,
+      formData.append(
+        "padham",
+        profile.padham || "",
+      );
 
-        color:
-          profile.color,
+      formData.append(
+        "rasi",
+        profile.rasi,
+      );
 
-        height:
-          profile.height,
+      formData.append(
+        "date_of_birth",
+        profile.dateOfBirth || "",
+      );
 
-        email:
-          profile.email,
+      formData.append(
+        "color",
+        profile.color,
+      );
 
-        mobile:
-          profile.mobile,
+      formData.append(
+        "height",
+        profile.height,
+      );
 
-        education:
-          profile.education,
+      formData.append(
+        "email",
+        profile.email,
+      );
 
-        occupation:
-          profile.occupation,
+      formData.append(
+        "mobile",
+        profile.mobile,
+      );
 
-        annual_income:
-          profile.salary,
+      formData.append(
+        "education",
+        profile.education,
+      );
 
-        address:
-          profile.address,
+      formData.append(
+        "occupation",
+        profile.occupation,
+      );
 
-        family_details:
-          profile.familyDetails,
+      formData.append(
+        "annual_income",
+        profile.salary,
+      );
 
-        brother_details:
-          profile.brotherDetails,
+      formData.append(
+        "address",
+        profile.address,
+      );
 
-        sister_details:
-          profile.sisterDetails,
+      formData.append(
+        "family_details",
+        profile.familyDetails,
+      );
 
-        property_details:
-          profile.propertyDetails,
+      formData.append(
+        "brother_details",
+        profile.brotherDetails,
+      );
 
-        preferred_requirements:
-          profile.preferredRequirements,
+      formData.append(
+        "sister_details",
+        profile.sisterDetails,
+      );
 
-        status:
-          profile.status || "Pending",
+      formData.append(
+        "property_details",
+        profile.propertyDetails,
+      );
 
-        membership:
-          profile.membership || "Free",
-      };
+      formData.append(
+        "preferred_requirements",
+        profile.preferredRequirements,
+      );
+
+      formData.append(
+        "status",
+        profile.status || "Pending",
+      );
+
+      formData.append(
+        "membership",
+        profile.membership || "Free",
+      );
+
+      // NEW PHOTO
+      if (selectedPhoto) {
+        formData.append(
+          "photo",
+          selectedPhoto,
+        );
+      }
 
       console.log(
-        "Updating member:",
-        payload,
+        "Updating matrimonial member...",
       );
 
       const response = await fetch(
         `${API_URL}/matrimonial-users/${id}`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify(payload),
+          body: formData,
         },
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
 
       console.log(
         "Update response:",
@@ -429,7 +572,7 @@ export default function EditMatrimonialMemberPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-pink-200 border-t-[#8B1E3F] rounded-full animate-spin mx-auto" />
 
@@ -447,8 +590,8 @@ export default function EditMatrimonialMemberPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-red-200 p-8 text-center">
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-red-200 p-6 md:p-8 text-center">
           <h2 className="text-xl font-bold text-red-600">
             Failed to load member
           </h2>
@@ -457,7 +600,7 @@ export default function EditMatrimonialMemberPage() {
             {error}
           </p>
 
-          <p className="text-xs text-gray-400 mt-3">
+          <p className="text-xs text-gray-400 mt-3 break-all">
             API: {API_URL}/matrimonial-users/
             {id}
           </p>
@@ -479,27 +622,30 @@ export default function EditMatrimonialMemberPage() {
   // =====================================================
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
 
-        {/* HEADER */}
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+
           <div className="flex items-center gap-3">
 
             <Link
               href="/admin/matrimony"
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
+              className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
             >
               <FaArrowLeft />
             </Link>
 
             <div>
-              <h1 className="text-2xl font-bold text-black">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Edit Matrimonial Member
               </h1>
 
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 Member ID:{" "}
                 <span className="font-semibold text-[#8B1E3F]">
                   {profile.memberId || id}
@@ -508,9 +654,7 @@ export default function EditMatrimonialMemberPage() {
             </div>
           </div>
 
-          {/* STATUS */}
-
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
 
             {profile.status && (
               <span className="px-4 py-2 rounded-full bg-green-50 text-green-700 text-xs font-semibold">
@@ -527,18 +671,144 @@ export default function EditMatrimonialMemberPage() {
           </div>
         </div>
 
-        {/* PERSONAL INFORMATION */}
+        {/* =================================================
+            PHOTO SECTION
+        ================================================= */}
+
+        <Section
+          icon={<FaCamera />}
+          title="Profile Photo"
+        >
+
+          <div className="flex flex-col md:flex-row gap-8 items-start">
+
+            {/* PHOTO PREVIEW */}
+
+            <div className="w-full md:w-64">
+
+              <div className="relative w-full h-80 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
+
+                <img
+                  src={
+                    photoPreview ||
+                    "/images/default-profile.jpg"
+                  }
+                  alt={
+                    profile.name ||
+                    "Profile"
+                  }
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "/images/default-profile.jpg";
+                  }}
+                />
+
+                {/* PHOTO LABEL */}
+
+                <div className="absolute left-3 top-3">
+
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur text-xs font-semibold text-green-600 shadow">
+                    <FaCheckCircle />
+                    Profile Photo
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* PHOTO CONTROLS */}
+
+            <div className="flex-1 w-full">
+
+              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5 sm:p-6">
+
+                <div className="flex items-center gap-3 mb-4">
+
+                  <div className="w-11 h-11 rounded-xl bg-pink-50 text-[#8B1E3F] flex items-center justify-center">
+                    <FaImage />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800">
+                      Change Profile Photo
+                    </h3>
+
+                    <p className="text-xs text-gray-500 mt-1">
+                      JPG, JPEG or PNG up to 5MB
+                    </p>
+                  </div>
+
+                </div>
+
+                <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#721832] transition">
+
+                  <FaCamera />
+
+                  Choose New Photo
+
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    onChange={
+                      handlePhotoChange
+                    }
+                    className="hidden"
+                  />
+
+                </label>
+
+                {selectedPhoto && (
+                  <div className="mt-4 p-3 rounded-xl bg-green-50 border border-green-200">
+
+                    <p className="text-xs font-semibold text-green-700">
+                      New photo selected
+                    </p>
+
+                    <p className="text-xs text-green-600 mt-1 break-all">
+                      {selectedPhoto.name}
+                    </p>
+
+                  </div>
+                )}
+
+                {profile.photo &&
+                  !selectedPhoto && (
+                    <p className="mt-4 text-xs text-gray-500 break-all">
+                      Current photo:{" "}
+                      <span className="font-medium">
+                        {profile.photo}
+                      </span>
+                    </p>
+                  )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </Section>
+
+        {/* =================================================
+            PERSONAL INFORMATION
+        ================================================= */}
 
         <Section
           icon={<FaUser />}
           title="Personal Information"
         >
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
             <InputField
               label="Profile Category"
               name="profileCategory"
-              value={profile.profileCategory}
+              value={
+                profile.profileCategory
+              }
               onChange={handleChange}
             />
 
@@ -559,21 +829,27 @@ export default function EditMatrimonialMemberPage() {
             <InputField
               label="Father Name"
               name="fatherName"
-              value={profile.fatherName}
+              value={
+                profile.fatherName
+              }
               onChange={handleChange}
             />
 
             <InputField
               label="Mother Name"
               name="motherName"
-              value={profile.motherName}
+              value={
+                profile.motherName
+              }
               onChange={handleChange}
             />
 
             <InputField
               label="Date of Birth"
               name="dateOfBirth"
-              value={profile.dateOfBirth}
+              value={
+                profile.dateOfBirth
+              }
               type="date"
               onChange={handleChange}
             />
@@ -593,14 +869,18 @@ export default function EditMatrimonialMemberPage() {
             />
 
           </div>
+
         </Section>
 
-        {/* HOROSCOPE */}
+        {/* =================================================
+            HOROSCOPE
+        ================================================= */}
 
         <Section
           icon={<FaHeart />}
           title="Horoscope Details"
         >
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
             <InputField
@@ -613,7 +893,9 @@ export default function EditMatrimonialMemberPage() {
             <InputField
               label="Nakshatram"
               name="nakshatram"
-              value={profile.nakshatram}
+              value={
+                profile.nakshatram
+              }
               onChange={handleChange}
             />
 
@@ -621,6 +903,7 @@ export default function EditMatrimonialMemberPage() {
               label="Padham"
               name="padham"
               value={profile.padham}
+              type="number"
               onChange={handleChange}
             />
 
@@ -632,14 +915,18 @@ export default function EditMatrimonialMemberPage() {
             />
 
           </div>
+
         </Section>
 
-        {/* CONTACT */}
+        {/* =================================================
+            CONTACT
+        ================================================= */}
 
         <Section
           icon={<FaPhone />}
           title="Contact Information"
         >
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
             <InputField
@@ -658,36 +945,46 @@ export default function EditMatrimonialMemberPage() {
             />
 
             <div className="md:col-span-2">
-              <InputField
+
+              <TextAreaField
                 label="Address"
                 name="address"
                 value={profile.address}
                 onChange={handleChange}
               />
+
             </div>
 
           </div>
+
         </Section>
 
-        {/* EDUCATION */}
+        {/* =================================================
+            EDUCATION
+        ================================================= */}
 
         <Section
           icon={<FaGraduationCap />}
           title="Education & Career"
         >
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
             <InputField
               label="Education"
               name="education"
-              value={profile.education}
+              value={
+                profile.education
+              }
               onChange={handleChange}
             />
 
             <InputField
               label="Occupation"
               name="occupation"
-              value={profile.occupation}
+              value={
+                profile.occupation
+              }
               onChange={handleChange}
             />
 
@@ -699,53 +996,69 @@ export default function EditMatrimonialMemberPage() {
             />
 
           </div>
+
         </Section>
 
-        {/* FAMILY */}
+        {/* =================================================
+            FAMILY
+        ================================================= */}
 
         <Section
           icon={<FaUsers />}
           title="Family Information"
         >
+
           <div className="space-y-5">
 
             <TextAreaField
               label="Family Details"
               name="familyDetails"
-              value={profile.familyDetails}
+              value={
+                profile.familyDetails
+              }
               onChange={handleChange}
             />
 
             <TextAreaField
               label="Brother Details"
               name="brotherDetails"
-              value={profile.brotherDetails}
+              value={
+                profile.brotherDetails
+              }
               onChange={handleChange}
             />
 
             <TextAreaField
               label="Sister Details"
               name="sisterDetails"
-              value={profile.sisterDetails}
+              value={
+                profile.sisterDetails
+              }
               onChange={handleChange}
             />
 
             <TextAreaField
               label="Property Details"
               name="propertyDetails"
-              value={profile.propertyDetails}
+              value={
+                profile.propertyDetails
+              }
               onChange={handleChange}
             />
 
           </div>
+
         </Section>
 
-        {/* PREFERRED */}
+        {/* =================================================
+            PREFERRED
+        ================================================= */}
 
         <Section
           icon={<FaHome />}
           title="Preferred Requirements"
         >
+
           <TextAreaField
             label="Preferred Requirements"
             name="preferredRequirements"
@@ -754,11 +1067,56 @@ export default function EditMatrimonialMemberPage() {
             }
             onChange={handleChange}
           />
+
         </Section>
 
-        {/* ACTIONS */}
+        {/* =================================================
+            STATUS / MEMBERSHIP
+        ================================================= */}
 
-        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 mb-8">
+        <Section
+          icon={<FaBriefcase />}
+          title="Account Status"
+        >
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <SelectField
+              label="Profile Status"
+              name="status"
+              value={profile.status}
+              onChange={handleChange}
+              options={[
+                "Pending",
+                "Approved",
+                "Rejected",
+              ]}
+            />
+
+            <SelectField
+              label="Membership"
+              name="membership"
+              value={
+                profile.membership
+              }
+              onChange={handleChange}
+              options={[
+                "Free",
+                "Silver",
+                "Gold",
+                "Platinum",
+              ]}
+            />
+
+          </div>
+
+        </Section>
+
+        {/* =================================================
+            ACTIONS
+        ================================================= */}
+
+        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 mb-10">
 
           <Link
             href="/admin/matrimony"
@@ -768,15 +1126,18 @@ export default function EditMatrimonialMemberPage() {
           </Link>
 
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#721832] disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#721832] disabled:opacity-50 disabled:cursor-not-allowed"
           >
+
             <FaSave />
 
             {saving
               ? "Saving..."
               : "Save Changes"}
+
           </button>
 
         </div>
@@ -800,21 +1161,22 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
 
       <div className="flex items-center gap-3 mb-6">
 
-        <div className="w-10 h-10 rounded-xl bg-pink-50 text-[#8B1E3F] flex items-center justify-center">
+        <div className="w-10 h-10 shrink-0 rounded-xl bg-pink-50 text-[#8B1E3F] flex items-center justify-center">
           {icon}
         </div>
 
-        <h2 className="text-lg font-bold text-gray-800">
+        <h2 className="text-base sm:text-lg font-bold text-gray-800">
           {title}
         </h2>
 
       </div>
 
       {children}
+
     </div>
   );
 }
@@ -852,6 +1214,54 @@ function InputField({
         onChange={onChange}
         className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-pink-100"
       />
+
+    </div>
+  );
+}
+
+/* =====================================================
+   SELECT
+===================================================== */
+
+function SelectField({
+  label,
+  name,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  options: string[];
+  onChange: (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => void;
+}) {
+  return (
+    <div>
+
+      <label className="block text-xs font-semibold text-gray-500 mb-2">
+        {label}
+      </label>
+
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-pink-100"
+      >
+
+        {options.map((option) => (
+          <option
+            key={option}
+            value={option}
+          >
+            {option}
+          </option>
+        ))}
+
+      </select>
 
     </div>
   );
