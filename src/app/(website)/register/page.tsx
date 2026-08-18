@@ -437,8 +437,6 @@ export default function RegisterPage() {
     annual_income: "",
     mobile: "",
     email: "",
-    password: "",
-    confirmPassword: "",
     address: "",
     district: "",
     mandal: "",
@@ -833,13 +831,7 @@ export default function RegisterPage() {
             {/* =========================
                 GOTRAMS
             ========================= */}
-
-            <GotramSelect
-              name="gotram"
-              label="Gotram"
-              value={formData.gotram}
-              onChange={handleChange}
-            />
+ 
 
             <GotramSelect
               name="father_gotram"
@@ -985,7 +977,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* PASSWORD */}
+            {/* PASSWORD 
 
             <div>
               <label className={labelClass}>Password</label>
@@ -1000,7 +992,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* CONFIRM PASSWORD */}
+           
 
             <div>
               <label className={labelClass}>Confirm Password</label>
@@ -1013,7 +1005,7 @@ export default function RegisterPage() {
                 placeholder="Confirm Password"
                 className={inputClass}
               />
-            </div>
+            </div>*/}
 
             {/* EDUCATION */}
 
