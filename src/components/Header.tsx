@@ -71,39 +71,58 @@ export default function Header() {
     },
 
     {
-      label: "Membership",
-      icon: FaCrown,
+  label: "Membership",
+  icon: FaCrown,
+  children: [
+    {
+      label: "State Membership",
       children: [
         {
-          label: "District",
-          href: "/membership/district",
+          label: "New Members",
+          href: "/membership",
         },
         {
-          label: "Mandal",
-          href: "/membership/mandal",
-        },
-        {
-          label: "Sangam",
-          href: "/membership/sangam",
+          label: "Existing Members",
+          href: "/membership/details",
         },
       ],
     },
 
     {
-      label: "Election Body",
+      label: "Sangam Membership",
+      children: [
+        {
+          label: "New Members",
+          href: "/membership",
+        },
+        {
+          label: "Existing Members",
+          href: "/membership/details",
+        },
+      ],
+    },
+  ],
+},
+
+    {
+      label: "Executive Bodys",
       icon: FaUserTie,
       children: [
         {
-          label: "State Committee",
+          label: "State Body",
           href: "/election-body/state",
         },
         {
-          label: "District Committee",
+          label: "District Body",
           href: "/election-body/district",
         },
         {
-          label: "Mandal Committee",
+          label: "Mandal Body",
           href: "/election-body/mandal",
+        },
+         {
+          label: "Sangam Body",
+          href: "/election-body/sangam",
         },
       ],
     },
@@ -113,7 +132,7 @@ export default function Header() {
       icon: FaUsers,
       children: [
         {
-          label: "Matrimony Home",
+          label: "Matrimony",
           href: "/matrimony",
         },
         
@@ -124,7 +143,7 @@ export default function Header() {
         
         {
           label: "Success Stories",
-          href: "/matrimony/success-stories",
+          href: "/success-stories",
         },
       ],
     },
@@ -162,31 +181,32 @@ export default function Header() {
           label: "Temple Events",
           href: "/temples/events",
         },
-        {
-          label: "Temple Services",
-          href: "/temples/services",
-        },
+         
       ],
     },
 
     // ANNADHANAM DROPDOWN
     {
-      href: "/annadhanam",
-      label: "Annadhanam",
+      href: "/satrams",
+      label: "Satrams",
       icon: FaUtensils,
       children: [
         {
-          label: "Annadhanam",
-          href: "/annadhanam",
+          label: "All Satrams",
+          href: "satrams/statesatrams",
         },
-        {
-          label: "Upcoming Programs",
-          href: "/annadhanam/programs",
-        },
-        {
-          label: "Donate",
-          href: "/annadhanam/donate",
-        },
+      //  {
+        //  label: "District wise Satrams",
+      //    href: "satrams/districtsatrams",
+     //   },
+      //  {
+      //    label: "Mandal wise Satrams",
+      //    href: "satrams/mandalsatrams",
+      //  },
+     //   {
+      //    label: "Sangam wise Satrams",
+       //   href: "satrams/sangamsatrams",
+       // },
       ],
     },
 
@@ -210,12 +230,30 @@ export default function Header() {
         },
       ],
     },
-
-    {
+{
+      href: "/contacts",
       label: "Contact",
-      href: "/contact",
-      icon: FaPhoneAlt,
+      icon: FaImages,
+      children: [
+        {
+          label: "State",
+          href: "contact/state-contacts",
+        },
+        {
+          label: "Dist",
+          href: "contact/dist-contacts",
+        },
+        {
+          label: "Mandel",
+          href: "contact/mandal-contacts",
+        },
+         {
+          label: "Sangam",
+          href: "contact/sangam-contacts",
+        },
+      ],
     },
+     
   ];
 
   const toggleMobileDropdown = (label: string) => {
@@ -252,20 +290,14 @@ export default function Header() {
             </span>
           </div>
 
-          {/* CENTER */}
-          <div className="hidden lg:block">
-            <div className="font-serif text-[17px] font-bold tracking-wide text-[#800018]">
-              ❧ Telangana State Aarya Vysya Mahasabha ❧
-            </div>
-          </div>
-
+          
           {/* PHONE + EMAIL */}
           <div className="hidden items-center gap-4 text-[#800018] lg:flex">
 
             <div className="flex items-center gap-1.5">
               <FaPhoneAlt className="text-[12px]" />
               <span className="font-serif text-[13px]">
-                +91 98765 43210
+                +91 9246119408
               </span>
             </div>
 
@@ -287,53 +319,77 @@ export default function Header() {
       ====================================================== */}
       <div className="bg-white">
         <div className="mx-auto flex h-[100px] max-w-[1900px] items-center justify-between px-5 md:px-7">
+{/* LOGOS */}
+<Link
+  href="/"
+  className="flex items-center gap-3"
+  onClick={closeMobileMenu}
+>
+  {/* LEFT LOGOS */}
+  <div className="flex items-center gap-2 shrink-0">
+    <img
+      src="/images/logo.png"
+      alt="Telangana Arya Vysya Mahasabha"
+      className="h-[95px] w-[95px] object-contain"
+    />
 
-          {/* LOGOS */}
-          <Link
-            href="/"
-            className="flex items-center gap-3"
-            onClick={closeMobileMenu}
-          >
+    
+  </div>
 
-            <img
-              src="/images/logo.png"
-              alt="Aarya Vysya Mahasabha"
-              className="h-[72px] w-[90px] object-contain"
-            />
+  {/* TITLE */}
 
-            <div>
-              <h1 className="font-serif text-[25px] font-semibold leading-none tracking-wide text-[#800018]">
-                AARYAVYSYA
-              </h1>
+  <div className="min-w-0">
+    <h1 
+      className="
+        font-serif
+        text-[18px]
+        sm:text-[21px]
+        lg:text-[25px]
+        font-bold
+        leading-tight
+        text-[#9b1746]
+        whitespace-nowrap
+      "
+    >
+      Telangana State Arya Vysya Mahasabha
+    </h1>
+   <h1 
+      className="
+        font-serif
+        text-[10px]
+        sm:text-[15px]
+        lg:text-[20px]
+        font-bold
+        leading-tight
+        text-[#9b1746]
+        whitespace-nowrap
+      "
+    >
+      తెలంగాణ రాష్ట్ర ఆర్యవైశ్య మహాసభ
+    </h1>
 
-              <div className="mt-1 flex items-center gap-2">
+   
 
-                <span className="text-[15px] text-[#c58b28]">
-                  ❧
-                </span>
+    <p
+      className="
+        mt-1
+        text-[20px]
+        sm:text-[21px]
+        lg:text-[19px]
+        text-[#475569]
+        whitespace-nowrap
+      "
+    >
+      Chintal Basti Registrar no:363/2015
+    </p>
+  </div>
 
-                <h2 className="font-serif text-[21px] font-medium leading-none text-[#800018]">
-                  MAHASABHA
-                </h2>
-
-                <span className="text-[15px] text-[#c58b28]">
-                  ❧
-                </span>
-
-              </div>
-
-              <p className="mt-1 pl-1 font-serif text-[12px] tracking-[0.12em] text-[#475569]">
-                — Together Forever —
-              </p>
-            </div>
-
-            <img
-              src="/images/logo2.jpg"
-              alt="Aarya Vysya Mahasabha"
-              className="hidden h-[72px] w-[90px] object-contain sm:block"
-            />
-
-          </Link>
+  <img
+      src="/images/logo2.jpg"
+      alt="Vasavi Ammavaru"
+      className="h-[95px] w-[95px] object-contain"
+    />
+</Link>
 
           {/* LOGIN REGISTER */}
           <div className="hidden items-center gap-4 md:flex">
@@ -446,26 +502,37 @@ export default function Header() {
                   desktopDropdown === item.label && (
                     <div className="absolute left-0 top-full z-[100] min-w-[210px] overflow-hidden rounded-b-lg border border-[#ead9b5] bg-white shadow-xl">
 
-                      {item.children?.map((child) => (
-                        <Link
-                          key={child.label}
-                          href={child.href}
-                          className="
-                            flex items-center gap-2
-                            border-b border-gray-100
-                            px-4 py-3
-                            font-serif text-[14px]
-                            text-[#690015]
-                            transition
-                            hover:bg-[#fff3d1]
-                            hover:text-[#800018]
-                          "
-                        >
-                          <FaChevronRight className="text-[9px]" />
-                          {child.label}
-                        </Link>
-                      ))}
+                      
+{item.children?.map((child) => (
+  <div key={child.label}>
+    {child.children ? (
+      <div className="px-4 py-2">
+        <div className="font-semibold text-gray-700">
+          {child.label}
+        </div>
 
+        <div className="ml-4 mt-1 space-y-1">
+          {child.children.map((subChild) => (
+            <Link
+              key={subChild.label}
+              href={subChild.href}
+              className="block rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-blue-600"
+            >
+              {subChild.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    ) : (
+      <Link
+        href={child.href}
+        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+      >
+        {child.label}
+      </Link>
+    )}
+  </div>
+))}
                     </div>
                   )}
 
