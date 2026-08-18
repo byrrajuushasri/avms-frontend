@@ -77,7 +77,6 @@ export default function MemberDetails() {
                 label="Full Name"
                 value={member.full_name}
               />
-
               {/* MEMBER ID */}
               <InfoCard
                 icon={<FaIdCard />}
