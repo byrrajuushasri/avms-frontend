@@ -11,7 +11,6 @@ import {
   FaEnvelope,
   FaHome,
   FaInfoCircle,
-  FaPhoneAlt,
   FaSignInAlt,
   FaTimes,
   FaUserPlus,
@@ -69,6 +68,7 @@ const menuItems: MenuItem[] = [
           },
         ],
       },
+
       {
         label: "Sangam Membership",
         children: [
@@ -148,7 +148,6 @@ const menuItems: MenuItem[] = [
 
   {
     label: "Temples",
-    href: "/temples",
     icon: FaUniversity,
     children: [
       {
@@ -164,7 +163,6 @@ const menuItems: MenuItem[] = [
 
   {
     label: "Satrams",
-    href: "/satrams",
     icon: FaUtensils,
     children: [
       {
@@ -176,7 +174,6 @@ const menuItems: MenuItem[] = [
 
   {
     label: "Media",
-    href: "/media",
     icon: FaImages,
     children: [
       {
@@ -196,7 +193,6 @@ const menuItems: MenuItem[] = [
 
   {
     label: "Contact",
-    href: "/contact",
     icon: FaEnvelope,
     children: [
       {
@@ -220,26 +216,49 @@ const menuItems: MenuItem[] = [
 ];
 
 /* =========================================================
-   STYLES
+   DESKTOP LINK STYLE
 ========================================================= */
 
 const desktopLinkClass = `
-  flex min-h-[50px] w-full
-  items-center justify-center gap-1.5
-  border-r border-[#a52a3d]
+  flex
+  min-h-[50px]
+  w-full
+  items-center
+  justify-center
+  gap-1.5
+  border-r
+  border-[#a52a3d]
   px-2
-  font-serif text-[14px] font-medium
+  font-serif
+  text-[13px]
+  font-medium
   text-white
-  transition
+  transition-all
+  duration-200
   hover:bg-[#650014]
+  xl:text-[14px]
 `;
 
+/* =========================================================
+   MOBILE LINK STYLE
+========================================================= */
+
 const mobileLinkClass = `
-  flex items-center gap-3
-  px-5 py-3.5
-  font-serif text-[16px]
-  font-medium text-[#800018]
-  transition hover:bg-[#fff5df]
+  flex
+  min-h-[50px]
+  items-center
+  gap-3
+  px-5
+  py-3.5
+  font-serif
+  text-[15px]
+  font-medium
+  text-[#800018]
+  transition-all
+  duration-200
+  hover:bg-[#fff5df]
+  active:bg-[#fff5df]
+  sm:text-[16px]
 `;
 
 /* =========================================================
@@ -248,10 +267,16 @@ const mobileLinkClass = `
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+
   const [today, setToday] = useState("");
 
-  const [mobileDropdown, setMobileDropdown] =
-    useState<string | null>(null);
+  /*
+   * IMPORTANT:
+   * Using Set allows multiple nested dropdowns
+   * to stay open independently.
+   */
+  const [mobileDropdowns, setMobileDropdowns] =
+    useState<Set<string>>(new Set());
 
   const [desktopDropdown, setDesktopDropdown] =
     useState<string | null>(null);
@@ -274,18 +299,30 @@ export default function Header() {
   }, []);
 
   /* =========================================================
-     MOBILE
+     MOBILE DROPDOWN TOGGLE
   ========================================================= */
 
-  const toggleMobileDropdown = (label: string) => {
-    setMobileDropdown((current) =>
-      current === label ? null : label
-    );
+  const toggleMobileDropdown = (key: string) => {
+    setMobileDropdowns((current) => {
+      const next = new Set(current);
+
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+
+      return next;
+    });
   };
+
+  /* =========================================================
+     CLOSE MOBILE MENU
+  ========================================================= */
 
   const closeMobileMenu = () => {
     setOpen(false);
-    setMobileDropdown(null);
+    setMobileDropdowns(new Set());
   };
 
   /* =========================================================
@@ -301,17 +338,40 @@ export default function Header() {
   }) => {
     return (
       <div
-        className={`
-          ${
-            level === 0
-              ? "absolute left-0 top-full z-[100] min-w-[230px] rounded-b-lg border border-[#ead9b5] bg-white shadow-xl"
-              : "ml-3 border-l border-gray-200"
-          }
-        `}
+        className={
+          level === 0
+            ? `
+              absolute
+              left-0
+              top-full
+              z-[9999]
+              min-w-[235px]
+              overflow-visible
+              rounded-b-lg
+              border
+              border-[#ead9b5]
+              bg-white
+              shadow-2xl
+            `
+            : `
+              absolute
+              left-full
+              top-0
+              z-[10000]
+              min-w-[220px]
+              overflow-visible
+              rounded-lg
+              border
+              border-[#ead9b5]
+              bg-white
+              shadow-2xl
+            `
+        }
       >
         {items.map((child) => {
           const hasChildren =
-            child.children && child.children.length > 0;
+            !!child.children &&
+            child.children.length > 0;
 
           if (hasChildren) {
             return (
@@ -321,19 +381,49 @@ export default function Header() {
               >
                 <div
                   className="
-                    flex items-center justify-between
-                    px-4 py-2.5
-                    text-sm font-semibold
+                    flex
+                    min-h-[42px]
+                    w-full
+                    cursor-pointer
+                    items-center
+                    justify-between
+                    gap-5
+                    border-b
+                    border-gray-100
+                    px-4
+                    py-2.5
+                    text-sm
+                    font-semibold
                     text-gray-700
-                    hover:bg-gray-100
+                    transition
+                    hover:bg-[#fff7e6]
+                    hover:text-[#800018]
                   "
                 >
                   <span>{child.label}</span>
 
-                  <FaChevronRight className="text-[9px]" />
+                  <FaChevronRight
+                    className="
+                      shrink-0
+                      text-[9px]
+                    "
+                  />
                 </div>
 
-                <div className="hidden group-hover:block">
+                <div
+                  className="
+                    invisible
+                    absolute
+                    left-full
+                    top-0
+                    z-[10000]
+                    opacity-0
+                    transition-all
+                    duration-150
+                    group-hover:visible
+                    group-hover:opacity-100
+                  "
+                >
                   <DesktopChildren
                     items={child.children!}
                     level={level + 1}
@@ -348,10 +438,19 @@ export default function Header() {
               key={child.label}
               href={child.href || "#"}
               className="
-                block px-4 py-2.5
-                text-sm text-gray-700
-                transition
-                hover:bg-gray-100
+                flex
+                min-h-[42px]
+                items-center
+                border-b
+                border-gray-100
+                px-4
+                py-2.5
+                text-sm
+                text-gray-700
+                transition-all
+                duration-150
+                hover:bg-[#fff7e6]
+                hover:pl-5
                 hover:text-[#800018]
               "
             >
@@ -370,76 +469,133 @@ export default function Header() {
   const MobileChildren = ({
     items,
     level = 0,
+    parentKey = "",
   }: {
     items: MenuItem[];
     level?: number;
+    parentKey?: string;
   }) => {
     return (
       <div
         className={
           level === 0
             ? "bg-[#fffaf0]"
-            : "ml-5 border-l border-[#eadfca]"
+            : "ml-4 border-l-2 border-[#eadfca] bg-[#fffdf7]"
         }
       >
         {items.map((child) => {
           const hasChildren =
-            child.children && child.children.length > 0;
+            !!child.children &&
+            child.children.length > 0;
 
-          const key = `${level}-${child.label}`;
+          /*
+           * Unique key for every nested level.
+           *
+           * Example:
+           * Membership
+           * Membership/State Membership
+           * Membership/State Membership/New Members
+           */
+          const key = parentKey
+            ? `${parentKey}/${child.label}`
+            : child.label;
+
+          const isOpen =
+            mobileDropdowns.has(key);
+
+          /* =================================================
+             CHILD WITH MORE CHILDREN
+          ================================================== */
 
           if (hasChildren) {
-            const isOpen = mobileDropdown === key;
-
             return (
               <div key={key}>
                 <button
                   type="button"
-                  onClick={() =>
-                    toggleMobileDropdown(key)
-                  }
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    toggleMobileDropdown(key);
+                  }}
                   className="
-                    flex w-full items-center
+                    flex
+                    min-h-[48px]
+                    w-full
+                    items-center
                     justify-between
-                    border-t border-[#eadfca]
-                    px-8 py-3
+                    border-t
+                    border-[#eadfca]
+                    px-6
+                    py-3
                     text-left
-                    font-serif text-[14px]
+                    font-serif
+                    text-[14px]
                     font-medium
                     text-[#690015]
+                    transition-all
+                    duration-200
                     hover:bg-[#f8edcf]
+                    active:bg-[#f8edcf]
+                    sm:text-[15px]
                   "
                 >
-                  <span className="flex items-center gap-3">
+                  <span className="
+                    flex
+                    min-w-0
+                    items-center
+                    gap-3
+                  ">
                     <FaChevronRight
                       className={`
+                        shrink-0
                         text-[9px]
                         transition-transform
-                        ${isOpen ? "rotate-90" : ""}
+                        duration-200
+                        ${
+                          isOpen
+                            ? "rotate-90"
+                            : ""
+                        }
                       `}
                     />
 
-                    {child.label}
+                    <span>
+                      {child.label}
+                    </span>
                   </span>
 
                   <FaChevronDown
                     className={`
+                      shrink-0
                       text-[10px]
                       transition-transform
-                      ${isOpen ? "rotate-180" : ""}
+                      duration-200
+                      ${
+                        isOpen
+                          ? "rotate-180"
+                          : ""
+                      }
                     `}
                   />
                 </button>
+
+                {/* NESTED CHILD */}
 
                 {isOpen && (
                   <MobileChildren
                     items={child.children!}
                     level={level + 1}
+                    parentKey={key}
                   />
                 )}
               </div>
             );
           }
+
+          /* =================================================
+             FINAL LINK
+          ================================================== */
 
           return (
             <Link
@@ -447,24 +603,44 @@ export default function Header() {
               href={child.href || "#"}
               onClick={closeMobileMenu}
               className="
-                flex items-center gap-3
-                border-t border-[#eadfca]
-                px-8 py-3
-                font-serif text-[14px]
+                flex
+                min-h-[46px]
+                items-center
+                gap-3
+                border-t
+                border-[#eadfca]
+                px-8
+                py-3
+                font-serif
+                text-[14px]
                 text-[#690015]
-                transition
+                transition-all
+                duration-200
                 hover:bg-[#f8edcf]
+                active:bg-[#f8edcf]
+                sm:text-[15px]
               "
             >
-              <FaChevronRight className="text-[9px]" />
+              <FaChevronRight
+                className="
+                  shrink-0
+                  text-[9px]
+                "
+              />
 
-              <span>{child.label}</span>
+              <span>
+                {child.label}
+              </span>
             </Link>
           );
         })}
       </div>
     );
   };
+
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
   return (
     <header className="w-full bg-white">
@@ -476,95 +652,177 @@ export default function Header() {
       <div className="h-[3px] bg-[#800018]" />
 
       {/* =====================================================
-          TOP INFORMATION + LOGIN REGISTER
+          TOP INFORMATION
       ====================================================== */}
 
       <div className="border-b border-gray-200 bg-[#fafafa]">
         <div
           className="
-            mx-auto flex min-h-[34px] sm:min-h-[38px]
+            mx-auto
+            flex
+            min-h-[34px]
             max-w-[1900px]
-            items-center justify-between
-            gap-2 sm:gap-4 px-3 sm:px-4
+            items-center
+            justify-between
+            gap-2
+            px-3
+            sm:min-h-[38px]
+            sm:px-4
           "
         >
 
           {/* DATE */}
 
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[#800018] min-w-0">
-            <FaCalendarAlt className="text-[11px] sm:text-[13px] shrink-0" />
+          <div
+            className="
+              flex
+              min-w-0
+              items-center
+              gap-1.5
+              text-[#800018]
+              sm:gap-2
+            "
+          >
+            <FaCalendarAlt
+              className="
+                shrink-0
+                text-[11px]
+                sm:text-[13px]
+              "
+            />
 
-            <span className="font-serif text-[11px] sm:text-[13px] truncate">
-              {today || "Monday, 17 August 2026"}
+            <span
+              className="
+                truncate
+                font-serif
+                text-[10px]
+                sm:text-[13px]
+              "
+            >
+              {today ||
+                "Monday, 17 August 2026"}
             </span>
           </div>
 
-          {/* PHONE + EMAIL */}
+          {/* EMAIL */}
 
-          <div className="hidden items-center gap-4 text-[#800018] lg:flex">
+          <div
+            className="
+              hidden
+              items-center
+              gap-4
+              text-[#800018]
+              lg:flex
+            "
+          >
+            <div
+              className="
+                flex
+                items-center
+                gap-1.5
+              "
+            >
+              <FaEnvelope
+                className="text-[12px]"
+              />
 
-             
-            <div className="flex items-center gap-1.5">
-              <FaEnvelope className="text-[12px]" />
-
-              <span className="font-serif text-[13px]">
+              <span
+                className="
+                  font-serif
+                  text-[13px]
+                "
+              >
                 info@aryavysyamatrimony.com
               </span>
             </div>
-
           </div>
 
-          {/* LOGIN REGISTER - TOP RIGHT (small screens) */}
+          {/* MOBILE LOGIN REGISTER */}
 
-          <div className="flex items-center gap-1.5 sm:hidden">
-
+          <div
+            className="
+              flex
+              shrink-0
+              items-center
+              gap-1.5
+              sm:hidden
+            "
+          >
             <Link
               href="/login"
               className="
-                flex h-[26px] items-center justify-center gap-1
+                flex
+                h-[27px]
+                items-center
+                justify-center
+                gap-1
                 rounded-md
-                border border-[#800018]
+                border
+                border-[#800018]
                 px-2
-                font-serif text-[11px]
+                font-serif
+                text-[10px]
                 font-semibold
                 text-[#800018]
               "
             >
-              <FaSignInAlt className="text-[10px]" />
+              <FaSignInAlt
+                className="text-[9px]"
+              />
+
               Login
             </Link>
 
             <Link
               href="/register"
               className="
-                flex h-[26px] items-center justify-center gap-1
+                flex
+                h-[27px]
+                items-center
+                justify-center
+                gap-1
                 rounded-md
                 bg-[#ae001b]
                 px-2
-                font-serif text-[11px]
+                font-serif
+                text-[10px]
                 font-semibold
                 text-white
               "
             >
-              <FaUserPlus className="text-[10px]" />
+              <FaUserPlus
+                className="text-[9px]"
+              />
+
               Register
             </Link>
-
           </div>
 
-          {/* LOGIN REGISTER - TOP RIGHT (tablet/desktop) */}
+          {/* DESKTOP LOGIN REGISTER */}
 
-          <div className="hidden items-center gap-2 sm:flex md:flex">
-
+          <div
+            className="
+              hidden
+              items-center
+              gap-2
+              sm:flex
+            "
+          >
             <Link
               href="/login"
               className="
-                flex h-[32px] min-w-[88px]
-                items-center justify-center gap-1.5
+                flex
+                h-[32px]
+                min-w-[88px]
+                items-center
+                justify-center
+                gap-1.5
                 rounded-md
-                border border-[#800018]
+                border
+                border-[#800018]
                 px-3
-                font-serif text-[13px]
+                font-serif
+                text-[13px]
                 font-semibold
                 text-[#800018]
                 transition
@@ -572,300 +830,287 @@ export default function Header() {
                 hover:text-white
               "
             >
-              <FaSignInAlt className="text-[12px]" />
+              <FaSignInAlt
+                className="text-[12px]"
+              />
+
               Login
             </Link>
 
             <Link
               href="/register"
               className="
-                flex h-[32px] min-w-[100px]
-                items-center justify-center gap-1.5
+                flex
+                h-[32px]
+                min-w-[100px]
+                items-center
+                justify-center
+                gap-1.5
                 rounded-md
                 bg-[#ae001b]
                 px-3
-                font-serif text-[13px]
+                font-serif
+                text-[13px]
                 font-semibold
                 text-white
                 transition
                 hover:bg-[#800018]
               "
             >
-              <FaUserPlus className="text-[12px]" />
+              <FaUserPlus
+                className="text-[12px]"
+              />
+
               Register
             </Link>
-
           </div>
-
         </div>
       </div>
-{/* =====================================================
-    LOGO SECTION - MOBILE + DESKTOP
-===================================================== */}
 
-<div className="relative bg-white">
+      {/* =====================================================
+          LOGO SECTION
+      ====================================================== */}
 
-  <div
-    className="
-      mx-auto
-      flex
-      min-h-[82px]
-      w-full
-      max-w-[1900px]
-      items-center
-      justify-center
-      px-2
-      py-2
-
-      sm:min-h-[110px]
-      sm:px-4
-      sm:py-3
-
-      md:min-h-[125px]
-    "
-  >
-
-    {/* ================================================
-        MAIN LOGO CONTENT
-    ================================================= */}
-
-    <div
-      className="
-        flex
-        w-full
-        items-center
-        justify-center
-
-        gap-[6px]
-
-        sm:gap-4
-        md:gap-6
-        lg:gap-8
-      "
-    >
-
-      {/* ==============================================
-          LEFT LOGO
-      =============================================== */}
-
-      <Link
-        href="/"
-        onClick={closeMobileMenu}
-        className="shrink-0"
-      >
-        <img
-          src="/images/logo.png"
-          alt="Telangana State Arya Vysya Mahasabha"
+      <div className="relative bg-white">
+        <div
           className="
-            h-[38px]
-            w-[38px]
-            object-contain
-
-            sm:h-[72px]
-            sm:w-[72px]
-
-            md:h-[88px]
-            md:w-[88px]
-
-            lg:h-[100px]
-            lg:w-[100px]
-          "
-        />
-      </Link>
-
-
-      {/* ==============================================
-          CENTER CONTENT
-      =============================================== */}
-
-      <Link
-        href="/"
-        onClick={closeMobileMenu}
-        className="
-          flex
-          min-w-0
-          max-w-[190px]
-          flex-col
-          items-center
-          justify-center
-          text-center
-
-          sm:max-w-[500px]
-          md:max-w-[700px]
-          lg:max-w-[850px]
-        "
-      >
-
-        {/* ENGLISH TITLE */}
-
-        <h1
-          className="
-            font-serif
-            text-[8px]
-            font-bold
-            leading-tight
-            text-[#9b1746]
-
-            xs:text-[9px]
-
-            sm:text-[18px]
-            md:text-[22px]
-            lg:text-[26px]
+            mx-auto
+            flex
+            min-h-[76px]
+            w-full
+            max-w-[1900px]
+            items-center
+            justify-center
+            px-7
+            py-2
+            sm:min-h-[105px]
+            sm:px-10
+            sm:py-3
+            md:min-h-[125px]
+            md:px-4
           "
         >
-          Telangana State Arya Vysya Mahasabha
-        </h1>
 
+          {/* LOGOS + CENTER */}
 
-        {/* TELUGU TITLE */}
+          <div
+            className="
+              flex
+              w-full
+              items-center
+              justify-center
+              gap-[5px]
+              sm:gap-4
+              md:gap-6
+              lg:gap-8
+            "
+          >
 
-        <h2
-          className="
-            mt-[1px]
-            font-serif
-            text-[7px]
-            font-bold
-            leading-tight
-            text-[#9b1746]
+            {/* LEFT LOGO */}
 
-            xs:text-[8px]
+            <Link
+              href="/"
+              onClick={closeMobileMenu}
+              className="shrink-0"
+            >
+              <img
+                src="/images/logo.png"
+                alt="Telangana State Arya Vysya Mahasabha"
+                className="
+                  h-[36px]
+                  w-[36px]
+                  object-contain
+                  sm:h-[70px]
+                  sm:w-[70px]
+                  md:h-[88px]
+                  md:w-[88px]
+                  lg:h-[100px]
+                  lg:w-[100px]
+                "
+              />
+            </Link>
 
-            sm:text-[14px]
-            md:text-[17px]
-            lg:text-[20px]
-          "
-        >
-          తెలంగాణ రాష్ట్ర ఆర్యవైశ్య మహాసభ
-        </h2>
+            {/* CENTER CONTENT */}
 
+            <Link
+              href="/"
+              onClick={closeMobileMenu}
+              className="
+                flex
+                min-w-0
+                max-w-[205px]
+                flex-col
+                items-center
+                justify-center
+                text-center
+                sm:max-w-[500px]
+                md:max-w-[700px]
+                lg:max-w-[850px]
+              "
+            >
+              <h1
+                className="
+                  font-serif
+                  text-[8px]
+                  font-bold
+                  leading-tight
+                  text-[#9b1746]
+                  sm:text-[18px]
+                  md:text-[22px]
+                  lg:text-[26px]
+                "
+              >
+                Telangana State Arya Vysya Mahasabha
+              </h1>
 
-        {/* ADDRESS */}
+              <h2
+                className="
+                  mt-[1px]
+                  font-serif
+                  text-[7px]
+                  font-bold
+                  leading-tight
+                  text-[#9b1746]
+                  sm:text-[14px]
+                  md:text-[17px]
+                  lg:text-[20px]
+                "
+              >
+                తెలంగాణ రాష్ట్ర ఆర్యవైశ్య మహాసభ
+              </h2>
 
-        <p
-          className="
-            mt-[2px]
-            max-w-[185px]
-            font-serif
-            text-[5px]
-            leading-tight
-            text-[#64748b]
+              <p
+                className="
+                  mt-[2px]
+                  max-w-[195px]
+                  font-serif
+                  text-[5px]
+                  leading-tight
+                  text-[#64748b]
+                  sm:mt-2
+                  sm:max-w-none
+                  sm:text-[11px]
+                  md:text-[13px]
+                  lg:text-[15px]
+                "
+              >
+                Vysya Bhavan 6-2-648 Chintal Basti
+                Khairatabad 500 004 Hyderabad
+                <br />
+                Registrar no:363/2015
+              </p>
+            </Link>
 
-            xs:text-[5.5px]
+            {/* RIGHT LOGO */}
 
-            sm:mt-2
-            sm:max-w-none
-            sm:text-[11px]
+            <Link
+              href="/"
+              onClick={closeMobileMenu}
+              className="shrink-0"
+            >
+              <img
+                src="/images/logo2.jpg"
+                alt="Vasavi Ammavaru"
+                className="
+                  h-[36px]
+                  w-[36px]
+                  object-contain
+                  sm:h-[70px]
+                  sm:w-[70px]
+                  md:h-[88px]
+                  md:w-[88px]
+                  lg:h-[100px]
+                  lg:w-[100px]
+                "
+              />
+            </Link>
+          </div>
 
-            md:text-[13px]
+          {/* =================================================
+              MOBILE MENU BUTTON
+          ================================================== */}
 
-            lg:text-[15px]
-          "
-        >
-          Vysya Bhavan 6-2-648 Chintal Basti Khairatabad 500 004 Hyderabad
-          <br />
-          Registrar no:363/2015
-        </p>
-
-      </Link>
-
-
-      {/* ==============================================
-          RIGHT LOGO
-      =============================================== */}
-
-      <Link
-        href="/"
-        onClick={closeMobileMenu}
-        className="shrink-0"
-      >
-        <img
-          src="/images/logo2.jpg"
-          alt="Vasavi Ammavaru"
-          className="
-            h-[38px]
-            w-[38px]
-            object-contain
-
-            sm:h-[72px]
-            sm:w-[72px]
-
-            md:h-[88px]
-            md:w-[88px]
-
-            lg:h-[100px]
-            lg:w-[100px]
-          "
-        />
-      </Link>
-
-    </div>
-
-
-    {/* ================================================
-        MOBILE MENU BUTTON
-    ================================================= */}
-
-    <button
-      type="button"
-      onClick={() => {
-        setOpen(!open);
-        setMobileDropdown(null);
-      }}
-      className="
-        absolute
-        right-1
-        top-1/2
-        -translate-y-1/2
-
-        rounded-md
-        p-1.5
-
-        text-[16px]
-        text-[#800018]
-
-        active:bg-[#fff5df]
-
-        md:hidden
-      "
-      aria-label="Open menu"
-    >
-      {open ? <FaTimes /> : <FaBars />}
-    </button>
-
-  </div>
-
-</div>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen((current) => !current);
+              setMobileDropdowns(new Set());
+            }}
+            className="
+              absolute
+              right-1.5
+              top-1/2
+              flex
+              h-9
+              w-9
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-md
+              text-[18px]
+              text-[#800018]
+              transition
+              hover:bg-[#fff5df]
+              active:bg-[#fff5df]
+              md:hidden
+            "
+            aria-label={
+              open
+                ? "Close menu"
+                : "Open menu"
+            }
+            aria-expanded={open}
+          >
+            {open ? (
+              <FaTimes />
+            ) : (
+              <FaBars />
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* =====================================================
           DESKTOP NAVIGATION
       ====================================================== */}
 
-      <div className="hidden bg-[#800018] md:block">
-
+      <div
+        className="
+          hidden
+          bg-[#800018]
+          md:block
+        "
+      >
         <nav
           className="
-            mx-auto flex min-h-[50px]
+            mx-auto
+            flex
+            min-h-[50px]
             max-w-[1900px]
             items-stretch
-            px-3
+            px-2
+            xl:px-3
           "
         >
-
           {menuItems.map((item) => {
-
             const Icon = item.icon;
 
             const hasChildren =
-              item.children &&
+              !!item.children &&
               item.children.length > 0;
 
             return (
               <div
                 key={item.label}
-                className="relative flex-1"
+                className="
+                  relative
+                  flex-1
+                "
                 onMouseEnter={() => {
                   if (hasChildren) {
-                    setDesktopDropdown(item.label);
+                    setDesktopDropdown(
+                      item.label
+                    );
                   }
                 }}
                 onMouseLeave={() => {
@@ -874,46 +1119,71 @@ export default function Header() {
                   }
                 }}
               >
-
                 {hasChildren ? (
                   <button
                     type="button"
-                    className={desktopLinkClass}
+                    className={
+                      desktopLinkClass
+                    }
+                    aria-haspopup="true"
+                    aria-expanded={
+                      desktopDropdown ===
+                      item.label
+                    }
                   >
                     {Icon && (
-                      <Icon className="text-[16px]" />
+                      <Icon
+                        className="
+                          shrink-0
+                          text-[15px]
+                        "
+                      />
                     )}
 
-                    <span>{item.label}</span>
+                    <span>
+                      {item.label}
+                    </span>
 
-                    <FaChevronDown className="text-[10px]" />
+                    <FaChevronDown
+                      className="
+                        shrink-0
+                        text-[9px]
+                      "
+                    />
                   </button>
                 ) : (
                   <Link
                     href={item.href || "#"}
-                    className={desktopLinkClass}
+                    className={
+                      desktopLinkClass
+                    }
                   >
                     {Icon && (
-                      <Icon className="text-[16px]" />
+                      <Icon
+                        className="
+                          shrink-0
+                          text-[15px]
+                        "
+                      />
                     )}
 
-                    <span>{item.label}</span>
+                    <span>
+                      {item.label}
+                    </span>
                   </Link>
                 )}
 
                 {hasChildren &&
-                  desktopDropdown === item.label && (
+                  desktopDropdown ===
+                    item.label && (
                     <DesktopChildren
                       items={item.children!}
                     />
                   )}
-
               </div>
             );
           })}
-
         </nav>
-
       </div>
 
       {/* =====================================================
@@ -923,70 +1193,98 @@ export default function Header() {
       {open && (
         <div
           className="
-            border-t border-gray-200
-            bg-white shadow-xl
+            border-t
+            border-gray-200
+            bg-white
+            shadow-xl
             md:hidden
           "
         >
-
           <div
             className="
-              max-h-[calc(100vh-100px)] sm:max-h-[calc(100vh-135px)]
+              max-h-[calc(100vh-100px)]
               overflow-y-auto
               overscroll-contain
+              pb-2
             "
           >
-
             {menuItems.map((item) => {
-
               const Icon = item.icon;
 
               const hasChildren =
-                item.children &&
+                !!item.children &&
                 item.children.length > 0;
 
               const isExpanded =
-                mobileDropdown === item.label;
+                mobileDropdowns.has(
+                  item.label
+                );
 
               return (
                 <div
                   key={item.label}
-                  className="border-b border-gray-200"
+                  className="
+                    border-b
+                    border-gray-200
+                  "
                 >
+                  {/* =================================================
+                      MAIN MOBILE MENU ITEM
+                  ================================================== */}
 
                   {hasChildren ? (
                     <button
                       type="button"
                       onClick={() =>
-                        toggleMobileDropdown(item.label)
+                        toggleMobileDropdown(
+                          item.label
+                        )
                       }
                       className="
-                        flex w-full
-                        items-center justify-between
-                        px-5 py-3.5
+                        flex
+                        min-h-[52px]
+                        w-full
+                        items-center
+                        justify-between
+                        px-5
+                        py-3.5
                         text-left
-                        font-serif text-[15px] sm:text-[16px]
+                        font-serif
+                        text-[15px]
                         font-medium
                         text-[#800018]
                         transition
                         hover:bg-[#fff5df]
                         active:bg-[#fff5df]
+                        sm:text-[16px]
                       "
                     >
-
-                      <span className="flex items-center gap-3">
-
+                      <span
+                        className="
+                          flex
+                          min-w-0
+                          items-center
+                          gap-3
+                        "
+                      >
                         {Icon && (
-                          <Icon className="w-[18px] shrink-0" />
+                          <Icon
+                            className="
+                              w-[18px]
+                              shrink-0
+                            "
+                          />
                         )}
 
-                        <span>{item.label}</span>
-
+                        <span>
+                          {item.label}
+                        </span>
                       </span>
 
                       <FaChevronDown
                         className={`
-                          text-[12px] shrink-0
+                          shrink-0
+                          text-[11px]
                           transition-transform
                           duration-200
                           ${
@@ -996,54 +1294,82 @@ export default function Header() {
                           }
                         `}
                       />
-
                     </button>
                   ) : (
                     <Link
                       href={item.href || "#"}
-                      onClick={closeMobileMenu}
-                      className={`${mobileLinkClass} text-[15px] sm:text-[16px]`}
+                      onClick={
+                        closeMobileMenu
+                      }
+                      className={
+                        mobileLinkClass
+                      }
                     >
-
                       {Icon && (
-                        <Icon className="w-[18px] shrink-0" />
+                        <Icon
+                          className="
+                            w-[18px]
+                            shrink-0
+                          "
+                        />
                       )}
 
-                      <span>{item.label}</span>
-
+                      <span>
+                        {item.label}
+                      </span>
                     </Link>
                   )}
 
-                  {hasChildren && isExpanded && (
-                    <MobileChildren
-                      items={item.children!}
-                    />
-                  )}
+                  {/* =================================================
+                      FIRST LEVEL CHILDREN
+                  ================================================== */}
 
+                  {hasChildren &&
+                    isExpanded && (
+                      <MobileChildren
+                        items={item.children!}
+                        level={0}
+                        parentKey={item.label}
+                      />
+                    )}
                 </div>
               );
             })}
 
-            {/* MOBILE LOGIN REGISTER (tablet width inside menu; phones already
-                have login/register in the top bar, so this shows sm and up) */}
+            {/* =================================================
+                MOBILE LOGIN REGISTER
+            ================================================== */}
 
-            <div className="hidden sm:grid grid-cols-2 gap-3 p-4">
-
+            <div
+              className="
+                grid
+                grid-cols-2
+                gap-3
+                p-4
+              "
+            >
               <Link
                 href="/login"
                 onClick={closeMobileMenu}
                 className="
-                  flex items-center
-                  justify-center gap-2
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
                   rounded-lg
-                  border-2 border-[#800018]
+                  border-2
+                  border-[#800018]
                   py-3
-                  font-serif text-sm
+                  font-serif
+                  text-sm
                   font-semibold
                   text-[#800018]
+                  transition
+                  hover:bg-[#fff5df]
                 "
               >
                 <FaSignInAlt />
+
                 Login
               </Link>
 
@@ -1051,27 +1377,29 @@ export default function Header() {
                 href="/register"
                 onClick={closeMobileMenu}
                 className="
-                  flex items-center
-                  justify-center gap-2
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
                   rounded-lg
                   bg-[#ae001b]
                   py-3
-                  font-serif text-sm
+                  font-serif
+                  text-sm
                   font-semibold
                   text-white
+                  transition
+                  hover:bg-[#800018]
                 "
               >
                 <FaUserPlus />
+
                 Register
               </Link>
-
             </div>
-
           </div>
-
         </div>
       )}
-
     </header>
   );
 }
