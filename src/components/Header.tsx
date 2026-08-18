@@ -599,158 +599,242 @@ export default function Header() {
 
         </div>
       </div>
+{/* =====================================================
+    LOGO SECTION - MOBILE + DESKTOP
+===================================================== */}
 
-      {/* =====================================================
-          CENTERED LOGO SECTION
-      ====================================================== */}
+<div className="relative bg-white">
 
-      <div className="relative bg-white">
+  <div
+    className="
+      mx-auto
+      flex
+      min-h-[82px]
+      w-full
+      max-w-[1900px]
+      items-center
+      justify-center
+      px-2
+      py-2
 
-        <div
+      sm:min-h-[110px]
+      sm:px-4
+      sm:py-3
+
+      md:min-h-[125px]
+    "
+  >
+
+    {/* ================================================
+        MAIN LOGO CONTENT
+    ================================================= */}
+
+    <div
+      className="
+        flex
+        w-full
+        items-center
+        justify-center
+
+        gap-[6px]
+
+        sm:gap-4
+        md:gap-6
+        lg:gap-8
+      "
+    >
+
+      {/* ==============================================
+          LEFT LOGO
+      =============================================== */}
+
+      <Link
+        href="/"
+        onClick={closeMobileMenu}
+        className="shrink-0"
+      >
+        <img
+          src="/images/logo.png"
+          alt="Telangana State Arya Vysya Mahasabha"
           className="
-            relative mx-auto flex
-            min-h-[110px] sm:min-h-[125px]
-            max-w-[1900px]
-            items-center
-            justify-center
-            px-4 py-3
-            pr-14 md:pr-4
+            h-[38px]
+            w-[38px]
+            object-contain
+
+            sm:h-[72px]
+            sm:w-[72px]
+
+            md:h-[88px]
+            md:w-[88px]
+
+            lg:h-[100px]
+            lg:w-[100px]
+          "
+        />
+      </Link>
+
+
+      {/* ==============================================
+          CENTER CONTENT
+      =============================================== */}
+
+      <Link
+        href="/"
+        onClick={closeMobileMenu}
+        className="
+          flex
+          min-w-0
+          max-w-[190px]
+          flex-col
+          items-center
+          justify-center
+          text-center
+
+          sm:max-w-[500px]
+          md:max-w-[700px]
+          lg:max-w-[850px]
+        "
+      >
+
+        {/* ENGLISH TITLE */}
+
+        <h1
+          className="
+            font-serif
+            text-[8px]
+            font-bold
+            leading-tight
+            text-[#9b1746]
+
+            xs:text-[9px]
+
+            sm:text-[18px]
+            md:text-[22px]
+            lg:text-[26px]
           "
         >
+          Telangana State Arya Vysya Mahasabha
+        </h1>
 
-          {/* CENTERED LOGO GROUP */}
 
-          <Link
-            href="/"
-            onClick={closeMobileMenu}
-            className="
-              flex flex-col items-center
-              justify-center
-              gap-2
-              text-center
-              sm:flex-row
-              sm:gap-4
-              sm:text-left
-            "
-          >
+        {/* TELUGU TITLE */}
 
-            {/* LOGO ROW (both logos stay side-by-side even when stacked on mobile) */}
-            <div className="flex items-center justify-center gap-3 sm:contents">
+        <h2
+          className="
+            mt-[1px]
+            font-serif
+            text-[7px]
+            font-bold
+            leading-tight
+            text-[#9b1746]
 
-              {/* LEFT LOGO */}
+            xs:text-[8px]
 
-              <img
-                src="/images/logo.png"
-                alt="Telangana State Arya Vysya Mahasabha"
-                className="
-                  h-[52px] w-[52px]
-                  object-contain
-                  xs:h-[60px] xs:w-[60px]
-                  sm:h-[95px] sm:w-[95px]
-                  sm:order-1
-                "
-              />
+            sm:text-[14px]
+            md:text-[17px]
+            lg:text-[20px]
+          "
+        >
+          తెలంగాణ రాష్ట్ర ఆర్యవైశ్య మహాసభ
+        </h2>
 
-              {/* RIGHT LOGO (shown here on mobile so it sits next to left logo;
-                  reordered via sm:order-3 to move after the title on larger screens) */}
 
-              <img
-                src="/images/logo2.jpg"
-                alt="Vasavi Ammavaru"
-                className="
-                  h-[52px] w-[52px]
-                  object-contain
-                  xs:h-[60px] xs:w-[60px]
-                  sm:h-[95px] sm:w-[95px]
-                  sm:order-3
-                  hidden sm:block
-                "
-              />
-            </div>
+        {/* ADDRESS */}
 
-            {/* TITLE */}
+        <p
+          className="
+            mt-[2px]
+            max-w-[185px]
+            font-serif
+            text-[5px]
+            leading-tight
+            text-[#64748b]
 
-            <div className="max-w-[280px] text-center sm:order-2 sm:max-w-none sm:text-center">
+            xs:text-[5.5px]
 
-              <h1
-                className="
-                  font-serif
-                  text-[13px]
-                  font-bold
-                  leading-snug
-                  text-[#9b1746]
-                  whitespace-normal
-                  sm:whitespace-nowrap
-                  sm:text-[21px]
-                  lg:text-[26px]
-                "
-              >
-                Telangana State Arya Vysya Mahasabha
-              </h1>
+            sm:mt-2
+            sm:max-w-none
+            sm:text-[11px]
 
-              <h1
-                className="
-                  mt-1
-                  font-serif
-                  text-[11px]
-                  font-bold
-                  leading-snug
-                  text-[#9b1746]
-                  whitespace-normal
-                  sm:whitespace-nowrap
-                  sm:text-[15px]
-                  lg:text-[20px]
-                "
-              >
-                తెలంగాణ రాష్ట్ర ఆర్యవైశ్య మహాసభ
-              </h1>
+            md:text-[13px]
 
-              <p
-                className="
-                  mt-1.5 sm:mt-2
-                  font-serif
-                  text-[9px]
-                  text-[#475569]
-                  whitespace-normal
-                  sm:whitespace-nowrap
-                  sm:text-[14px]
-                  lg:text-[16px]
-                "
-              >
-               Vysya Bhavan 6-2-648 Chintal Basti Khairatabad 500 004 Hyderabad
-               <br></br> Registrar no:363/2015
-              </p>
+            lg:text-[15px]
+          "
+        >
+          Vysya Bhavan 6-2-648 Chintal Basti Khairatabad 500 004 Hyderabad
+          <br />
+          Registrar no:363/2015
+        </p>
 
-            </div>
+      </Link>
 
-            {/* RIGHT LOGO — mobile-only duplicate hidden; the shared one above handles
-                small screens. This keeps a single source of truth per breakpoint. */}
 
-          </Link>
+      {/* ==============================================
+          RIGHT LOGO
+      =============================================== */}
 
-          {/* MOBILE MENU BUTTON */}
+      <Link
+        href="/"
+        onClick={closeMobileMenu}
+        className="shrink-0"
+      >
+        <img
+          src="/images/logo2.jpg"
+          alt="Vasavi Ammavaru"
+          className="
+            h-[38px]
+            w-[38px]
+            object-contain
 
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(!open);
-              setMobileDropdown(null);
-            }}
-            className="
-              absolute right-3 top-1/2 -translate-y-1/2
-              rounded-lg p-2
-              text-xl text-[#800018]
-              active:bg-[#fff5df]
-              md:hidden
-            "
-            aria-label="Open menu"
-          >
-            {open ? <FaTimes /> : <FaBars />}
-          </button>
+            sm:h-[72px]
+            sm:w-[72px]
 
-        </div>
+            md:h-[88px]
+            md:w-[88px]
 
-      </div>
+            lg:h-[100px]
+            lg:w-[100px]
+          "
+        />
+      </Link>
+
+    </div>
+
+
+    {/* ================================================
+        MOBILE MENU BUTTON
+    ================================================= */}
+
+    <button
+      type="button"
+      onClick={() => {
+        setOpen(!open);
+        setMobileDropdown(null);
+      }}
+      className="
+        absolute
+        right-1
+        top-1/2
+        -translate-y-1/2
+
+        rounded-md
+        p-1.5
+
+        text-[16px]
+        text-[#800018]
+
+        active:bg-[#fff5df]
+
+        md:hidden
+      "
+      aria-label="Open menu"
+    >
+      {open ? <FaTimes /> : <FaBars />}
+    </button>
+
+  </div>
+
+</div>
 
       {/* =====================================================
           DESKTOP NAVIGATION
