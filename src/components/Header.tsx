@@ -26,7 +26,6 @@ import {
 
 /* =========================================================
    MENU TYPE
-   Supports unlimited nested menu levels
 ========================================================= */
 
 type MenuItem = {
@@ -36,22 +35,23 @@ type MenuItem = {
   children?: MenuItem[];
 };
 
+/* =========================================================
+   MENU ITEMS
+========================================================= */
+
 const menuItems: MenuItem[] = [
-  /* HOME */
   {
     label: "Home",
     href: "/",
     icon: FaHome,
   },
 
-  /* ABOUT */
   {
     label: "About Us",
     href: "/about",
     icon: FaInfoCircle,
   },
 
-  /* MEMBERSHIP */
   {
     label: "Membership",
     icon: FaCrown,
@@ -85,7 +85,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* EXECUTIVE BODY */
   {
     label: "Executive Bodies",
     icon: FaUserTie,
@@ -109,7 +108,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* MATRIMONY */
   {
     label: "Matrimony",
     icon: FaUsers,
@@ -129,7 +127,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* WELFARE */
   {
     label: "Welfare",
     icon: FaHandsHelping,
@@ -149,7 +146,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* TEMPLES */
   {
     label: "Temples",
     href: "/temples",
@@ -166,7 +162,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* SATRAMS */
   {
     label: "Satrams",
     href: "/satrams",
@@ -179,7 +174,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* MEDIA */
   {
     label: "Media",
     href: "/media",
@@ -200,7 +194,6 @@ const menuItems: MenuItem[] = [
     ],
   },
 
-  /* CONTACT */
   {
     label: "Contact",
     href: "/contact",
@@ -249,15 +242,23 @@ const mobileLinkClass = `
   transition hover:bg-[#fff5df]
 `;
 
+/* =========================================================
+   HEADER
+========================================================= */
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [today, setToday] = useState("");
 
-  /* Mobile */
-  const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
+  const [mobileDropdown, setMobileDropdown] =
+    useState<string | null>(null);
 
-  /* Desktop */
-  const [desktopDropdown, setDesktopDropdown] = useState<string | null>(null);
+  const [desktopDropdown, setDesktopDropdown] =
+    useState<string | null>(null);
+
+  /* =========================================================
+     DATE
+  ========================================================= */
 
   useEffect(() => {
     const date = new Date();
@@ -273,7 +274,7 @@ export default function Header() {
   }, []);
 
   /* =========================================================
-     MOBILE TOGGLE
+     MOBILE
   ========================================================= */
 
   const toggleMobileDropdown = (label: string) => {
@@ -288,7 +289,7 @@ export default function Header() {
   };
 
   /* =========================================================
-     DESKTOP RECURSIVE MENU
+     DESKTOP CHILDREN
   ========================================================= */
 
   const DesktopChildren = ({
@@ -314,7 +315,10 @@ export default function Header() {
 
           if (hasChildren) {
             return (
-              <div key={child.label} className="group relative">
+              <div
+                key={child.label}
+                className="group relative"
+              >
                 <div
                   className="
                     flex items-center justify-between
@@ -360,7 +364,7 @@ export default function Header() {
   };
 
   /* =========================================================
-     MOBILE RECURSIVE MENU
+     MOBILE CHILDREN
   ========================================================= */
 
   const MobileChildren = ({
@@ -391,7 +395,9 @@ export default function Header() {
               <div key={key}>
                 <button
                   type="button"
-                  onClick={() => toggleMobileDropdown(key)}
+                  onClick={() =>
+                    toggleMobileDropdown(key)
+                  }
                   className="
                     flex w-full items-center
                     justify-between
@@ -470,25 +476,25 @@ export default function Header() {
       <div className="h-[3px] bg-[#800018]" />
 
       {/* =====================================================
-          TOP INFORMATION
+          TOP INFORMATION + LOGIN REGISTER
       ====================================================== */}
 
       <div className="border-b border-gray-200 bg-[#fafafa]">
         <div
           className="
-            mx-auto flex h-[32px]
+            mx-auto flex min-h-[34px] sm:min-h-[38px]
             max-w-[1900px]
             items-center justify-between
-            px-4
+            gap-2 sm:gap-4 px-3 sm:px-4
           "
         >
 
           {/* DATE */}
 
-          <div className="flex items-center gap-2 text-[#800018]">
-            <FaCalendarAlt className="text-[13px]" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[#800018] min-w-0">
+            <FaCalendarAlt className="text-[11px] sm:text-[13px] shrink-0" />
 
-            <span className="font-serif text-[13px]">
+            <span className="font-serif text-[11px] sm:text-[13px] truncate">
               {today || "Monday, 17 August 2026"}
             </span>
           </div>
@@ -497,16 +503,7 @@ export default function Header() {
 
           <div className="hidden items-center gap-4 text-[#800018] lg:flex">
 
-            <div className="flex items-center gap-1.5">
-              <FaPhoneAlt className="text-[12px]" />
-
-              <span className="font-serif text-[13px]">
-                +91 9246119408
-              </span>
-            </div>
-
-            <span className="text-gray-400">|</span>
-
+             
             <div className="flex items-center gap-1.5">
               <FaEnvelope className="text-[12px]" />
 
@@ -516,55 +513,176 @@ export default function Header() {
             </div>
 
           </div>
+
+          {/* LOGIN REGISTER - TOP RIGHT (small screens) */}
+
+          <div className="flex items-center gap-1.5 sm:hidden">
+
+            <Link
+              href="/login"
+              className="
+                flex h-[26px] items-center justify-center gap-1
+                rounded-md
+                border border-[#800018]
+                px-2
+                font-serif text-[11px]
+                font-semibold
+                text-[#800018]
+              "
+            >
+              <FaSignInAlt className="text-[10px]" />
+              Login
+            </Link>
+
+            <Link
+              href="/register"
+              className="
+                flex h-[26px] items-center justify-center gap-1
+                rounded-md
+                bg-[#ae001b]
+                px-2
+                font-serif text-[11px]
+                font-semibold
+                text-white
+              "
+            >
+              <FaUserPlus className="text-[10px]" />
+              Register
+            </Link>
+
+          </div>
+
+          {/* LOGIN REGISTER - TOP RIGHT (tablet/desktop) */}
+
+          <div className="hidden items-center gap-2 sm:flex md:flex">
+
+            <Link
+              href="/login"
+              className="
+                flex h-[32px] min-w-[88px]
+                items-center justify-center gap-1.5
+                rounded-md
+                border border-[#800018]
+                px-3
+                font-serif text-[13px]
+                font-semibold
+                text-[#800018]
+                transition
+                hover:bg-[#800018]
+                hover:text-white
+              "
+            >
+              <FaSignInAlt className="text-[12px]" />
+              Login
+            </Link>
+
+            <Link
+              href="/register"
+              className="
+                flex h-[32px] min-w-[100px]
+                items-center justify-center gap-1.5
+                rounded-md
+                bg-[#ae001b]
+                px-3
+                font-serif text-[13px]
+                font-semibold
+                text-white
+                transition
+                hover:bg-[#800018]
+              "
+            >
+              <FaUserPlus className="text-[12px]" />
+              Register
+            </Link>
+
+          </div>
+
         </div>
       </div>
 
       {/* =====================================================
-          LOGO SECTION
+          CENTERED LOGO SECTION
       ====================================================== */}
 
-      <div className="bg-white">
+      <div className="relative bg-white">
+
         <div
           className="
-            mx-auto flex h-[100px]
+            relative mx-auto flex
+            min-h-[110px] sm:min-h-[125px]
             max-w-[1900px]
-            items-center justify-between
-            px-5 md:px-7
+            items-center
+            justify-center
+            px-4 py-3
+            pr-14 md:pr-4
           "
         >
 
-          {/* LOGO */}
+          {/* CENTERED LOGO GROUP */}
 
           <Link
             href="/"
-            className="flex items-center gap-3"
             onClick={closeMobileMenu}
+            className="
+              flex flex-col items-center
+              justify-center
+              gap-2
+              text-center
+              sm:flex-row
+              sm:gap-4
+              sm:text-left
+            "
           >
 
-            <div className="flex shrink-0 items-center gap-2">
+            {/* LOGO ROW (both logos stay side-by-side even when stacked on mobile) */}
+            <div className="flex items-center justify-center gap-3 sm:contents">
+
+              {/* LEFT LOGO */}
 
               <img
                 src="/images/logo.png"
-                alt="Telangana Arya Vysya Mahasabha"
-                className="h-[95px] w-[95px] object-contain"
+                alt="Telangana State Arya Vysya Mahasabha"
+                className="
+                  h-[52px] w-[52px]
+                  object-contain
+                  xs:h-[60px] xs:w-[60px]
+                  sm:h-[95px] sm:w-[95px]
+                  sm:order-1
+                "
               />
 
+              {/* RIGHT LOGO (shown here on mobile so it sits next to left logo;
+                  reordered via sm:order-3 to move after the title on larger screens) */}
+
+              <img
+                src="/images/logo2.jpg"
+                alt="Vasavi Ammavaru"
+                className="
+                  h-[52px] w-[52px]
+                  object-contain
+                  xs:h-[60px] xs:w-[60px]
+                  sm:h-[95px] sm:w-[95px]
+                  sm:order-3
+                  hidden sm:block
+                "
+              />
             </div>
 
             {/* TITLE */}
 
-            <div className="min-w-0">
+            <div className="max-w-[280px] text-center sm:order-2 sm:max-w-none sm:text-center">
 
               <h1
                 className="
                   font-serif
-                  text-[18px]
+                  text-[13px]
                   font-bold
-                  leading-tight
+                  leading-snug
                   text-[#9b1746]
-                  whitespace-nowrap
+                  whitespace-normal
+                  sm:whitespace-nowrap
                   sm:text-[21px]
-                  lg:text-[25px]
+                  lg:text-[26px]
                 "
               >
                 Telangana State Arya Vysya Mahasabha
@@ -572,12 +690,14 @@ export default function Header() {
 
               <h1
                 className="
+                  mt-1
                   font-serif
-                  text-[10px]
+                  text-[11px]
                   font-bold
-                  leading-tight
+                  leading-snug
                   text-[#9b1746]
-                  whitespace-nowrap
+                  whitespace-normal
+                  sm:whitespace-nowrap
                   sm:text-[15px]
                   lg:text-[20px]
                 "
@@ -587,73 +707,28 @@ export default function Header() {
 
               <p
                 className="
-                  mt-1
-                  text-[20px]
+                  mt-1.5 sm:mt-2
+                  font-serif
+                  text-[9px]
                   text-[#475569]
-                  whitespace-nowrap
-                  sm:text-[21px]
-                  lg:text-[19px]
+                  whitespace-normal
+                  sm:whitespace-nowrap
+                  sm:text-[14px]
+                  lg:text-[16px]
                 "
               >
-                Chintal Basti Registrar no:363/2015
+               Vysya Bhavan 6-2-648 Chintal Basti Khairatabad 500 004 Hyderabad
+               <br></br> Registrar no:363/2015
               </p>
 
             </div>
 
-            {/* RIGHT LOGO */}
-
-            <img
-              src="/images/logo2.jpg"
-              alt="Vasavi Ammavaru"
-              className="h-[95px] w-[95px] object-contain"
-            />
+            {/* RIGHT LOGO — mobile-only duplicate hidden; the shared one above handles
+                small screens. This keeps a single source of truth per breakpoint. */}
 
           </Link>
 
-          {/* =====================================================
-              LOGIN REGISTER
-          ====================================================== */}
-
-          <div className="hidden items-center gap-4 md:flex">
-
-            <Link
-              href="/login"
-              className="
-                flex h-[40px] w-[125px]
-                items-center justify-center gap-2
-                rounded-lg
-                border-2 border-[#800018]
-                font-serif text-[16px]
-                text-[#800018]
-                transition
-                hover:bg-[#800018]
-                hover:text-white
-              "
-            >
-              <FaSignInAlt />
-              Login
-            </Link>
-
-            <Link
-              href="/register"
-              className="
-                flex h-[40px] w-[150px]
-                items-center justify-center gap-2
-                rounded-lg
-                bg-[#ae001b]
-                font-serif text-[16px]
-                text-white
-                transition
-                hover:bg-[#800018]
-              "
-            >
-              <FaUserPlus />
-              Register
-            </Link>
-
-          </div>
-
-          {/* MOBILE BUTTON */}
+          {/* MOBILE MENU BUTTON */}
 
           <button
             type="button"
@@ -662,8 +737,10 @@ export default function Header() {
               setMobileDropdown(null);
             }}
             className="
+              absolute right-3 top-1/2 -translate-y-1/2
               rounded-lg p-2
-              text-2xl text-[#800018]
+              text-xl text-[#800018]
+              active:bg-[#fff5df]
               md:hidden
             "
             aria-label="Open menu"
@@ -672,6 +749,7 @@ export default function Header() {
           </button>
 
         </div>
+
       </div>
 
       {/* =====================================================
@@ -713,14 +791,11 @@ export default function Header() {
                 }}
               >
 
-                {/* MAIN MENU */}
-
                 {hasChildren ? (
                   <button
                     type="button"
                     className={desktopLinkClass}
                   >
-
                     {Icon && (
                       <Icon className="text-[16px]" />
                     )}
@@ -728,24 +803,19 @@ export default function Header() {
                     <span>{item.label}</span>
 
                     <FaChevronDown className="text-[10px]" />
-
                   </button>
                 ) : (
                   <Link
                     href={item.href || "#"}
                     className={desktopLinkClass}
                   >
-
                     {Icon && (
                       <Icon className="text-[16px]" />
                     )}
 
                     <span>{item.label}</span>
-
                   </Link>
                 )}
-
-                {/* DESKTOP DROPDOWN */}
 
                 {hasChildren &&
                   desktopDropdown === item.label && (
@@ -777,8 +847,9 @@ export default function Header() {
 
           <div
             className="
-              max-h-[calc(100vh-135px)]
+              max-h-[calc(100vh-100px)] sm:max-h-[calc(100vh-135px)]
               overflow-y-auto
+              overscroll-contain
             "
           >
 
@@ -799,8 +870,6 @@ export default function Header() {
                   className="border-b border-gray-200"
                 >
 
-                  {/* MAIN ITEM */}
-
                   {hasChildren ? (
                     <button
                       type="button"
@@ -812,18 +881,19 @@ export default function Header() {
                         items-center justify-between
                         px-5 py-3.5
                         text-left
-                        font-serif text-[16px]
+                        font-serif text-[15px] sm:text-[16px]
                         font-medium
                         text-[#800018]
                         transition
                         hover:bg-[#fff5df]
+                        active:bg-[#fff5df]
                       "
                     >
 
                       <span className="flex items-center gap-3">
 
                         {Icon && (
-                          <Icon className="w-[18px]" />
+                          <Icon className="w-[18px] shrink-0" />
                         )}
 
                         <span>{item.label}</span>
@@ -832,7 +902,7 @@ export default function Header() {
 
                       <FaChevronDown
                         className={`
-                          text-[12px]
+                          text-[12px] shrink-0
                           transition-transform
                           duration-200
                           ${
@@ -848,19 +918,17 @@ export default function Header() {
                     <Link
                       href={item.href || "#"}
                       onClick={closeMobileMenu}
-                      className={mobileLinkClass}
+                      className={`${mobileLinkClass} text-[15px] sm:text-[16px]`}
                     >
 
                       {Icon && (
-                        <Icon className="w-[18px]" />
+                        <Icon className="w-[18px] shrink-0" />
                       )}
 
                       <span>{item.label}</span>
 
                     </Link>
                   )}
-
-                  {/* MOBILE CHILDREN */}
 
                   {hasChildren && isExpanded && (
                     <MobileChildren
@@ -872,9 +940,10 @@ export default function Header() {
               );
             })}
 
-            {/* LOGIN REGISTER */}
+            {/* MOBILE LOGIN REGISTER (tablet width inside menu; phones already
+                have login/register in the top bar, so this shows sm and up) */}
 
-            <div className="grid grid-cols-2 gap-3 p-4">
+            <div className="hidden sm:grid grid-cols-2 gap-3 p-4">
 
               <Link
                 href="/login"
@@ -915,6 +984,7 @@ export default function Header() {
             </div>
 
           </div>
+
         </div>
       )}
 
