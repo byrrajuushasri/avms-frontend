@@ -741,7 +741,7 @@ export default function HomePage() {
               <div className="mt-8 flex flex-wrap gap-4">
 
                 <Link
-                  href="/matches"
+                  href="/search"
                   className="flex items-center gap-3 rounded-lg bg-[#690015] px-7 py-3.5 font-serif font-bold text-[#f5d36c] transition hover:bg-[#f1c84b] hover:text-[#690015]"
                 >
                   <FaUsers />

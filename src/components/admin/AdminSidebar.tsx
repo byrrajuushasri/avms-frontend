@@ -1,8 +1,8 @@
-
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
 
 import {
   FaHome,
@@ -11,6 +11,9 @@ import {
   FaCog,
   FaEnvelope,
   FaHeart,
+  FaBuilding,
+  FaPhotoVideo,
+  FaUserTie,
   FaSignOutAlt,
   FaTimes,
 } from "react-icons/fa";
@@ -42,6 +45,21 @@ const menu = [
     icon: FaHeart,
   },
   {
+    name: "Executive Bodies",
+    path: "/admin/executive-bodies",
+    icon: FaBuilding,
+  },
+  {
+    name: "Executive Members",
+    path: "/admin/executive-members",
+    icon: FaUserTie,
+  },
+  {
+    name: "Media",
+    path: "/admin/media",
+    icon: FaPhotoVideo,
+  },
+  {
     name: "Settings",
     path: "/admin/settings",
     icon: FaCog,
@@ -56,10 +74,29 @@ export default function AdminSidebar({
   setOpen: (open: boolean) => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  /* =========================
+     LOGOUT
+  ========================= */
+
+  const handleLogout = () => {
+    // Remove login information if stored
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("admin");
+    localStorage.removeItem("token");
+
+    // Close mobile sidebar
+    setOpen(false);
+
+    // Go to login page
+    router.push("/admin/login");
+  };
 
   return (
     <>
       {/* ================= MOBILE OVERLAY ================= */}
+
       {open && (
         <div
           onClick={() => setOpen(false)}
@@ -75,6 +112,7 @@ export default function AdminSidebar({
       )}
 
       {/* ================= SIDEBAR ================= */}
+
       <aside
         className={`
           fixed
@@ -104,23 +142,36 @@ export default function AdminSidebar({
           lg:translate-x-0
         `}
       >
-
         {/* ================= LOGO ================= */}
-        <div className="h-[76px] px-6 flex items-center justify-between border-b border-gray-100">
+
+        <div
+          className="
+            h-[76px]
+            px-6
+            flex
+            items-center
+            justify-between
+            border-b
+            border-gray-100
+            shrink-0
+          "
+        >
+          {/* LOGO */}
 
           <Link
             href="/admin/dashboard"
+            onClick={() => setOpen(false)}
             className="flex items-center gap-3"
           >
-
             {/* Logo Icon */}
+
             <div
               className="
                 w-10
                 h-10
                 rounded-xl
-               bg-gray-50/80
-                text-black
+                bg-gray-50
+                text-gray-900
                 flex
                 items-center
                 justify-center
@@ -133,22 +184,39 @@ export default function AdminSidebar({
             </div>
 
             {/* Logo Text */}
+
             <div>
-              <h1 className="text-lg font-bold text-gray-900 leading-none">
+              <h1
+                className="
+                  text-lg
+                  font-bold
+                  text-gray-900
+                  leading-none
+                "
+              >
                 AV Matrimony
               </h1>
 
-              <p className="text-[10px] text-gray-400 mt-1 tracking-wide uppercase">
+              <p
+                className="
+                  text-[10px]
+                  text-gray-400
+                  mt-1
+                  tracking-wide
+                  uppercase
+                "
+              >
                 Admin Panel
               </p>
             </div>
-
           </Link>
 
-          {/* Mobile Close */}
+          {/* MOBILE CLOSE */}
+
           <button
             type="button"
             onClick={() => setOpen(false)}
+            aria-label="Close sidebar"
             className="
               lg:hidden
               w-9
@@ -163,32 +231,30 @@ export default function AdminSidebar({
               transition
             "
           >
-            <FaTimes />
+            <FaTimes className="text-sm" />
           </button>
-
         </div>
 
         {/* ================= NAVIGATION ================= */}
-        <nav className="flex-1 px-4 py-6 overflow-y-auto">
 
-          {/* Section Label */}
-          
-
+        <nav
+          className="
+            flex-1
+            px-4
+            py-6
+            overflow-y-auto
+            scrollbar-thin
+          "
+        >
           <div className="space-y-1">
-
             {menu.map((item) => {
-
               const Icon = item.icon;
 
-              /*
-                Supports nested routes as well.
-                Example:
-                /admin/membership/add
-                will keep Membership active.
-              */
               const active =
                 pathname === item.path ||
-                pathname.startsWith(`${item.path}/`);
+                pathname.startsWith(
+                  `${item.path}/`
+                );
 
               return (
                 <Link
@@ -218,14 +284,14 @@ export default function AdminSidebar({
                         `
                         : `
                           text-gray-600
-                          hover:bg-gray-50/80
+                          hover:bg-gray-50
                           hover:text-gray-900
                         `
                     }
                   `}
                 >
+                  {/* ACTIVE INDICATOR */}
 
-                  {/* Active Indicator */}
                   {active && (
                     <span
                       className="
@@ -236,12 +302,13 @@ export default function AdminSidebar({
                         w-1
                         h-7
                         rounded-r-full
-                        bg-gray-50/80
+                        bg-[#8B1E3F]
                       "
                     />
                   )}
 
-                  {/* Icon */}
+                  {/* ICON */}
+
                   <span
                     className={`
                       w-9
@@ -251,37 +318,124 @@ export default function AdminSidebar({
                       items-center
                       justify-center
                       transition-all
+                      shrink-0
 
                       ${
                         active
-                          ? "bg-white text-[#8B1E3F] shadow-sm"
-                          : "text-gray-400 group-hover:text-gray-700"
+                          ? `
+                            bg-white
+                            text-[#8B1E3F]
+                            shadow-sm
+                          `
+                          : `
+                            text-gray-400
+                            group-hover:text-gray-700
+                          `
                       }
                     `}
                   >
                     <Icon className="text-[15px]" />
                   </span>
 
-                  {/* Menu Name */}
+                  {/* MENU NAME */}
+
                   <span className="flex-1">
                     {item.name}
                   </span>
 
-                  {/* Active Dot */}
-                  {active && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#8B1E3F]" />
-                  )}
+                  {/* ACTIVE DOT */}
 
+                  {active && (
+                    <span
+                      className="
+                        w-1.5
+                        h-1.5
+                        rounded-full
+                        bg-[#8B1E3F]
+                        shrink-0
+                      "
+                    />
+                  )}
                 </Link>
               );
             })}
-
           </div>
-
         </nav>
 
-      
+        {/* ================= BOTTOM AREA ================= */}
 
+        <div
+          className="
+            px-4
+            py-4
+            border-t
+            border-gray-100
+            shrink-0
+            space-y-2
+          "
+        >
+          {/* ================= LOGOUT BUTTON ================= */}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="
+              w-full
+              flex
+              items-center
+              gap-3
+              px-3
+              py-3
+              rounded-xl
+              text-sm
+              font-medium
+              text-gray-600
+              hover:bg-red-50
+              hover:text-red-600
+              transition-all
+              duration-200
+              group
+            "
+          >
+            {/* Logout Icon */}
+
+            <span
+              className="
+                w-9
+                h-9
+                rounded-lg
+                flex
+                items-center
+                justify-center
+                bg-gray-50
+                text-gray-400
+                group-hover:bg-red-100
+                group-hover:text-red-600
+                transition
+              "
+            >
+              <FaSignOutAlt className="text-[15px]" />
+            </span>
+
+            <span className="flex-1 text-left">
+              Logout
+            </span>
+          </button>
+
+          {/* ================= FOOTER ================= */}
+
+          <div
+            className="
+              px-3
+              py-2
+              text-[11px]
+              text-gray-400
+              text-center
+            "
+          >
+            AV Matrimony Admin
+          </div>
+        </div>
       </aside>
     </>
   );

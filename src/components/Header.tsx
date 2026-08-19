@@ -177,16 +177,20 @@ const menuItems: MenuItem[] = [
     icon: FaImages,
     children: [
       {
-        label: "Photos",
-        href: "/media/photos",
+        label: "State Body News",
+        href: "/media/state-news",
       },
       {
-        label: "Videos",
-        href: "/media/videos",
+        label: "District Body News",
+        href: "/media/district-news",
       },
       {
-        label: "News",
-        href: "/media/news",
+        label: "Mandal Body News",
+        href: "/media/mandal-news",
+      },
+      {
+        label: "Sangam Body News",
+        href: "/media/sangam-news",
       },
     ],
   },
