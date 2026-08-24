@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { Toaster } from "react-hot-toast";
 
 export default function Layout({
   children,
@@ -10,9 +11,20 @@ export default function Layout({
 }) {
   const pathname = usePathname();
 
-  if (pathname === "/admin/login") {
-    return <>{children}</>;
-  }
+  return (
+    <>
+      {pathname === "/admin/login" ? (
+        children
+      ) : (
+        <AdminLayout>{children}</AdminLayout>
+      )}
 
-  return <AdminLayout>{children}</AdminLayout>;
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+        }}
+      />
+    </>
+  );
 }

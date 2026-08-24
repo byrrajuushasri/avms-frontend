@@ -1,178 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FaHeart } from "react-icons/fa";
-
-/* =========================================================
-   TELANGANA DISTRICT DATA
-========================================================= */
-
-const telanganaData = {
-  Hyderabad: {
-    mandals: [
-      "Amberpet",
-      "Asifnagar",
-      "Bahadurpura",
-      "Charminar",
-      "Khairatabad",
-      "Nampally",
-      "Secunderabad",
-      "Shaikpet",
-      "Musheerabad",
-    ],
-    sanghams: [
-      "Hyderabad Arya Vysya Sangham",
-      "Secunderabad Arya Vysya Sangham",
-      "Charminar Arya Vysya Sangham",
-    ],
-  },
-
-  Rangareddy: {
-    mandals: [
-      "Rajendranagar",
-      "Serilingampally",
-      "Shamshabad",
-      "Maheshwaram",
-      "Ibrahimpatnam",
-      "Hayathnagar",
-    ],
-    sanghams: [
-      "Rangareddy Arya Vysya Sangham",
-      "Shamshabad Arya Vysya Sangham",
-      "Rajendranagar Arya Vysya Sangham",
-    ],
-  },
-
-  Medchal_Malkajgiri: {
-    mandals: [
-      "Medchal",
-      "Malkajgiri",
-      "Keesara",
-      "Kapra",
-      "Quthbullapur",
-      "Shamirpet",
-    ],
-    sanghams: [
-      "Medchal Arya Vysya Sangham",
-      "Malkajgiri Arya Vysya Sangham",
-      "Keesara Arya Vysya Sangham",
-    ],
-  },
-
-  Sangareddy: {
-    mandals: [
-      "Sangareddy",
-      "Patancheru",
-      "Ameenpur",
-      "Zaheerabad",
-      "Jinnaram",
-      "Narayankhed",
-    ],
-    sanghams: [
-      "Sangareddy Arya Vysya Sangham",
-      "Patancheru Arya Vysya Sangham",
-      "Zaheerabad Arya Vysya Sangham",
-    ],
-  },
-
-  Warangal: {
-    mandals: [
-      "Hanamkonda",
-      "Kazipet",
-      "Warangal",
-      "Atmakur",
-      "Dharmasagar",
-      "Parkal",
-    ],
-    sanghams: [
-      "Warangal Arya Vysya Sangham",
-      "Hanamkonda Arya Vysya Sangham",
-      "Kazipet Arya Vysya Sangham",
-    ],
-  },
-
-  Karimnagar: {
-    mandals: [
-      "Karimnagar",
-      "Manakondur",
-      "Huzurabad",
-      "Choppadandi",
-      "Gangadhara",
-      "Veenavanka",
-    ],
-    sanghams: [
-      "Karimnagar Arya Vysya Sangham",
-      "Huzurabad Arya Vysya Sangham",
-      "Manakondur Arya Vysya Sangham",
-    ],
-  },
-
-  Nizamabad: {
-    mandals: [
-      "Nizamabad",
-      "Bodhan",
-      "Armoor",
-      "Balkonda",
-      "Dichpally",
-      "Navipet",
-    ],
-    sanghams: [
-      "Nizamabad Arya Vysya Sangham",
-      "Bodhan Arya Vysya Sangham",
-      "Armoor Arya Vysya Sangham",
-    ],
-  },
-
-  Khammam: {
-    mandals: [
-      "Khammam",
-      "Madhira",
-      "Wyra",
-      "Kusumanchi",
-      "Kallur",
-      "Sathupalli",
-    ],
-    sanghams: [
-      "Khammam Arya Vysya Sangham",
-      "Madhira Arya Vysya Sangham",
-      "Sathupalli Arya Vysya Sangham",
-    ],
-  },
-
-  Nalgonda: {
-    mandals: [
-      "Nalgonda",
-      "Miryalaguda",
-      "Devarakonda",
-      "Chandur",
-      "Nakrekal",
-      "Munugode",
-    ],
-    sanghams: [
-      "Nalgonda Arya Vysya Sangham",
-      "Miryalaguda Arya Vysya Sangham",
-      "Devarakonda Arya Vysya Sangham",
-    ],
-  },
-
-  Mahbubnagar: {
-    mandals: [
-      "Mahbubnagar",
-      "Jadcherla",
-      "Bhoothpur",
-      "Devarkadra",
-      "Narayanpet",
-      "Makthal",
-    ],
-    sanghams: [
-      "Mahbubnagar Arya Vysya Sangham",
-      "Jadcherla Arya Vysya Sangham",
-      "Narayanpet Arya Vysya Sangham",
-    ],
-  },
-} as const;
+import {
+  FaHeart,
+  FaCheckCircle,
+  FaLock,
+} from "react-icons/fa";
 
 /* =========================================================
    GOTRAM
@@ -321,22 +155,58 @@ const nakshatramList = [
 ========================================================= */
 
 const rasiList = [
-  { value: "Mesha", label: "Mesha (Aries)" },
-  { value: "Vrishabha", label: "Vrishabha (Taurus)" },
-  { value: "Mithuna", label: "Mithuna (Gemini)" },
-  { value: "Karka", label: "Karka (Cancer)" },
-  { value: "Simha", label: "Simha (Leo)" },
-  { value: "Kanya", label: "Kanya (Virgo)" },
-  { value: "Tula", label: "Tula (Libra)" },
-  { value: "Vrischika", label: "Vrischika (Scorpio)" },
-  { value: "Dhanu", label: "Dhanu (Sagittarius)" },
-  { value: "Makara", label: "Makara (Capricorn)" },
-  { value: "Kumbha", label: "Kumbha (Aquarius)" },
-  { value: "Meena", label: "Meena (Pisces)" },
+  {
+    value: "Mesha",
+    label: "Mesha (Aries)",
+  },
+  {
+    value: "Vrishabha",
+    label: "Vrishabha (Taurus)",
+  },
+  {
+    value: "Mithuna",
+    label: "Mithuna (Gemini)",
+  },
+  {
+    value: "Karka",
+    label: "Karka (Cancer)",
+  },
+  {
+    value: "Simha",
+    label: "Simha (Leo)",
+  },
+  {
+    value: "Kanya",
+    label: "Kanya (Virgo)",
+  },
+  {
+    value: "Tula",
+    label: "Tula (Libra)",
+  },
+  {
+    value: "Vrischika",
+    label: "Vrischika (Scorpio)",
+  },
+  {
+    value: "Dhanu",
+    label: "Dhanu (Sagittarius)",
+  },
+  {
+    value: "Makara",
+    label: "Makara (Capricorn)",
+  },
+  {
+    value: "Kumbha",
+    label: "Kumbha (Aquarius)",
+  },
+  {
+    value: "Meena",
+    label: "Meena (Pisces)",
+  },
 ];
 
 /* =========================================================
-   OTHER LISTS
+   EDUCATION
 ========================================================= */
 
 const educationList = [
@@ -361,6 +231,10 @@ const educationList = [
   "Other",
 ];
 
+/* =========================================================
+   COLOR
+========================================================= */
+
 const colorList = [
   "Very Fair",
   "Fair",
@@ -369,6 +243,10 @@ const colorList = [
   "Brown",
   "Dark",
 ];
+
+/* =========================================================
+   PARENT OCCUPATION
+========================================================= */
 
 const parentOccupationList = [
   "Business",
@@ -380,6 +258,10 @@ const parentOccupationList = [
   "Late",
   "Other",
 ];
+
+/* =========================================================
+   PROFILE CATEGORY
+========================================================= */
 
 const profileCategoryList = [
   {
@@ -430,7 +312,7 @@ const labelClass =
   "text-sm font-medium text-gray-700";
 
 /* =========================================================
-   GOTRAM SELECT COMPONENT
+   GOTRAM SELECT
 ========================================================= */
 
 function GotramSelect({
@@ -462,9 +344,12 @@ function GotramSelect({
           Select Gotram
         </option>
 
-        {gotramList.map((g, i) => (
-          <option key={g} value={g}>
-            {i + 1}. {g}
+        {gotramList.map((gotram, index) => (
+          <option
+            key={gotram}
+            value={gotram}
+          >
+            {index + 1}. {gotram}
           </option>
         ))}
       </select>
@@ -479,16 +364,49 @@ function GotramSelect({
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
+
+  const [checkingMember, setCheckingMember] =
+    useState(false);
+
+  const [memberVerified, setMemberVerified] =
+    useState(false);
+
+  const [memberId, setMemberId] =
+    useState("");
+
+  const [verificationMessage, setVerificationMessage] =
+    useState("");
+
+  const [verificationError, setVerificationError] =
+    useState("");
+
+  /* =========================================================
+     MEMBERSHIP VERIFICATION DATA
+
+     Mobile + Email are ONLY used for verification.
+     They are NOT displayed again in the Matrimonial form.
+  ========================================================= */
+
+  const [verificationData, setVerificationData] =
+    useState({
+      mobile: "",
+      email: "",
+    });
+
+  /* =========================================================
+     MATRIMONIAL FORM DATA
+
+     Profile Category defaults to Professional.
+  ========================================================= */
 
   const [formData, setFormData] = useState({
-    profile_category: "",
-    surname: "",
-    name: "",
+    profile_category: "Professional",
+
     father_name: "",
     mother_name: "",
 
-    gotram: "",
     father_gotram: "",
     mother_gotram: "",
     grandmother_gotram: "",
@@ -497,35 +415,42 @@ export default function RegisterPage() {
     padham: "",
     rasi: "",
     color: "",
-    date_of_birth: "",
     height: "",
 
     education: "",
-    occupation: "",
     annual_income: "",
 
-    mobile: "",
-    email: "",
-
     address: "",
-    district: "",
-    mandal: "",
-    sangham: "",
 
     father_occupation: "",
     mother_occupation: "",
 
-    family_details: "",
     brother_details: "",
     sister_details: "",
+
     property_details: "",
     preferred_requirements: "",
-
-    photo: null as File | null,
   });
 
   /* =========================================================
-     HANDLE INPUT
+     HANDLE VERIFICATION INPUT
+  ========================================================= */
+
+  const handleVerificationChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+
+    setVerificationData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setVerificationError("");
+  };
+
+  /* =========================================================
+     HANDLE MATRIMONIAL INPUT
   ========================================================= */
 
   const handleChange = (
@@ -544,41 +469,137 @@ export default function RegisterPage() {
   };
 
   /* =========================================================
-     DISTRICT CHANGE
+     CHECK MEMBER
   ========================================================= */
 
-  const handleDistrictChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const { value } = e.target;
+  const handleCheckMember = async () => {
+    if (checkingMember) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      district: value,
-      mandal: "",
-      sangham: "",
-    }));
-  };
+    const mobile =
+      verificationData.mobile.trim();
 
-  /* =========================================================
-     PHOTO
-  ========================================================= */
+    const email =
+      verificationData.email.trim();
 
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
+    /* Both empty */
+    if (!mobile && !email) {
+      setVerificationError(
+        "Please enter Mobile Number or Email."
+      );
+      return;
+    }
 
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        photo: file,
-      }));
+    setCheckingMember(true);
+
+    setVerificationError("");
+    setVerificationMessage("");
+    setMemberVerified(false);
+    setMemberId("");
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/matrimonial-users/check-member",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            mobile: mobile || undefined,
+            email: email || undefined,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      console.log(
+        "CHECK MEMBER RESPONSE:",
+        data
+      );
+
+      /* =========================================
+         ALREADY MATRIMONIAL REGISTERED
+      ========================================= */
+
+      if (data.alreadyRegistered) {
+        setVerificationError(
+          `${
+            data.message ||
+            "This Member is already registered in Matrimonial."
+          }${
+            data.data
+              ?.matrimonial_member_id
+              ? ` Matrimonial ID: ${data.data.matrimonial_member_id}`
+              : ""
+          }`
+        );
+
+        return;
+      }
+
+      /* =========================================
+         MEMBER NOT FOUND
+      ========================================= */
+
+      if (
+        !response.ok ||
+        !data.success ||
+        !data.canRegister
+      ) {
+        setVerificationError(
+          data.message ||
+            "Member not found. Please register as a member first."
+        );
+
+        return;
+      }
+
+      /* =========================================
+         MEMBER VERIFIED
+      ========================================= */
+
+      const member = data.data;
+
+      const verifiedMobile =
+        member.mobile || mobile;
+
+      const verifiedEmail =
+        member.email || email;
+
+      setMemberVerified(true);
+
+      setMemberId(
+        member.member_id || ""
+      );
+
+      setVerificationMessage(
+        "Member verified successfully. You can now complete the Matrimonial form."
+      );
+
+      /* Keep verified details internally.
+         They are NOT displayed again in form. */
+
+      setVerificationData({
+        mobile: verifiedMobile,
+        email: verifiedEmail,
+      });
+    } catch (error) {
+      console.error(
+        "Check Member Error:",
+        error
+      );
+
+      setVerificationError(
+        "Backend server connection failed. Please check whether NestJS is running on port 5000."
+      );
+    } finally {
+      setCheckingMember(false);
     }
   };
 
   /* =========================================================
-     SUBMIT
+     SUBMIT MATRIMONIAL PROFILE
   ========================================================= */
 
   const handleSubmit = async (
@@ -588,250 +609,214 @@ export default function RegisterPage() {
 
     if (loading) return;
 
-    /* BASIC VALIDATION */
+    /* =========================================
+       MEMBERSHIP VERIFICATION REQUIRED
+    ========================================= */
 
-    if (!formData.name.trim()) {
-      alert("Please enter your name");
+    if (!memberVerified) {
+      alert(
+        "Please verify your Membership before registering for Matrimonial."
+      );
       return;
     }
 
-    if (!formData.mobile.trim()) {
-      alert("Please enter your mobile number");
+    /* =========================================
+       CHECK VERIFIED MEMBER DETAILS
+
+       These are hidden/internal values.
+       They are not shown again in the form.
+    ========================================= */
+
+    const verifiedMobile =
+      verificationData.mobile.trim();
+
+    const verifiedEmail =
+      verificationData.email.trim();
+
+    if (!verifiedMobile && !verifiedEmail) {
+      alert(
+        "Membership verification details are missing. Please verify your Membership again."
+      );
       return;
     }
 
-    if (!formData.email.trim()) {
-      alert("Please enter your email");
+    if (!memberId) {
+      alert(
+        "Membership ID is missing. Please verify your Membership again."
+      );
+      return;
+    }
+
+    /* =========================================
+       BASIC VALIDATION
+    ========================================= */
+
+    if (!formData.profile_category) {
+      alert(
+        "Please select Profile Category."
+      );
+      return;
+    }
+
+    if (!formData.father_name.trim()) {
+      alert(
+        "Please enter Father's Name."
+      );
+      return;
+    }
+
+    if (!formData.mother_name.trim()) {
+      alert(
+        "Please enter Mother's Name."
+      );
       return;
     }
 
     setLoading(true);
 
     try {
-      /* =====================================================
-         CREATE FORMDATA
-      ===================================================== */
+      const formDataToSend =
+        new FormData();
 
-      const formDataToSend = new FormData();
+      /* =========================================
+         VERIFIED MEMBERSHIP DATA
 
-      formDataToSend.append(
-        "profile_category",
-        formData.profile_category
-      );
+         IMPORTANT:
+         These are NOT visible duplicate fields.
 
-      formDataToSend.append(
-        "surname",
-        formData.surname
-      );
+         They are sent internally because the
+         backend requires Mobile / Email.
+      ========================================= */
 
       formDataToSend.append(
-        "name",
-        formData.name
-      );
-
-      formDataToSend.append(
-        "father_name",
-        formData.father_name
-      );
-
-      formDataToSend.append(
-        "mother_name",
-        formData.mother_name
-      );
-
-      formDataToSend.append(
-        "gotram",
-        formData.gotram
-      );
-
-      formDataToSend.append(
-        "father_gotram",
-        formData.father_gotram
-      );
-
-      formDataToSend.append(
-        "mother_gotram",
-        formData.mother_gotram
-      );
-
-      formDataToSend.append(
-        "grandmother_gotram",
-        formData.grandmother_gotram
-      );
-
-      formDataToSend.append(
-        "nakshatram",
-        formData.nakshatram
-      );
-
-      formDataToSend.append(
-        "padham",
-        formData.padham === ""
-          ? ""
-          : String(Number(formData.padham))
-      );
-
-      formDataToSend.append(
-        "rasi",
-        formData.rasi
-      );
-
-      formDataToSend.append(
-        "color",
-        formData.color
-      );
-
-      formDataToSend.append(
-        "date_of_birth",
-        formData.date_of_birth
-      );
-
-      formDataToSend.append(
-        "height",
-        formData.height
-      );
-
-      formDataToSend.append(
-        "education",
-        formData.education
-      );
-
-      formDataToSend.append(
-        "occupation",
-        formData.occupation
-      );
-
-      formDataToSend.append(
-        "annual_income",
-        formData.annual_income
+        "member_id",
+        memberId
       );
 
       formDataToSend.append(
         "mobile",
-        formData.mobile
+        verifiedMobile
       );
 
       formDataToSend.append(
         "email",
-        formData.email
+        verifiedEmail
       );
 
-      formDataToSend.append(
+      /* =========================================
+         MATRIMONIAL FIELDS ONLY
+      ========================================= */
+
+      const fields = [
+        "profile_category",
+        "father_name",
+        "mother_name",
+        "father_gotram",
+        "mother_gotram",
+        "grandmother_gotram",
+        "nakshatram",
+        "padham",
+        "rasi",
+        "color",
+        "height",
+        "education",
+        "annual_income",
         "address",
-        formData.address
-      );
-
-      formDataToSend.append(
-        "district",
-        formData.district
-      );
-
-      formDataToSend.append(
-        "mandal",
-        formData.mandal
-      );
-
-      formDataToSend.append(
-        "sangham",
-        formData.sangham
-      );
-
-      formDataToSend.append(
         "father_occupation",
-        formData.father_occupation
-      );
-
-      formDataToSend.append(
         "mother_occupation",
-        formData.mother_occupation
-      );
-
-      formDataToSend.append(
-        "family_details",
-        formData.family_details
-      );
-
-      formDataToSend.append(
         "brother_details",
-        formData.brother_details
-      );
-
-      formDataToSend.append(
         "sister_details",
-        formData.sister_details
-      );
-
-      formDataToSend.append(
         "property_details",
-        formData.property_details
-      );
-
-      formDataToSend.append(
         "preferred_requirements",
-        formData.preferred_requirements
-      );
+      ] as const;
 
-      /* PHOTO */
-
-      if (formData.photo) {
+      fields.forEach((field) => {
         formDataToSend.append(
-          "photo",
-          formData.photo
+          field,
+          formData[field]
         );
-      }
+      });
 
       console.log(
-        "Sending registration with photo:",
-        formData.photo?.name
+        "Submitting Matrimonial Profile:",
+        {
+          memberId,
+          mobile: verifiedMobile,
+          email: verifiedEmail,
+          matrimonialFields: formData,
+        }
       );
 
-      /* =====================================================
-         API
-      ===================================================== */
+      /* =========================================
+         REGISTER API
+      ========================================= */
 
       const response = await fetch(
         "http://localhost:5000/matrimonial-users/register",
         {
           method: "POST",
-
-          // Do NOT manually set Content-Type.
-          // Browser automatically creates multipart boundary.
-
           body: formDataToSend,
         }
-      );
-
-      console.log(
-        "Status:",
-        response.status
       );
 
       const data = await response.json();
 
       console.log(
-        "Response:",
+        "REGISTER RESPONSE:",
         data
       );
 
-      /* =====================================================
+      /* =========================================
          SUCCESS
-      ===================================================== */
+      ========================================= */
 
       if (
         response.ok &&
         data.success
       ) {
+        const matrimonialId =
+          data.data?.member_id ||
+          data.data?.matrimonial_member_id ||
+          "";
+
         alert(
-          "Registration Successful!"
+          `Registration Successful!\nMatrimonial ID: ${matrimonialId}`
         );
 
-        router.push("/login");
-      } else {
-        alert(
-          data.message ||
-            "Registration Failed"
-        );
+        router.push("/search");
+
+        return;
       }
+
+      /* =========================================
+         ALREADY REGISTERED
+      ========================================= */
+
+      if (data.alreadyRegistered) {
+        alert(
+          `${
+            data.message ||
+            "This Member is already registered in Matrimonial."
+          }\nMatrimonial ID: ${
+            data.data
+              ?.matrimonial_member_id ||
+            ""
+          }`
+        );
+
+        return;
+      }
+
+      /* =========================================
+         VALIDATION / SERVER ERROR
+      ========================================= */
+
+      alert(
+        Array.isArray(data.message)
+          ? data.message.join(", ")
+          : data.message ||
+              "Registration Failed"
+      );
     } catch (error) {
       console.error(
         "Registration Error:",
@@ -847,23 +832,15 @@ export default function RegisterPage() {
   };
 
   /* =========================================================
-     SELECTED DISTRICT
-  ========================================================= */
-
-  const selectedDistrict =
-    formData.district &&
-    telanganaData[
-      formData.district as keyof typeof telanganaData
-    ];
-
-  /* =========================================================
      UI
   ========================================================= */
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
 
-      {/* BACKGROUND */}
+      {/* ===============================================
+          BACKGROUND
+      =============================================== */}
 
       <div className="absolute -left-56 top-20 h-[500px] w-[500px] rounded-full bg-pink-200/40 blur-[120px]" />
 
@@ -873,13 +850,17 @@ export default function RegisterPage() {
 
       <FaHeart className="absolute bottom-24 right-16 text-8xl text-rose-300 opacity-20" />
 
-      {/* MAIN CARD */}
+      {/* ===============================================
+          MAIN CARD
+      =============================================== */}
 
-      <div className="relative z-10 flex justify-center px-6 py-10">
+      <div className="relative z-10 flex justify-center px-4 py-10 sm:px-6">
 
-        <div className="w-full max-w-6xl rounded-3xl border border-pink-100 bg-white/95 p-6 shadow-[0_20px_60px_rgba(233,30,99,0.12)] backdrop-blur sm:p-8 lg:p-10">
+        <div className="w-full max-w-6xl rounded-3xl border border-pink-100 bg-white/95 p-5 shadow-[0_20px_60px_rgba(233,30,99,0.12)] backdrop-blur sm:p-8 lg:p-10">
 
-          {/* HEADER */}
+          {/* =============================================
+              HEADER
+          ============================================= */}
 
           <div className="mb-8 text-center">
 
@@ -888,780 +869,819 @@ export default function RegisterPage() {
             </h2>
 
             <p className="mt-2 text-sm text-gray-500">
-              Please provide your details carefully
+              First verify your Membership, then complete your Matrimonial profile
             </p>
 
           </div>
 
-          {/* FORM */}
+          {/* =============================================
+              MEMBERSHIP VERIFICATION
+          ============================================= */}
 
-          <form
-            onSubmit={handleSubmit}
-            className="grid gap-5 md:grid-cols-2"
+          <div className="mb-10 rounded-2xl border border-pink-200 bg-pink-50/60 p-5">
+
+            <div className="mb-4 flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-600 text-white">
+                <FaCheckCircle />
+              </div>
+
+              <div>
+
+                <h3 className="font-bold text-[#8B1E3F]">
+                  Membership Verification
+                </h3>
+
+                <p className="text-xs text-gray-500">
+                  Enter your registered Mobile Number or Email
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+
+              {/* MOBILE */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Registered Mobile
+                </label>
+
+                <input
+                  type="tel"
+                  name="mobile"
+                  value={
+                    verificationData.mobile
+                  }
+                  onChange={
+                    handleVerificationChange
+                  }
+                  disabled={
+                    memberVerified
+                  }
+                  placeholder="Enter Mobile Number"
+                  className={`${inputClass} ${
+                    memberVerified
+                      ? "cursor-not-allowed bg-gray-100"
+                      : ""
+                  }`}
+                />
+
+              </div>
+
+              {/* EMAIL */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Registered Email
+                </label>
+
+                <input
+                  type="email"
+                  name="email"
+                  value={
+                    verificationData.email
+                  }
+                  onChange={
+                    handleVerificationChange
+                  }
+                  disabled={
+                    memberVerified
+                  }
+                  placeholder="Enter Email"
+                  className={`${inputClass} ${
+                    memberVerified
+                      ? "cursor-not-allowed bg-gray-100"
+                      : ""
+                  }`}
+                />
+
+              </div>
+
+              {/* VERIFY BUTTON */}
+
+              <div className="flex items-end">
+
+                {!memberVerified ? (
+                  <button
+                    type="button"
+                    onClick={
+                      handleCheckMember
+                    }
+                    disabled={
+                      checkingMember
+                    }
+                    className="h-12 w-full rounded-xl bg-gradient-to-r from-[#8B1E3F] to-[#d81b60] font-semibold text-white shadow-md transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {checkingMember
+                      ? "Checking..."
+                      : "Verify Membership"}
+                  </button>
+                ) : (
+                  <div className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-green-100 font-semibold text-green-700">
+                    <FaCheckCircle />
+                    Member Verified
+                  </div>
+                )}
+
+              </div>
+
+            </div>
+
+            {/* ERROR */}
+
+            {verificationError && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {verificationError}
+              </div>
+            )}
+
+            {/* SUCCESS */}
+
+            {verificationMessage && (
+              <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+
+                <div>
+                  {verificationMessage}
+                </div>
+
+                {memberId && (
+                  <div className="mt-1 font-bold">
+                    Membership ID: {memberId}
+                  </div>
+                )}
+
+              </div>
+            )}
+
+          </div>
+
+          {/* =============================================
+              MATRIMONIAL FORM AREA
+          ============================================= */}
+
+          <div
+            className={
+              !memberVerified
+                ? "pointer-events-none relative opacity-50"
+                : "relative"
+            }
           >
 
-            {/* PROFILE CATEGORY */}
+            {/* LOCK MESSAGE */}
 
-            <div>
-              <label className={labelClass}>
-                Profile Category
-              </label>
+            {!memberVerified && (
+              <div className="absolute inset-0 z-20 flex items-start justify-center pt-20">
 
-              <select
-                name="profile_category"
-                value={formData.profile_category}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Category
-                </option>
+                <div className="rounded-2xl border border-pink-200 bg-white px-6 py-5 text-center shadow-xl">
 
-                {profileCategoryList.map(
-                  (category) => (
-                    <option
-                      key={category.value}
-                      value={category.value}
-                    >
-                      {category.label}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
+                  <FaLock className="mx-auto mb-3 text-2xl text-pink-600" />
 
-            {/* PHOTO */}
+                  <p className="font-semibold text-[#8B1E3F]">
+                    Please verify Membership first
+                  </p>
 
-            <div>
-              <label className={labelClass}>
-                Upload Photo
-              </label>
+                  <p className="mt-1 text-sm text-gray-500">
+                    The Matrimonial form will open after Member verification.
+                  </p>
 
-              <input
-                type="file"
-                name="photo"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="mt-2 w-full rounded-xl border border-pink-200 p-3"
-              />
+                </div>
 
-              {formData.photo && (
-                <p className="mt-2 text-xs text-gray-500">
-                  Selected:{" "}
-                  {formData.photo.name}
-                </p>
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* DISTRICT */}
+            {/* =========================================
+                FORM
+            ========================================= */}
 
-            <div>
-              <label className={labelClass}>
-                District
-              </label>
+            <form
+              onSubmit={handleSubmit}
+              className="grid gap-5 md:grid-cols-2"
+            >
 
-              <select
-                name="district"
-                value={formData.district}
-                onChange={handleDistrictChange}
-                required
-                className={inputClass}
-              >
-                <option value="">
-                  Select District
-                </option>
+              {/* =======================================
+                  PROFILE CATEGORY
+              ======================================= */}
 
-                {Object.keys(
-                  telanganaData
-                ).map((district) => (
-                  <option
-                    key={district}
-                    value={district}
-                  >
-                    {district.replaceAll(
-                      "_",
-                      " "
-                    )}
+              <div>
+
+                <label className={labelClass}>
+                  Profile Category
+                </label>
+
+                <select
+                  name="profile_category"
+                  value={
+                    formData.profile_category
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+
+                  <option value="">
+                    Select Category
                   </option>
-                ))}
-              </select>
-            </div>
 
-            {/* MANDAL */}
-
-            <div>
-              <label className={labelClass}>
-                Mandal
-              </label>
-
-              <select
-                name="mandal"
-                value={formData.mandal}
-                onChange={handleChange}
-                required
-                disabled={!formData.district}
-                className={`${inputClass} disabled:bg-gray-100`}
-              >
-                <option value="">
-                  Select Mandal
-                </option>
-
-                {selectedDistrict &&
-                  selectedDistrict.mandals.map(
-                    (mandal) => (
+                  {profileCategoryList.map(
+                    (category) => (
                       <option
-                        key={mandal}
-                        value={mandal}
+                        key={
+                          category.value
+                        }
+                        value={
+                          category.value
+                        }
                       >
-                        {mandal}
+                        {category.label}
                       </option>
                     )
                   )}
-              </select>
-            </div>
 
-            {/* SANGHAM */}
+                </select>
 
-            <div>
-              <label className={labelClass}>
-                Sangham
-              </label>
+              </div>
 
-              <select
-                name="sangham"
-                value={formData.sangham}
+              {/* =======================================
+                  FATHER NAME
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Father's Name
+                </label>
+
+                <input
+                  type="text"
+                  name="father_name"
+                  value={
+                    formData.father_name
+                  }
+                  onChange={handleChange}
+                  placeholder="Father's Name"
+                  className={inputClass}
+                />
+
+              </div>
+
+              {/* =======================================
+                  MOTHER NAME
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Mother's Name
+                </label>
+
+                <input
+                  type="text"
+                  name="mother_name"
+                  value={
+                    formData.mother_name
+                  }
+                  onChange={handleChange}
+                  placeholder="Mother's Name"
+                  className={inputClass}
+                />
+
+              </div>
+
+              {/* =======================================
+                  FATHER GOTRAM
+              ======================================= */}
+
+              <GotramSelect
+                name="father_gotram"
+                label="Father Gotram"
+                value={
+                  formData.father_gotram
+                }
                 onChange={handleChange}
-                required
-                disabled={!formData.district}
-                className={`${inputClass} disabled:bg-gray-100`}
-              >
-                <option value="">
-                  Select Sangham
-                </option>
+              />
 
-                {selectedDistrict &&
-                  selectedDistrict.sanghams.map(
-                    (sangham) => (
+              {/* =======================================
+                  MOTHER GOTRAM
+              ======================================= */}
+
+              <GotramSelect
+                name="mother_gotram"
+                label="Mother Gotram"
+                value={
+                  formData.mother_gotram
+                }
+                onChange={handleChange}
+              />
+
+              {/* =======================================
+                  GRAND MOTHER GOTRAM
+              ======================================= */}
+
+              <GotramSelect
+                name="grandmother_gotram"
+                label="Grand Mother Gotram"
+                value={
+                  formData.grandmother_gotram
+                }
+                onChange={handleChange}
+              />
+
+              {/* =======================================
+                  NAKSHATRAM
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Nakshatram
+                </label>
+
+                <select
+                  name="nakshatram"
+                  value={
+                    formData.nakshatram
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+
+                  <option value="">
+                    Select Nakshatram
+                  </option>
+
+                  {nakshatramList.map(
+                    (nakshatram) => (
                       <option
-                        key={sangham}
-                        value={sangham}
+                        key={nakshatram}
+                        value={nakshatram}
                       >
-                        {sangham}
+                        {nakshatram}
                       </option>
                     )
                   )}
-              </select>
-            </div>
 
-            {/* SURNAME */}
+                </select>
 
-            <div>
-              <label className={labelClass}>
-                Surname
-              </label>
+              </div>
 
-              <input
-                type="text"
-                name="surname"
-                value={formData.surname}
-                onChange={handleChange}
-                placeholder="Surname"
-                className={inputClass}
-              />
-            </div>
+              {/* =======================================
+                  PADHAM
+              ======================================= */}
 
-            {/* NAME */}
+              <div>
 
-            <div>
-              <label className={labelClass}>
-                Name
-              </label>
+                <label className={labelClass}>
+                  Nakshatram Padham
+                </label>
 
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Name"
-                required
-                className={inputClass}
-              />
-            </div>
+                <select
+                  name="padham"
+                  value={formData.padham}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
 
-            {/* FATHER NAME */}
-
-            <div>
-              <label className={labelClass}>
-                Father's Name
-              </label>
-
-              <input
-                type="text"
-                name="father_name"
-                value={formData.father_name}
-                onChange={handleChange}
-                placeholder="Father's Name"
-                className={inputClass}
-              />
-            </div>
-
-            {/* MOTHER NAME */}
-
-            <div>
-              <label className={labelClass}>
-                Mother's Name
-              </label>
-
-              <input
-                type="text"
-                name="mother_name"
-                value={formData.mother_name}
-                onChange={handleChange}
-                placeholder="Mother's Name"
-                className={inputClass}
-              />
-            </div>
-
-            {/* FATHER GOTRAM */}
-
-            <GotramSelect
-              name="father_gotram"
-              label="Father Gotram"
-              value={formData.father_gotram}
-              onChange={handleChange}
-            />
-
-            {/* MOTHER GOTRAM */}
-
-            <GotramSelect
-              name="mother_gotram"
-              label="Mother Gotram"
-              value={formData.mother_gotram}
-              onChange={handleChange}
-            />
-
-            {/* GRANDMOTHER GOTRAM */}
-
-            <GotramSelect
-              name="grandmother_gotram"
-              label="Grand Mother Gotram"
-              value={
-                formData.grandmother_gotram
-              }
-              onChange={handleChange}
-            />
-
-            {/* NAKSHATRAM */}
-
-            <div>
-              <label className={labelClass}>
-                Nakshatram
-              </label>
-
-              <select
-                name="nakshatram"
-                value={formData.nakshatram}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Nakshatram
-                </option>
-
-                {nakshatramList.map(
-                  (nakshatram) => (
-                    <option
-                      key={nakshatram}
-                      value={nakshatram}
-                    >
-                      {nakshatram}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-
-            {/* PADHAM */}
-
-            <div>
-              <label className={labelClass}>
-                Nakshatram Padham
-              </label>
-
-              <select
-                name="padham"
-                value={formData.padham}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Padham
-                </option>
-
-                <option value="1">
-                  1
-                </option>
-
-                <option value="2">
-                  2
-                </option>
-
-                <option value="3">
-                  3
-                </option>
-
-                <option value="4">
-                  4
-                </option>
-              </select>
-            </div>
-
-            {/* RASI */}
-
-            <div>
-              <label className={labelClass}>
-                Rasi
-              </label>
-
-              <select
-                name="rasi"
-                value={formData.rasi}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Rasi
-                </option>
-
-                {rasiList.map((rasi) => (
-                  <option
-                    key={rasi.value}
-                    value={rasi.value}
-                  >
-                    {rasi.label}
+                  <option value="">
+                    Select Padham
                   </option>
-                ))}
-              </select>
-            </div>
 
-            {/* DATE OF BIRTH */}
-
-            <div>
-              <label className={labelClass}>
-                Date of Birth
-              </label>
-
-              <input
-                type="date"
-                name="date_of_birth"
-                value={
-                  formData.date_of_birth
-                }
-                onChange={handleChange}
-                className={inputClass}
-              />
-            </div>
-
-            {/* COLOR */}
-
-            <div>
-              <label className={labelClass}>
-                Color
-              </label>
-
-              <select
-                name="color"
-                value={formData.color}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Color
-                </option>
-
-                {colorList.map((color) => (
-                  <option
-                    key={color}
-                    value={color}
-                  >
-                    {color}
+                  <option value="1">
+                    1
                   </option>
-                ))}
-              </select>
-            </div>
 
-            {/* HEIGHT */}
+                  <option value="2">
+                    2
+                  </option>
 
-            <div>
-              <label className={labelClass}>
-                Height
-              </label>
+                  <option value="3">
+                    3
+                  </option>
 
-              <input
-                type="text"
-                name="height"
-                value={formData.height}
-                onChange={handleChange}
-                placeholder="Example: 5.6"
-                className={inputClass}
-              />
-            </div>
+                  <option value="4">
+                    4
+                  </option>
 
-            {/* EMAIL */}
+                </select>
 
-            <div>
-              <label className={labelClass}>
-                Email ID
-              </label>
+              </div>
 
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Email ID"
-                required
-                className={inputClass}
-              />
-            </div>
+              {/* =======================================
+                  RASI
+              ======================================= */}
 
-            {/* EDUCATION */}
+              <div>
 
-            <div>
-              <label className={labelClass}>
-                Education
-              </label>
+                <label className={labelClass}>
+                  Rasi
+                </label>
 
-              <select
-                name="education"
-                value={formData.education}
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Education
-                </option>
+                <select
+                  name="rasi"
+                  value={formData.rasi}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
 
-                {educationList.map(
-                  (education) => (
-                    <option
-                      key={education}
-                      value={education}
-                    >
-                      {education}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
+                  <option value="">
+                    Select Rasi
+                  </option>
 
-            {/* OCCUPATION */}
+                  {rasiList.map(
+                    (rasi) => (
+                      <option
+                        key={rasi.value}
+                        value={rasi.value}
+                      >
+                        {rasi.label}
+                      </option>
+                    )
+                  )}
 
-            <div>
-              <label className={labelClass}>
-                Occupation
-              </label>
+                </select>
 
-              <input
-                type="text"
-                name="occupation"
-                value={formData.occupation}
-                onChange={handleChange}
-                placeholder="Occupation"
-                className={inputClass}
-              />
-            </div>
+              </div>
 
-            {/* ANNUAL INCOME */}
+              {/* =======================================
+                  COLOR
+              ======================================= */}
 
-            <div>
-              <label className={labelClass}>
-                Salary / Income
-              </label>
+              <div>
 
-              <input
-                type="text"
-                name="annual_income"
-                value={
-                  formData.annual_income
-                }
-                onChange={handleChange}
-                placeholder="Annual Income"
-                className={inputClass}
-              />
-            </div>
+                <label className={labelClass}>
+                  Color
+                </label>
 
-            {/* MOBILE */}
+                <select
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  className={inputClass}
+                >
 
-            <div>
-              <label className={labelClass}>
-                Mobile Number
-              </label>
+                  <option value="">
+                    Select Color
+                  </option>
 
-              <input
-                type="text"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handleChange}
-                placeholder="Mobile Number"
-                required
-                className={inputClass}
-              />
-            </div>
+                  {colorList.map(
+                    (color) => (
+                      <option
+                        key={color}
+                        value={color}
+                      >
+                        {color}
+                      </option>
+                    )
+                  )}
 
-            {/* ADDRESS */}
+                </select>
 
-            <div>
-              <label className={labelClass}>
-                Address
-              </label>
+              </div>
 
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Full Address"
-                rows={3}
-                className={textareaClass}
-              />
-            </div>
+              {/* =======================================
+                  HEIGHT
+              ======================================= */}
 
-            {/* FATHER DETAILS */}
+              <div>
 
-            <div>
-              <label className={labelClass}>
-                Father Details
-              </label>
+                <label className={labelClass}>
+                  Height
+                </label>
 
-              <select
-                name="father_occupation"
-                value={
-                  formData.father_occupation
-                }
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Father Details
-                </option>
+                <input
+                  type="text"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleChange}
+                  placeholder="Example: 5.6"
+                  className={inputClass}
+                />
 
-                {parentOccupationList.map(
-                  (occupation) => (
-                    <option
-                      key={occupation}
-                      value={occupation}
-                    >
-                      {occupation}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
+              </div>
 
-            {/* MOTHER DETAILS */}
+              {/* =======================================
+                  EDUCATION
+              ======================================= */}
 
-            <div>
-              <label className={labelClass}>
-                Mother Details
-              </label>
+              <div>
 
-              <select
-                name="mother_occupation"
-                value={
-                  formData.mother_occupation
-                }
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Mother Details
-                </option>
+                <label className={labelClass}>
+                  Education
+                </label>
 
-                <option value="Homemaker">
-                  Homemaker
-                </option>
+                <select
+                  name="education"
+                  value={
+                    formData.education
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
 
-                {parentOccupationList.map(
-                  (occupation) => (
-                    <option
-                      key={occupation}
-                      value={occupation}
-                    >
-                      {occupation}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
+                  <option value="">
+                    Select Education
+                  </option>
 
-            {/* BROTHER DETAILS */}
+                  {educationList.map(
+                    (education) => (
+                      <option
+                        key={education}
+                        value={education}
+                      >
+                        {education}
+                      </option>
+                    )
+                  )}
 
-            <div>
-              <label className={labelClass}>
-                Brother Details
-              </label>
+                </select>
 
-              <select
-                name="brother_details"
-                value={
-                  formData.brother_details
-                }
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Brother Details
-                </option>
+              </div>
 
-                <option value="No Brothers">
-                  No Brothers
-                </option>
+              {/* =======================================
+                  SALARY / INCOME
+              ======================================= */}
 
-                <option value="1 Brother">
-                  1 Brother
-                </option>
+              <div>
 
-                <option value="2 Brothers">
-                  2 Brothers
-                </option>
+                <label className={labelClass}>
+                  Salary / Income
+                </label>
 
-                <option value="3 Brothers">
-                  3 Brothers
-                </option>
-              </select>
-            </div>
+                <input
+                  type="text"
+                  name="annual_income"
+                  value={
+                    formData.annual_income
+                  }
+                  onChange={handleChange}
+                  placeholder="Annual Income"
+                  className={inputClass}
+                />
 
-            {/* SISTER DETAILS */}
+              </div>
 
-            <div>
-              <label className={labelClass}>
-                Sister Details
-              </label>
+              {/* =======================================
+                  ADDRESS
+              ======================================= */}
 
-              <select
-                name="sister_details"
-                value={
-                  formData.sister_details
-                }
-                onChange={handleChange}
-                className={inputClass}
-              >
-                <option value="">
-                  Select Sister Details
-                </option>
+              <div>
 
-                <option value="No Sisters">
-                  No Sisters
-                </option>
+                <label className={labelClass}>
+                  Address
+                </label>
 
-                <option value="1 Sister">
-                  1 Sister
-                </option>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Full Address"
+                  rows={3}
+                  className={textareaClass}
+                />
 
-                <option value="2 Sisters">
-                  2 Sisters
-                </option>
+              </div>
 
-                <option value="3 Sisters">
-                  3 Sisters
-                </option>
-              </select>
-            </div>
+              {/* =======================================
+                  FATHER DETAILS
+              ======================================= */}
 
-            {/* PROPERTY DETAILS */}
+              <div>
 
-            <div>
-              <label className={labelClass}>
-                Property Details
-              </label>
+                <label className={labelClass}>
+                  Father Details
+                </label>
 
-              <textarea
-                name="property_details"
-                value={
-                  formData.property_details
-                }
-                onChange={handleChange}
-                placeholder="Property Details"
-                rows={3}
-                className={textareaClass}
-              />
-            </div>
+                <select
+                  name="father_occupation"
+                  value={
+                    formData.father_occupation
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
 
-            {/* PREFERRED REQUIREMENTS */}
+                  <option value="">
+                    Select Father Details
+                  </option>
 
-            <div>
-              <label className={labelClass}>
-                Preferred Requirements
-              </label>
+                  {parentOccupationList.map(
+                    (occupation) => (
+                      <option
+                        key={occupation}
+                        value={occupation}
+                      >
+                        {occupation}
+                      </option>
+                    )
+                  )}
 
-              <textarea
-                name="preferred_requirements"
-                value={
-                  formData.preferred_requirements
-                }
-                onChange={handleChange}
-                placeholder="Partner Requirements"
-                rows={3}
-                className={textareaClass}
-              />
-            </div>
+                </select>
 
-            {/* SUBMIT */}
+              </div>
 
-            <div className="mt-6 flex justify-center md:col-span-2">
+              {/* =======================================
+                  MOTHER DETAILS
+              ======================================= */}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="
-                  h-12
-                  w-full
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-[#d81b60]
-                  via-[#e91e63]
-                  to-[#f06292]
-                  text-sm
-                  font-semibold
-                  text-white
-                  shadow-md
-                  transition
-                  hover:shadow-xl
-                  disabled:cursor-not-allowed
-                  disabled:opacity-60
-                  sm:w-52
-                "
-              >
-                {loading
-                  ? "Creating Profile..."
-                  : "Create Profile"}
-              </button>
+              <div>
 
-            </div>
+                <label className={labelClass}>
+                  Mother Details
+                </label>
 
-          </form>
+                <select
+                  name="mother_occupation"
+                  value={
+                    formData.mother_occupation
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
 
-          {/* LOGIN */}
+                  <option value="">
+                    Select Mother Details
+                  </option>
 
-          <div className="mt-8 text-center">
+                  <option value="Homemaker">
+                    Homemaker
+                  </option>
 
-            <p className="text-gray-600">
+                  {parentOccupationList.map(
+                    (occupation) => (
+                      <option
+                        key={occupation}
+                        value={occupation}
+                      >
+                        {occupation}
+                      </option>
+                    )
+                  )}
 
-              Already have an account?
+                </select>
 
-              <Link
-                href="/login"
-                className="ml-2 font-semibold text-rose-600 hover:underline"
-              >
-                Login
-              </Link>
+              </div>
 
-            </p>
+              {/* =======================================
+                  BROTHER DETAILS
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Brother Details
+                </label>
+
+                <select
+                  name="brother_details"
+                  value={
+                    formData.brother_details
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+
+                  <option value="">
+                    Select Brother Details
+                  </option>
+
+                  <option value="No Brothers">
+                    No Brothers
+                  </option>
+
+                  <option value="1 Brother">
+                    1 Brother
+                  </option>
+
+                  <option value="2 Brothers">
+                    2 Brothers
+                  </option>
+
+                  <option value="3 Brothers">
+                    3 Brothers
+                  </option>
+
+                </select>
+
+              </div>
+
+              {/* =======================================
+                  SISTER DETAILS
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Sister Details
+                </label>
+
+                <select
+                  name="sister_details"
+                  value={
+                    formData.sister_details
+                  }
+                  onChange={handleChange}
+                  className={inputClass}
+                >
+
+                  <option value="">
+                    Select Sister Details
+                  </option>
+
+                  <option value="No Sisters">
+                    No Sisters
+                  </option>
+
+                  <option value="1 Sister">
+                    1 Sister
+                  </option>
+
+                  <option value="2 Sisters">
+                    2 Sisters
+                  </option>
+
+                  <option value="3 Sisters">
+                    3 Sisters
+                  </option>
+
+                </select>
+
+              </div>
+
+              {/* =======================================
+                  PROPERTY DETAILS
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Property Details
+                </label>
+
+                <textarea
+                  name="property_details"
+                  value={
+                    formData.property_details
+                  }
+                  onChange={handleChange}
+                  placeholder="Property Details"
+                  rows={3}
+                  className={textareaClass}
+                />
+
+              </div>
+
+              {/* =======================================
+                  PREFERRED REQUIREMENTS
+              ======================================= */}
+
+              <div>
+
+                <label className={labelClass}>
+                  Preferred Requirements
+                </label>
+
+                <textarea
+                  name="preferred_requirements"
+                  value={
+                    formData.preferred_requirements
+                  }
+                  onChange={handleChange}
+                  placeholder="Partner Requirements"
+                  rows={3}
+                  className={textareaClass}
+                />
+
+              </div>
+
+              {/* =======================================
+                  SUBMIT
+              ======================================= */}
+
+              <div className="mt-6 flex justify-center md:col-span-2">
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-12 w-full rounded-xl bg-gradient-to-r from-[#d81b60] via-[#e91e63] to-[#f06292] text-sm font-semibold text-white shadow-md transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 sm:w-72"
+                >
+                  {loading
+                    ? "Creating Profile..."
+                    : "Create Matrimonial Profile"}
+                </button>
+
+              </div>
+
+            </form>
 
           </div>
 
         </div>
+
       </div>
+
     </section>
   );
 }

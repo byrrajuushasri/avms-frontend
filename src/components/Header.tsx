@@ -55,33 +55,17 @@ const menuItems: MenuItem[] = [
     label: "Membership",
     icon: FaCrown,
     children: [
-      {
-        label: "State Membership",
-        children: [
+      
+         
           {
-            label: "New Members",
+            label: "Members Registration",
             href: "/membership",
           },
           {
             label: "Existing Members",
             href: "/membership/details",
           },
-        ],
-      },
-
-      {
-        label: "Sangam Membership",
-        children: [
-          {
-            label: "New Members",
-            href: "/membership",
-          },
-          {
-            label: "Existing Members",
-            href: "/membership/details",
-          },
-        ],
-      },
+       
     ],
   },
 
@@ -115,6 +99,10 @@ const menuItems: MenuItem[] = [
       {
         label: "Matrimony",
         href: "/matrimony",
+      },
+       {
+        label: "Matrimony Registration",
+        href: "/register",
       },
       {
         label: "Search Profiles",
@@ -740,134 +728,11 @@ export default function Header() {
               </span>
             </div>
           </div>
+ 
 
-          {/* MOBILE LOGIN REGISTER */}
+        
 
-          <div
-            className="
-              flex
-              shrink-0
-              items-center
-              gap-1.5
-              sm:hidden
-            "
-          >
-            <Link
-              href="/login"
-              className="
-                flex
-                h-[27px]
-                items-center
-                justify-center
-                gap-1
-                rounded-md
-                border
-                border-[#800018]
-                px-2
-                font-serif
-                text-[10px]
-                font-semibold
-                text-[#800018]
-              "
-            >
-              <FaSignInAlt
-                className="text-[9px]"
-              />
-
-              Login
-            </Link>
-
-            <Link
-              href="/register"
-              className="
-                flex
-                h-[27px]
-                items-center
-                justify-center
-                gap-1
-                rounded-md
-                bg-[#ae001b]
-                px-2
-                font-serif
-                text-[10px]
-                font-semibold
-                text-white
-              "
-            >
-              <FaUserPlus
-                className="text-[9px]"
-              />
-
-              Register
-            </Link>
-          </div>
-
-          {/* DESKTOP LOGIN REGISTER */}
-
-          <div
-            className="
-              hidden
-              items-center
-              gap-2
-              sm:flex
-            "
-          >
-            <Link
-              href="/login"
-              className="
-                flex
-                h-[32px]
-                min-w-[88px]
-                items-center
-                justify-center
-                gap-1.5
-                rounded-md
-                border
-                border-[#800018]
-                px-3
-                font-serif
-                text-[13px]
-                font-semibold
-                text-[#800018]
-                transition
-                hover:bg-[#800018]
-                hover:text-white
-              "
-            >
-              <FaSignInAlt
-                className="text-[12px]"
-              />
-
-              Login
-            </Link>
-
-            <Link
-              href="/register"
-              className="
-                flex
-                h-[32px]
-                min-w-[100px]
-                items-center
-                justify-center
-                gap-1.5
-                rounded-md
-                bg-[#ae001b]
-                px-3
-                font-serif
-                text-[13px]
-                font-semibold
-                text-white
-                transition
-                hover:bg-[#800018]
-              "
-            >
-              <FaUserPlus
-                className="text-[12px]"
-              />
-
-              Register
-            </Link>
-          </div>
+         
         </div>
       </div>
 
@@ -999,9 +864,9 @@ export default function Header() {
                 "
               >
                 Vysya Bhavan 6-2-648 Chintal Basti
-                Khairatabad 500 004 Hyderabad
+                Khairatabad,Hyderabad 500 004 
                 <br />
-                Registrar no:363/2015
+               Registration no:363/2015
               </p>
             </Link>
 

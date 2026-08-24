@@ -2,11 +2,33 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+
+type FormData = {
+  full_name: string;
+  mobile: string;
+  email: string;
+  password: string;
+  location: string;
+  gender: string;
+  create_date: string;
+  status: string;
+};
+
+type FormErrors = {
+  full_name?: string;
+  mobile?: string;
+  email?: string;
+  password?: string;
+  location?: string;
+  gender?: string;
+  create_date?: string;
+};
 
 export default function AddMemberPage() {
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     full_name: "",
     mobile: "",
     email: "",
@@ -17,6 +39,7 @@ export default function AddMemberPage() {
     status: "Active",
   });
 
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
 
   /* =========================================================
@@ -24,9 +47,7 @@ export default function AddMemberPage() {
   ========================================================= */
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
@@ -34,6 +55,65 @@ export default function AddMemberPage() {
       ...prev,
       [name]: value,
     }));
+
+    // Remove error while user is typing/selecting
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  /* =========================================================
+     VALIDATION
+  ========================================================= */
+
+  const validateForm = () => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = "Please enter full name";
+    }
+
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = "Please enter mobile number";
+    } else if (!/^[0-9]{10}$/.test(formData.mobile.trim())) {
+      newErrors.mobile = "Please enter a valid 10-digit mobile number";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Please enter email address";
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+    ) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Please enter password";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    if (!formData.location.trim()) {
+      newErrors.location = "Please enter location";
+    }
+
+    if (!formData.gender) {
+      newErrors.gender = "Please select gender";
+    }
+
+    if (!formData.create_date) {
+      newErrors.create_date = "Please select create date";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fill all required fields");
+      return false;
+    }
+
+    return true;
   };
 
   /* =========================================================
@@ -44,6 +124,14 @@ export default function AddMemberPage() {
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
+
+    if (loading) return;
+
+    const isValid = validateForm();
+
+    if (!isValid) {
+      return;
+    }
 
     try {
       setLoading(true);
@@ -56,9 +144,9 @@ export default function AddMemberPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            full_name: formData.full_name,
-            mobile: formData.mobile,
-            email: formData.email,
+            full_name: formData.full_name.trim(),
+            mobile: formData.mobile.trim(),
+            email: formData.email.trim(),
             password: formData.password,
             gender: formData.gender,
           }),
@@ -70,19 +158,26 @@ export default function AddMemberPage() {
       console.log("Membership response:", data);
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to add member"
-        );
+        if (Array.isArray(data.message)) {
+          toast.error(data.message.join(", "));
+        } else {
+          toast.error(
+            data.message || "Failed to add member"
+          );
+        }
+
+        return;
       }
 
-      alert("Member Added Successfully!");
+      toast.success("Member added successfully!");
 
-      router.push("/admin/membership");
-
+      setTimeout(() => {
+        router.push("/admin/membership");
+      }, 1000);
     } catch (error) {
       console.error("Membership Error:", error);
 
-      alert(
+      toast.error(
         "Failed to add member. Please check backend server."
       );
     } finally {
@@ -92,23 +187,20 @@ export default function AddMemberPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/80">
-
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
 
         {/* =====================================================
             PAGE HEADER
         ===================================================== */}
 
         <div className="mb-7">
-
           <h1 className="text-2xl font-semibold text-gray-900">
             Add Membership Member
           </h1>
 
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             Create a new membership member profile.
           </p>
-
         </div>
 
         {/* =====================================================
@@ -117,38 +209,28 @@ export default function AddMemberPage() {
 
         <form
           onSubmit={handleSubmit}
+          noValidate
           className="
-            bg-white
+            overflow-hidden
             rounded-2xl
             border
             border-gray-100
+            bg-white
             shadow-sm
-            overflow-hidden
           "
         >
-
           {/* ===================================================
               FORM FIELDS
           =================================================== */}
 
           <div className="p-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {/* =================================================
-                  FULL NAME
-              ================================================= */}
-
+              {/* FULL NAME */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Full Name{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -157,89 +239,82 @@ export default function AddMemberPage() {
                   value={formData.full_name}
                   onChange={handleChange}
                   placeholder="Enter Full Name"
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    placeholder:text-gray-400
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 placeholder:text-gray-400
+                    outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.full_name
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 />
 
+                {errors.full_name && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.full_name}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  MOBILE
-              ================================================= */}
-
+              {/* MOBILE */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Mobile Number{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <input
                   type="tel"
                   name="mobile"
                   value={formData.mobile}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(
+                      /\D/g,
+                      ""
+                    );
+
+                    setFormData((prev) => ({
+                      ...prev,
+                      mobile: value,
+                    }));
+
+                    setErrors((prev) => ({
+                      ...prev,
+                      mobile: "",
+                    }));
+                  }}
                   placeholder="Enter Mobile Number"
-                  required
-                  maxLength={20}
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    placeholder:text-gray-400
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  maxLength={10}
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 placeholder:text-gray-400
+                    outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.mobile
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 />
 
+                {errors.mobile && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.mobile}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  EMAIL
-              ================================================= */}
-
+              {/* EMAIL */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Email Address{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -248,43 +323,32 @@ export default function AddMemberPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter Email Address"
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    placeholder:text-gray-400
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 placeholder:text-gray-400
+                    outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.email
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 />
 
+                {errors.email && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  PASSWORD
-              ================================================= */}
-
+              {/* PASSWORD */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Password{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -293,43 +357,32 @@ export default function AddMemberPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter Password"
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    placeholder:text-gray-400
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 placeholder:text-gray-400
+                    outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.password
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 />
 
+                {errors.password && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  LOCATION
-              ================================================= */}
-
+              {/* LOCATION */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Location{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -338,69 +391,50 @@ export default function AddMemberPage() {
                   value={formData.location}
                   onChange={handleChange}
                   placeholder="Enter Location"
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    placeholder:text-gray-400
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 placeholder:text-gray-400
+                    outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.location
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 />
 
+                {errors.location && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.location}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  GENDER
-              ================================================= */}
-
+              {/* GENDER */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Gender{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <select
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.gender
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 >
-
                   <option value="">
                     Select Gender
                   </option>
@@ -412,25 +446,20 @@ export default function AddMemberPage() {
                   <option value="Female">
                     Female
                   </option>
-
                 </select>
 
+                {errors.gender && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.gender}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  CREATE DATE
-              ================================================= */}
-
+              {/* CREATE DATE */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Create Date{" "}
-
-                  <span className="text-red-500">
-                    *
-                  </span>
-
+                  <span className="text-red-500">*</span>
                 </label>
 
                 <input
@@ -438,35 +467,29 @@ export default function AddMemberPage() {
                   name="create_date"
                   value={formData.create_date}
                   onChange={handleChange}
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    outline-none
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
-                  "
+                  className={`
+                    h-11 w-full rounded-xl border
+                    bg-gray-50/50 px-4 text-sm
+                    text-gray-700 outline-none transition
+                    focus:bg-white focus:ring-4
+                    ${
+                      errors.create_date
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-50"
+                        : "border-gray-200 focus:border-gray-300 focus:ring-gray-100"
+                    }
+                  `}
                 />
 
+                {errors.create_date && (
+                  <p className="mt-1.5 text-xs font-medium text-red-500">
+                    {errors.create_date}
+                  </p>
+                )}
               </div>
 
-              {/* =================================================
-                  STATUS
-              ================================================= */}
-
+              {/* STATUS */}
               <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700">
                   Status
                 </label>
 
@@ -475,24 +498,15 @@ export default function AddMemberPage() {
                   value={formData.status}
                   onChange={handleChange}
                   className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/50
-                    text-sm
-                    text-gray-700
-                    outline-none
-                    focus:bg-white
+                    h-11 w-full rounded-xl border
+                    border-gray-200 bg-gray-50/50
+                    px-4 text-sm text-gray-700
+                    outline-none transition
                     focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                    transition
+                    focus:bg-white
+                    focus:ring-4 focus:ring-gray-100
                   "
                 >
-
                   <option value="Active">
                     Active
                   </option>
@@ -500,13 +514,10 @@ export default function AddMemberPage() {
                   <option value="Inactive">
                     Inactive
                   </option>
-
                 </select>
-
               </div>
 
             </div>
-
           </div>
 
           {/* ===================================================
@@ -515,79 +526,58 @@ export default function AddMemberPage() {
 
           <div
             className="
-              px-6
-              py-5
-              border-t
-              border-gray-100
+              flex flex-col-reverse items-center
+              justify-end gap-3
+              border-t border-gray-100
               bg-gray-50/50
-              flex
-              flex-col-reverse
+              px-6 py-5
               sm:flex-row
-              justify-end
-              items-center
-              gap-3
             "
           >
-
             {/* CANCEL */}
-
             <button
               type="button"
               onClick={() =>
                 router.push("/admin/membership")
               }
+              disabled={loading}
               className="
-                w-full
-                sm:w-auto
-                h-11
-                px-6
-                rounded-xl
-                border
-                border-gray-200
-                bg-white
-                text-gray-600
-                text-sm
-                font-semibold
-                hover:bg-gray-50
-                hover:border-gray-300
+                h-11 w-full rounded-xl
+                border border-gray-200
+                bg-white px-6
+                text-sm font-semibold text-gray-600
                 transition
+                hover:border-gray-300
+                hover:bg-gray-50
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+                sm:w-auto
               "
             >
               Cancel
             </button>
 
             {/* SAVE */}
-
             <button
               type="submit"
               disabled={loading}
               className="
-                w-full
-                sm:w-auto
-                h-11
+                h-11 w-full rounded-xl
+                bg-[#8B1E3F]
                 px-6
-                rounded-xl
-                bg-gray-200
-                text-gray-700
-                text-sm
-                font-semibold
-                hover:bg-gray-300
+                text-sm font-semibold text-white
                 transition
-                disabled:opacity-50
+                hover:bg-[#741832]
                 disabled:cursor-not-allowed
+                disabled:opacity-50
+                sm:w-auto
               "
             >
-              {loading
-                ? "Saving..."
-                : "Save Member"}
+              {loading ? "Saving..." : "Save Member"}
             </button>
-
           </div>
-
         </form>
-
       </main>
-
     </div>
   );
 }

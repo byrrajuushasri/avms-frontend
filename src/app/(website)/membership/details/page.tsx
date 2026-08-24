@@ -1,779 +1,737 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  FaArrowLeft,
-  FaBriefcase,
-  FaCalendarAlt,
-  FaCheckCircle,
-  FaChevronRight,
-  FaCreditCard,
-  FaEnvelope,
-  FaIdCard,
-  FaMapMarkerAlt,
-  FaMoneyBillWave,
-  FaPhone,
-  FaSearch,
-  FaUserCircle,
-  FaVenusMars,
-} from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
 
 type Member = {
-  memberId: string;
-  name: string;
+  id: number;
+  member_id: string;
+
+  full_name: string;
+  mobile: string;
   email: string;
-  phone: string;
-  gender: string;
-  dob: string;
   occupation: string;
 
-  state: string;
+  gender: string;
+  date_of_birth: string;
+
   district: string;
   mandal: string;
-  sangam: string;
+  sangham: string;
 
-  membershipType: string;
-  status: "Active" | "Pending";
-  amount: string;
-  paymentStatus: "Paid" | "Free";
-  paymentMethod: string;
-  transactionId: string;
-  paymentDate: string;
+  mahashaba_payment_status: string;
+  mahashaba_payment_method?: string | null;
+  mahashaba_receipt_number?: string | null;
+  mahashaba_amount_paid?: string | number | null;
+  mahashaba_payment_date?: string | null;
+
+  sangam_payment_status: string;
+  sangam_payment_method?: string | null;
+  sangam_receipt_number?: string | null;
+  sangam_amount_paid?: string | number | null;
+  sangam_payment_date?: string | null;
+
+  executive_member: string;
+  executive_body?: string | null;
+  designation?: string | null;
+
+  status: string;
+  created_at: string;
 };
 
-/* =========================================================
-   STATIC TEST DATA
-   Client Demo Purpose Only
-========================================================= */
+const API =
+  "http://localhost:5000/membership-register";
 
-const testMembers: Member[] = [
-  {
-    memberId: "AVM10001",
-    name: "Ramanaraju",
-    email: "ramanaraju@gmail.com",
-    phone: "9876543210",
-    gender: "Male",
-    dob: "15 August 1990",
-    occupation: "Business",
+export default function MembershipDetailsPage() {
+  const [members, setMembers] =
+    useState<Member[]>([]);
 
-    state: "Telangana",
-    district: "Hyderabad",
-    mandal: "Khairatabad",
-    sangam: "Khairatabad Arya Vysya Sangam",
+  const [loading, setLoading] =
+    useState(true);
 
-    membershipType: "State Membership",
-    status: "Active",
-    amount: "₹999",
-    paymentStatus: "Paid",
-    paymentMethod: "UPI",
-    transactionId: "UPI100001",
-    paymentDate: "18 August 2026",
-  },
+  const [error, setError] =
+    useState("");
 
-  {
-    memberId: "AVM10002",
-    name: "Suresh Kumar",
-    email: "suresh@gmail.com",
-    phone: "9876501234",
-    gender: "Male",
-    dob: "12 May 1988",
-    occupation: "Software Engineer",
+  const [search, setSearch] =
+    useState("");
 
-    state: "Telangana",
-    district: "Rangareddy",
-    mandal: "Serilingampally",
-    sangam: "Miyapur Arya Vysya Sangam",
+  const [district, setDistrict] =
+    useState("");
 
-    membershipType: "State Membership",
-    status: "Active",
-    amount: "₹999",
-    paymentStatus: "Paid",
-    paymentMethod: "UPI",
-    transactionId: "UPI100002",
-    paymentDate: "17 August 2026",
-  },
+  const [mandal, setMandal] =
+    useState("");
 
-  {
-    memberId: "AVM10003",
-    name: "Lakshmi Devi",
-    email: "lakshmi@gmail.com",
-    phone: "9988776655",
-    gender: "Female",
-    dob: "20 March 1992",
-    occupation: "Teacher",
+  const [sangham, setSangham] =
+    useState("");
 
-    state: "Telangana",
-    district: "Warangal",
-    mandal: "Hanamkonda",
-    sangam: "Hanamkonda Arya Vysya Sangam",
+  const [gender, setGender] =
+    useState("");
 
-    membershipType: "State Membership",
-    status: "Active",
-    amount: "₹0",
-    paymentStatus: "Free",
-    paymentMethod: "-",
-    transactionId: "-",
-    paymentDate: "-",
-  },
+  const [executive, setExecutive] =
+    useState("");
 
-  {
-    memberId: "AVM10004",
-    name: "Venkat Rao",
-    email: "venkatrao@gmail.com",
-    phone: "9966332211",
-    gender: "Male",
-    dob: "10 January 1985",
-    occupation: "Entrepreneur",
-
-    state: "Telangana",
-    district: "Nalgonda",
-    mandal: "Nalgonda",
-    sangam: "Nalgonda Arya Vysya Sangam",
-
-    membershipType: "State Membership",
-    status: "Active",
-    amount: "₹999",
-    paymentStatus: "Paid",
-    paymentMethod: "Card",
-    transactionId: "CARD100004",
-    paymentDate: "16 August 2026",
-  },
-
-  {
-    memberId: "AVM10005",
-    name: "Priya Kumari",
-    email: "priya@gmail.com",
-    phone: "9955443322",
-    gender: "Female",
-    dob: "08 September 1995",
-    occupation: "Accountant",
-
-    state: "Telangana",
-    district: "Karimnagar",
-    mandal: "Karimnagar",
-    sangam: "Karimnagar Arya Vysya Sangam",
-
-    membershipType: "Sangam Membership",
-    status: "Active",
-    amount: "₹499",
-    paymentStatus: "Paid",
-    paymentMethod: "UPI",
-    transactionId: "UPI100005",
-    paymentDate: "15 August 2026",
-  },
-];
-
-export default function ExistingMembersPage() {
-  const [search, setSearch] = useState("");
   const [selectedMember, setSelectedMember] =
     useState<Member | null>(null);
 
-  const [searched, setSearched] = useState(false);
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  /* =========================================================
-     SEARCH
-  ========================================================= */
+        const response = await fetch(API, {
+          cache: "no-store",
+        });
 
-  const results = useMemo(() => {
-    const value = search.trim().toLowerCase();
+        if (!response.ok) {
+          throw new Error(
+            "Unable to load members"
+          );
+        }
 
-    if (!value) return [];
+        const data =
+          await response.json();
 
-    return testMembers.filter((member) => {
+        setMembers(
+          Array.isArray(data)
+            ? data
+            : Array.isArray(data?.data)
+            ? data.data
+            : []
+        );
+      } catch (err) {
+        console.error(err);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load members"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMembers();
+  }, []);
+
+  const districts = useMemo(() => {
+    return Array.from(
+      new Set(
+        members
+          .map((m) => m.district)
+          .filter(Boolean)
+      )
+    ).sort();
+  }, [members]);
+
+  const mandals = useMemo(() => {
+    return Array.from(
+      new Set(
+        members
+          .filter(
+            (m) =>
+              !district ||
+              m.district === district
+          )
+          .map((m) => m.mandal)
+          .filter(Boolean)
+      )
+    ).sort();
+  }, [members, district]);
+
+  const sanghams = useMemo(() => {
+    return Array.from(
+      new Set(
+        members
+          .filter(
+            (m) =>
+              (!district ||
+                m.district === district) &&
+              (!mandal ||
+                m.mandal === mandal)
+          )
+          .map((m) => m.sangham)
+          .filter(Boolean)
+      )
+    ).sort();
+  }, [members, district, mandal]);
+
+  const filteredMembers = useMemo(() => {
+    const value =
+      search.trim().toLowerCase();
+
+    return members.filter((member) => {
+      const searchMatch =
+        !value ||
+        member.full_name
+          ?.toLowerCase()
+          .includes(value) ||
+        member.member_id
+          ?.toLowerCase()
+          .includes(value) ||
+        member.mobile
+          ?.toLowerCase()
+          .includes(value) ||
+        member.email
+          ?.toLowerCase()
+          .includes(value);
+
       return (
-        member.name.toLowerCase().includes(value) ||
-        member.email.toLowerCase().includes(value) ||
-        member.phone.includes(value) ||
-        member.memberId.toLowerCase().includes(value)
+        searchMatch &&
+        (!district ||
+          member.district === district) &&
+        (!mandal ||
+          member.mandal === mandal) &&
+        (!sangham ||
+          member.sangham === sangham) &&
+        (!gender ||
+          member.gender === gender) &&
+        (!executive ||
+          member.executive_member ===
+            executive)
       );
     });
-  }, [search]);
+  }, [
+    members,
+    search,
+    district,
+    mandal,
+    sangham,
+    gender,
+    executive,
+  ]);
 
-  const handleSearch = () => {
-    setSearched(true);
-    setSelectedMember(null);
-  };
-
-  const clearSearch = () => {
+  const resetFilters = () => {
     setSearch("");
-    setSearched(false);
-    setSelectedMember(null);
+    setDistrict("");
+    setMandal("");
+    setSangham("");
+    setGender("");
+    setExecutive("");
   };
 
-  /* =========================================================
-     PARTICULAR MEMBER DETAILS
-  ========================================================= */
-
-  if (selectedMember) {
-    const member = selectedMember;
-
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-[#fff8f0] via-white to-[#fff1f5] px-4 py-8">
-
-        <div className="mx-auto max-w-5xl">
-
-          {/* BACK BUTTON */}
-
-          <button
-            type="button"
-            onClick={() => setSelectedMember(null)}
-            className="mb-5 flex items-center gap-2 rounded-lg border border-[#800018] bg-white px-4 py-2 text-sm font-semibold text-[#800018] transition hover:bg-[#fff5df]"
-          >
-            <FaArrowLeft />
-            Back to Members
-          </button>
-
-          {/* MEMBER HEADER */}
-
-          <section className="overflow-hidden rounded-3xl bg-white shadow-xl">
-
-            <div className="bg-gradient-to-r from-[#800018] to-[#ae001b] px-6 py-8 text-center text-white">
-
-              <FaUserCircle className="mx-auto mb-3 text-6xl" />
-
-              <h1 className="text-2xl font-bold sm:text-3xl">
-                {member.name}
-              </h1>
-
-              <p className="mt-1 text-sm text-white/80">
-                Telangana State Arya Vysya Mahasabha
-              </p>
-
-              <div className="mt-4 inline-flex rounded-full bg-white/15 px-5 py-2 text-sm font-semibold">
-                Member ID: {member.memberId}
-              </div>
-
-            </div>
-
-            <div className="p-5 sm:p-8">
-
-              {/* STATUS */}
-
-              <div className="mb-7 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
-
-                <div className="flex items-center gap-3">
-
-                  <FaCheckCircle className="text-xl text-green-600" />
-
-                  <div>
-                    <p className="text-xs text-gray-500">
-                      Membership Status
-                    </p>
-
-                    <p className="font-bold text-green-700">
-                      {member.status}
-                    </p>
-                  </div>
-
-                </div>
-
-                <span className="rounded-full bg-[#800018] px-4 py-2 text-xs font-semibold text-white">
-                  {member.membershipType}
-                </span>
-
-              </div>
-
-              {/* PERSONAL DETAILS */}
-
-              <SectionTitle
-                icon={<FaIdCard />}
-                title="Member Information"
-              />
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-                <InfoCard
-                  icon={<FaUserCircle />}
-                  title="Full Name"
-                  value={member.name}
-                />
-
-                <InfoCard
-                  icon={<FaIdCard />}
-                  title="Member ID"
-                  value={member.memberId}
-                />
-
-                <InfoCard
-                  icon={<FaPhone />}
-                  title="Phone Number"
-                  value={member.phone}
-                />
-
-                <InfoCard
-                  icon={<FaEnvelope />}
-                  title="Email Address"
-                  value={member.email}
-                />
-
-                <InfoCard
-                  icon={<FaVenusMars />}
-                  title="Gender"
-                  value={member.gender}
-                />
-
-                <InfoCard
-                  icon={<FaCalendarAlt />}
-                  title="Date of Birth"
-                  value={member.dob}
-                />
-
-                <InfoCard
-                  icon={<FaBriefcase />}
-                  title="Occupation"
-                  value={member.occupation}
-                />
-
-                <InfoCard
-                  icon={<FaIdCard />}
-                  title="Membership Type"
-                  value={member.membershipType}
-                  highlight
-                />
-
-              </div>
-
-              {/* LOCATION */}
-
-              <div className="mt-9">
-
-                <SectionTitle
-                  icon={<FaMapMarkerAlt />}
-                  title="Organization Details"
-                />
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-                  <InfoCard
-                    icon={<FaMapMarkerAlt />}
-                    title="State"
-                    value={member.state}
-                  />
-
-                  <InfoCard
-                    icon={<FaMapMarkerAlt />}
-                    title="District"
-                    value={member.district}
-                  />
-
-                  <InfoCard
-                    icon={<FaMapMarkerAlt />}
-                    title="Mandal"
-                    value={member.mandal}
-                  />
-
-                  <InfoCard
-                    icon={<FaMapMarkerAlt />}
-                    title="Sangam"
-                    value={member.sangam}
-                  />
-
-                </div>
-
-              </div>
-
-              {/* PAYMENT */}
-
-              <div className="mt-9">
-
-                <SectionTitle
-                  icon={<FaMoneyBillWave />}
-                  title="Membership Payment"
-                />
-
-                <div
-                  className={`rounded-2xl border p-5 ${
-                    member.paymentStatus === "Paid"
-                      ? "border-green-200 bg-green-50"
-                      : "border-blue-200 bg-blue-50"
-                  }`}
-                >
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-
-                    <InfoCard
-                      icon={<FaMoneyBillWave />}
-                      title="Payment Status"
-                      value={member.paymentStatus}
-                      highlight={
-                        member.paymentStatus === "Paid"
-                      }
-                    />
-
-                    <InfoCard
-                      icon={<FaMoneyBillWave />}
-                      title="Amount"
-                      value={member.amount}
-                      highlight
-                    />
-
-                    <InfoCard
-                      icon={<FaCreditCard />}
-                      title="Payment Method"
-                      value={member.paymentMethod}
-                    />
-
-                    <InfoCard
-                      icon={<FaIdCard />}
-                      title="Transaction ID"
-                      value={member.transactionId}
-                    />
-
-                    <InfoCard
-                      icon={<FaCalendarAlt />}
-                      title="Payment Date"
-                      value={member.paymentDate}
-                    />
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* DEMO NOTE */}
-
-              <div className="mt-8 rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-center text-sm text-yellow-800">
-                Demo member data for client presentation
-              </div>
-
-            </div>
-
-          </section>
-
-        </div>
-
-      </main>
-    );
-  }
-
-  /* =========================================================
-     SEARCH PAGE
-  ========================================================= */
+  const changeDistrict = (
+    value: string
+  ) => {
+    setDistrict(value);
+    setMandal("");
+    setSangham("");
+  };
+
+  const changeMandal = (
+    value: string
+  ) => {
+    setMandal(value);
+    setSangham("");
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#fff8f0] via-white to-[#fff1f5] px-4 py-10">
+    <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
 
-      <div className="mx-auto max-w-5xl">
-
-        {/* TITLE */}
-
-        <div className="mb-8 text-center">
-
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#fff0f3]">
-            <FaIdCard className="text-3xl text-[#800018]" />
-          </div>
-
-          <h1 className="text-3xl font-bold text-[#800018] sm:text-4xl">
+        <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
+          <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
             Existing Members
           </h1>
 
-          <p className="mt-2 text-gray-600">
-            Search your registered membership details
+          <p className="mt-2 text-sm text-gray-500">
+            Search registered members by
+            name, Member ID, mobile, email,
+            district, mandal or sangham.
           </p>
-
         </div>
 
-        {/* SEARCH BOX */}
+        <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 
-        <section className="rounded-3xl border border-[#ead9b5] bg-white p-5 shadow-xl sm:p-7">
-
-          <label className="mb-2 block text-sm font-semibold text-gray-700">
-            Search Member
-          </label>
-
-          <div className="flex flex-col gap-3 md:flex-row">
-
-            <div className="relative flex-1">
-
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="lg:col-span-3">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Search Member
+              </label>
 
               <input
-                type="text"
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setSearched(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  }
-                }}
-                placeholder="Search by name, email, phone or Member ID"
-                className="h-13 w-full rounded-xl border border-gray-300 pl-11 pr-4 text-sm outline-none transition focus:border-[#800018] focus:ring-2 focus:ring-[#800018]/10"
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
+                placeholder="Name, Member ID, Mobile or Email"
+                className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-50"
               />
-
             </div>
 
-            <button
-              type="button"
-              onClick={handleSearch}
-              className="flex h-13 items-center justify-center gap-2 rounded-xl bg-[#800018] px-8 font-semibold text-white transition hover:bg-[#650014]"
+            <FilterSelect
+              label="District"
+              value={district}
+              onChange={changeDistrict}
             >
-              <FaSearch />
-              Search
-            </button>
+              <option value="">
+                All Districts
+              </option>
 
-            {searched && (
+              {districts.map((item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item.replaceAll("_", " ")}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <FilterSelect
+              label="Mandal"
+              value={mandal}
+              disabled={!district}
+              onChange={changeMandal}
+            >
+              <option value="">
+                All Mandals
+              </option>
+
+              {mandals.map((item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <FilterSelect
+              label="Sangham"
+              value={sangham}
+              disabled={!mandal}
+              onChange={setSangham}
+            >
+              <option value="">
+                All Sanghams
+              </option>
+
+              {sanghams.map((item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {item}
+                </option>
+              ))}
+            </FilterSelect>
+
+            <FilterSelect
+              label="Gender"
+              value={gender}
+              onChange={setGender}
+            >
+              <option value="">
+                All Gender
+              </option>
+              <option value="Male">
+                Male
+              </option>
+              <option value="Female">
+                Female
+              </option>
+            </FilterSelect>
+
+            <FilterSelect
+              label="Executive Member"
+              value={executive}
+              onChange={setExecutive}
+            >
+              <option value="">
+                All Members
+              </option>
+              <option value="Yes">
+                Executive Members
+              </option>
+              <option value="No">
+                Non-Executive Members
+              </option>
+            </FilterSelect>
+
+            <div className="flex items-end">
               <button
                 type="button"
-                onClick={clearSearch}
-                className="h-13 rounded-xl border border-gray-300 px-6 font-semibold text-gray-600 transition hover:bg-gray-50"
+                onClick={resetFilters}
+                className="h-11 w-full rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
               >
-                Clear
+                Reset Filters
               </button>
-            )}
-
+            </div>
           </div>
+        </div>
 
-          {/* SEARCH EXAMPLES */}
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">
+            Showing{" "}
+            <strong>
+              {filteredMembers.length}
+            </strong>{" "}
+            members
+          </p>
+        </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-
-            <span className="text-xs text-gray-500">
-              Try:
-            </span>
-
-            {[
-              "Ramanaraju",
-              "suresh@gmail.com",
-              "9876543210",
-              "AVM10003",
-            ].map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => {
-                  setSearch(item);
-                  setSearched(false);
-                }}
-                className="rounded-full bg-[#fff5df] px-3 py-1 text-xs font-medium text-[#800018] hover:bg-[#f8edcf]"
-              >
-                {item}
-              </button>
-            ))}
-
+        {error && (
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
           </div>
+        )}
 
-        </section>
-
-        {/* RESULTS */}
-
-        {searched && (
-          <section className="mt-8">
-
-            {results.length === 0 ? (
-
-              <div className="rounded-2xl bg-white p-10 text-center shadow-lg">
-
-                <FaUserCircle className="mx-auto mb-4 text-5xl text-gray-300" />
-
-                <h2 className="text-xl font-bold text-gray-700">
-                  Member Not Found
-                </h2>
-
-                <p className="mt-2 text-sm text-gray-500">
-                  Please check the name, email, phone number
-                  or Member ID.
-                </p>
-
-              </div>
-
-            ) : (
-
-              <>
-
-                <div className="mb-4 flex items-center justify-between">
-
-                  <h2 className="text-xl font-bold text-gray-800">
-                    Search Results
-                  </h2>
-
-                  <span className="rounded-full bg-[#fff0f3] px-4 py-2 text-sm font-semibold text-[#800018]">
-                    {results.length} Member
-                    {results.length > 1 ? "s" : ""}
-                  </span>
-
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-
-                  {results.map((member) => (
-
-                    <article
-                      key={member.memberId}
-                      className="rounded-2xl border border-gray-200 bg-white p-5 shadow-md transition hover:-translate-y-1 hover:shadow-xl"
-                    >
-
-                      <div className="flex gap-4">
-
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#fff0f3]">
-                          <FaUserCircle className="text-4xl text-[#800018]" />
-                        </div>
-
-                        <div className="min-w-0">
-
-                          <h3 className="text-lg font-bold text-gray-800">
-                            {member.name}
-                          </h3>
-
-                          <p className="mt-1 text-sm font-semibold text-[#800018]">
-                            {member.memberId}
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                      <div className="mt-5 space-y-2 text-sm text-gray-600">
-
-                        <p className="flex items-center gap-2">
-                          <FaPhone className="text-[#800018]" />
-                          {member.phone}
-                        </p>
-
-                        <p className="flex items-center gap-2 break-all">
-                          <FaEnvelope className="text-[#800018]" />
-                          {member.email}
-                        </p>
-
-                        <p className="flex items-center gap-2">
-                          <FaMapMarkerAlt className="text-[#800018]" />
-                          {member.district}, {member.state}
-                        </p>
-
-                      </div>
-
-                      <div className="mt-4 flex items-center justify-between">
-
-                        <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                          {member.status}
-                        </span>
-
-                        <span className="text-xs text-gray-500">
-                          {member.membershipType}
-                        </span>
-
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedMember(member)
-                        }
-                        className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#800018] py-3 font-semibold text-white transition hover:bg-[#650014]"
+        {loading ? (
+          <div className="rounded-2xl bg-white p-10 text-center text-sm text-gray-500 shadow-sm">
+            Loading members...
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-rose-50">
+                  <tr>
+                    {[
+                      "Member ID",
+                      "Member",
+                      "Mobile",
+                      "District",
+                      "Mandal",
+                      "Sangham",
+                      "Executive",
+                      "Action",
+                    ].map((title) => (
+                      <th
+                        key={title}
+                        className="px-5 py-4 text-left text-xs font-semibold uppercase text-gray-600"
                       >
-                        View Member Details
-                        <FaChevronRight className="text-xs" />
-                      </button>
+                        {title}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
 
-                    </article>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredMembers.map(
+                    (member) => (
+                      <tr
+                        key={member.id}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-rose-600">
+                          {member.member_id}
+                        </td>
 
-                  ))}
+                        <td className="px-5 py-4">
+                          <div className="font-medium text-gray-900">
+                            {member.full_name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {member.email}
+                          </div>
+                        </td>
 
-                </div>
+                        <td className="px-5 py-4 text-sm">
+                          {member.mobile}
+                        </td>
 
-              </>
+                        <td className="px-5 py-4 text-sm">
+                          {member.district?.replaceAll(
+                            "_",
+                            " "
+                          )}
+                        </td>
 
+                        <td className="px-5 py-4 text-sm">
+                          {member.mandal}
+                        </td>
+
+                        <td className="px-5 py-4 text-sm">
+                          {member.sangham}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          {member.executive_member ===
+                          "Yes" ? (
+                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                              Yes
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                              No
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedMember(
+                                member
+                              )
+                            }
+                            className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700"
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {filteredMembers.length === 0 && (
+              <div className="p-10 text-center text-sm text-gray-500">
+                No members found.
+              </div>
             )}
-
-          </section>
-        )}
-
-        {/* BEFORE SEARCH */}
-
-        {!searched && (
-
-          <div className="mt-8 rounded-2xl border border-[#ead9b5] bg-white p-8 text-center shadow-lg">
-
-            <FaSearch className="mx-auto mb-4 text-4xl text-[#d6b36a]" />
-
-            <h2 className="text-lg font-bold text-gray-700">
-              Find Existing Member
-            </h2>
-
-            <p className="mt-2 text-sm text-gray-500">
-              Search using member name, email address,
-              mobile number or Member ID.
-            </p>
-
           </div>
-
         )}
-
       </div>
 
-    </main>
+      {selectedMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+
+            <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
+              <div>
+                <h2 className="text-xl font-bold">
+                  Member Details
+                </h2>
+
+                <p className="text-sm font-semibold text-rose-600">
+                  {selectedMember.member_id}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedMember(null)
+                }
+                className="rounded-lg px-3 py-2 text-xl text-gray-500 hover:bg-gray-100"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-5 p-6 sm:grid-cols-2">
+
+              <Detail
+                label="Full Name"
+                value={selectedMember.full_name}
+              />
+
+              <Detail
+                label="Mobile"
+                value={selectedMember.mobile}
+              />
+
+              <Detail
+                label="Email"
+                value={selectedMember.email}
+              />
+
+              <Detail
+                label="Occupation"
+                value={selectedMember.occupation}
+              />
+
+              <Detail
+                label="Gender"
+                value={selectedMember.gender}
+              />
+
+              <Detail
+                label="Date of Birth"
+                value={selectedMember.date_of_birth}
+              />
+
+              <Detail
+                label="District"
+                value={selectedMember.district}
+              />
+
+              <Detail
+                label="Mandal"
+                value={selectedMember.mandal}
+              />
+
+              <Detail
+                label="Sangham"
+                value={selectedMember.sangham}
+              />
+
+              <Detail
+                label="Mahashaba Payment"
+                value={
+                  selectedMember.mahashaba_payment_status
+                }
+              />
+
+              <Detail
+                label="Mahashaba Method"
+                value={
+                  selectedMember.mahashaba_payment_method
+                }
+              />
+
+              <Detail
+                label="Mahashaba Receipt"
+                value={
+                  selectedMember.mahashaba_receipt_number
+                }
+              />
+
+              <Detail
+                label="Mahashaba Amount"
+                value={
+                  selectedMember.mahashaba_amount_paid != null
+                    ? String(
+                        selectedMember.mahashaba_amount_paid
+                      )
+                    : "-"
+                }
+              />
+
+              <Detail
+                label="Mahashaba Payment Date"
+                value={
+                  selectedMember.mahashaba_payment_date
+                }
+              />
+
+              <Detail
+                label="Sangham Payment"
+                value={
+                  selectedMember.sangam_payment_status
+                }
+              />
+
+              <Detail
+                label="Sangham Method"
+                value={
+                  selectedMember.sangam_payment_method
+                }
+              />
+
+              <Detail
+                label="Sangham Receipt"
+                value={
+                  selectedMember.sangam_receipt_number
+                }
+              />
+
+              <Detail
+                label="Sangham Amount"
+                value={
+                  selectedMember.sangam_amount_paid != null
+                    ? String(
+                        selectedMember.sangam_amount_paid
+                      )
+                    : "-"
+                }
+              />
+
+              <Detail
+                label="Sangham Payment Date"
+                value={
+                  selectedMember.sangam_payment_date
+                }
+              />
+
+              <Detail
+                label="Executive Member"
+                value={
+                  selectedMember.executive_member
+                }
+              />
+
+              {selectedMember.executive_member ===
+                "Yes" && (
+                <>
+                  <Detail
+                    label="Executive Body"
+                    value={
+                      selectedMember.executive_body
+                    }
+                  />
+
+                  <Detail
+                    label="Designation"
+                    value={
+                      selectedMember.designation
+                    }
+                  />
+                </>
+              )}
+
+              <Detail
+                label="Status"
+                value={selectedMember.status}
+              />
+
+              <Detail
+                label="Registered On"
+                value={selectedMember.created_at}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
-/* =========================================================
-   SECTION TITLE
-========================================================= */
-
-function SectionTitle({
-  icon,
-  title,
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  disabled,
+  children,
 }: {
-  icon: React.ReactNode;
-  title: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  children: React.ReactNode;
 }) {
   return (
-    <h2 className="mb-5 flex items-center gap-2 text-xl font-bold text-gray-800">
-      <span className="text-[#800018]">
-        {icon}
-      </span>
+    <div>
+      <label className="mb-2 block text-sm font-medium text-gray-700">
+        {label}
+      </label>
 
-      {title}
-    </h2>
+      <select
+        value={value}
+        disabled={disabled}
+        onChange={(e) =>
+          onChange(e.target.value)
+        }
+        className="h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-rose-400 disabled:bg-gray-100"
+      >
+        {children}
+      </select>
+    </div>
   );
 }
 
-/* =========================================================
-   INFO CARD
-========================================================= */
-
-function InfoCard({
-  icon,
-  title,
+function Detail({
+  label,
   value,
-  highlight = false,
 }: {
-  icon: React.ReactNode;
-  title: string;
-  value: string;
-  highlight?: boolean;
+  label: string;
+  value?: string | null;
 }) {
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+      <p className="text-xs font-medium text-gray-500">
+        {label}
+      </p>
 
-      <div className="flex items-start gap-3">
-
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#fff0f3] text-[#800018]">
-          {icon}
-        </div>
-
-        <div className="min-w-0">
-
-          <p className="mb-1 text-xs text-gray-500">
-            {title}
-          </p>
-
-          <p
-            className={`break-words text-sm ${
-              highlight
-                ? "font-bold text-[#800018]"
-                : "font-medium text-gray-800"
-            }`}
-          >
-            {value}
-          </p>
-
-        </div>
-
-      </div>
-
+      <p className="mt-1 break-words text-sm font-semibold text-gray-900">
+        {value || "-"}
+      </p>
     </div>
   );
 }
