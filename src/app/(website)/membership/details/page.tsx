@@ -39,7 +39,7 @@ type Member = {
 };
 
 const API =
-  `${process.env.NEXT_PUBLIC_API_URL}/membership-register`;
+  `${process.env.NEXT_PUBLIC_BACKEND_URL}/membership-register`;
 
 const ITEMS_PER_PAGE = 5;
 

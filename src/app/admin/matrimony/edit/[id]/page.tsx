@@ -19,7 +19,9 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
+
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 type Profile = {
   memberId: string;
@@ -137,7 +139,7 @@ export default function EditMatrimonialMemberPage() {
       return photo;
     }
 
-    return `${API_URL}/uploads/matrimonial/${photo}`;
+    return `${BACKEND_URL}/uploads/matrimonial/${photo}`;
   };
 
   // =====================================================
@@ -153,7 +155,7 @@ export default function EditMatrimonialMemberPage() {
         setError("");
 
         const response = await fetch(
-          `${API_URL}/matrimonial-users/${id}`,
+          `${BACKEND_URL}/matrimonial-users/${id}`,
           {
             method: "GET",
             cache: "no-store",

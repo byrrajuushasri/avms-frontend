@@ -87,6 +87,8 @@ export default function AdminDashboard() {
      GET MATRIMONIAL USERS
   ========================================================= */
 
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -97,7 +99,7 @@ export default function AdminDashboard() {
       setError("");
 
       const response = await fetch(
-        "http://localhost:5000/matrimonial-users",
+        `${BACKEND_URL}/matrimonial-users`,
         {
           method: "GET",
           headers: {
@@ -277,7 +279,7 @@ export default function AdminDashboard() {
     name: string
   ) => {
     if (photo) {
-      return `http://localhost:5000/uploads/matrimonial/${photo}`;
+      return `${BACKEND_URL}/uploads/matrimonial/${photo}`;
     }
 
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(

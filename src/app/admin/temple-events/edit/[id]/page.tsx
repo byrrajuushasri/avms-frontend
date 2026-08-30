@@ -18,8 +18,8 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
   "http://localhost:5000";
 
 interface TempleForm {
@@ -140,7 +140,7 @@ export default function EditTemplePage() {
       setError("");
 
       const response = await fetch(
-        `${API_URL}/temples/${id}`,
+        `${BACKEND_URL}/temples/${id}`,
         {
           method: "GET",
           cache: "no-store",
@@ -187,7 +187,7 @@ export default function EditTemplePage() {
 
       if (imageName) {
         setPreviewUrl(
-          `${API_URL}/uploads/temples/${imageName}`,
+          `${BACKEND_URL}/uploads/temples/${imageName}`,
         );
       } else {
         setPreviewUrl("");
@@ -286,7 +286,7 @@ export default function EditTemplePage() {
 
     if (form.image) {
       setPreviewUrl(
-        `${API_URL}/uploads/temples/${form.image}`,
+        `${BACKEND_URL}/uploads/temples/${form.image}`,
       );
     } else {
       setPreviewUrl("");
@@ -417,7 +417,7 @@ export default function EditTemplePage() {
 
       const response =
         await fetch(
-          `${API_URL}/temples/${id}`,
+          `${BACKEND_URL}/temples/${id}`,
           {
             method: "PATCH",
             body: formData,

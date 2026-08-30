@@ -107,7 +107,7 @@ export default function EditUserPage() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:5000/users/${id}`,
+        `${BACKEND_URL}/users/${id}`,
         {
           method: "PUT",
           headers: {

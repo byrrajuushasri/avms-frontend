@@ -21,6 +21,8 @@ interface Member {
   created_at: string;
 }
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
 export default function EditMemberPage() {
   const params = useParams();
   const router = useRouter();
@@ -59,7 +61,7 @@ export default function EditMemberPage() {
             : null;
 
         const response = await fetch(
-          `http://localhost:5000/membership-register/${memberId}`,
+          `${BACKEND_URL}/membership-register/${memberId}`,
           {
             method: "GET",
             headers: {

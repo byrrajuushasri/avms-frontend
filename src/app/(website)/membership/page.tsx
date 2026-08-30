@@ -1175,7 +1175,7 @@ const handleSubmit = async (
      *
      * .env.local:
      *
-     * NEXT_PUBLIC_API_URL=http://localhost:5000
+     * NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
      *
      * If env variable is not available,
      * localhost:5000 will be used.
@@ -1184,7 +1184,7 @@ const handleSubmit = async (
     
 
     const apiUrl = (
-      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
       "http://localhost:5000"
     ).replace(/\/$/, "");
 
