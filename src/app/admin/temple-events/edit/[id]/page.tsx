@@ -1,189 +1,207 @@
+
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
 import {
   FaArrowLeft,
-  FaCalendarAlt,
-  FaClock,
-  FaMapMarkerAlt,
-  FaPlaceOfWorship,
   FaSave,
+  FaMapMarkerAlt,
+  FaPhoneAlt,
+  FaClock,
+  FaPlaceOfWorship,
+  FaCheckCircle,
+  FaImage,
+  FaUpload,
+  FaTimes,
 } from "react-icons/fa";
 
-/* =========================================================
-   API
-========================================================= */
-
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
 
-const EVENTS_API = `${API_URL}/temple-events`;
-
-/* =========================================================
-   TYPE
-========================================================= */
-
-interface TempleEvent {
-  id: number;
-  title: string;
-  temple: string;
-  area: string | null;
-  district: string | null;
-  date: string;
-  time: string | null;
-  description: string | null;
-  type: string;
-  status: boolean | number;
-  created_at?: string;
-  updated_at?: string;
-}
-
-/* =========================================================
-   FORM TYPE
-========================================================= */
-
-interface EventForm {
-  title: string;
-  temple: string;
+interface TempleForm {
+  name: string;
   area: string;
   district: string;
-  date: string;
-  time: string;
+  address: string;
+  phone: string;
+  timings: string;
   description: string;
-  type: string;
+  map_url: string;
+  image: string;
   status: boolean;
 }
 
+const initialForm: TempleForm = {
+  name: "",
+  area: "",
+  district: "",
+  address: "",
+  phone: "",
+  timings: "",
+  description: "",
+  map_url: "",
+  image: "",
+  status: true,
+};
+
 /* =========================================================
-   PAGE
+   NORMALIZE STATUS
+   Supports:
+   true / false
+   1 / 0
+   "1" / "0"
+   "true" / "false"
+   "active" / "inactive"
 ========================================================= */
 
-export default function EditTempleEventPage() {
-  const router = useRouter();
+const normalizeStatus = (
+  value: unknown,
+): boolean => {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return value === 1;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value
+      .trim()
+      .toLowerCase();
+
+    if (
+      normalized === "1" ||
+      normalized === "true" ||
+      normalized === "active"
+    ) {
+      return true;
+    }
+
+    if (
+      normalized === "0" ||
+      normalized === "false" ||
+      normalized === "inactive"
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+export default function EditTemplePage() {
   const params = useParams();
+  const router = useRouter();
 
-  const id = Array.isArray(params?.id)
-    ? params.id[0]
-    : params?.id;
+  const id = params?.id;
 
-  /* =========================================================
-     STATE
-  ========================================================= */
+  const [form, setForm] =
+    useState<TempleForm>(initialForm);
 
-  const [formData, setFormData] = useState<EventForm>({
-    title: "",
-    temple: "",
-    area: "",
-    district: "",
-    date: "",
-    time: "",
-    description: "",
-    type: "Special Pooja",
-    status: true,
-  });
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [previewUrl, setPreviewUrl] =
+    useState<string>("");
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  const [success, setSuccess] =
+    useState("");
 
   /* =========================================================
-     GET EVENT
+     GET TEMPLE
   ========================================================= */
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
-    fetchEvent();
+    fetchTemple();
   }, [id]);
 
-  const fetchEvent = async () => {
+  const fetchTemple = async () => {
     try {
       setLoading(true);
       setError("");
-      setSuccess("");
 
       const response = await fetch(
-        `${EVENTS_API}/${id}`,
+        `${API_URL}/temples/${id}`,
         {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
           cache: "no-store",
         },
       );
 
-      const data = await response.json().catch(
-        () => null,
-      );
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
             : data?.message ||
-                `Failed to fetch event. Status: ${response.status}`,
+                "Failed to load temple",
         );
       }
 
-      /*
-       * Supports:
-       *
-       * {
-       *   id: 1,
-       *   title: "..."
-       * }
-       *
-       * and:
-       *
-       * {
-       *   data: {
-       *     id: 1,
-       *     title: "..."
-       *   }
-       * }
-       */
+      const imageName =
+        data?.image || "";
 
-      const event: TempleEvent =
-        data?.data && !Array.isArray(data.data)
-          ? data.data
-          : data;
-
-      if (!event || !event.id) {
-        throw new Error(
-          "Event details not found.",
-        );
-      }
-
-      setFormData({
-        title: event.title || "",
-        temple: event.temple || "",
-        area: event.area || "",
-        district: event.district || "",
-        date: formatDateForInput(event.date),
-        time: event.time || "",
-        description: event.description || "",
-        type: event.type || "Special Pooja",
-        status:
-          event.status === true ||
-          event.status === 1 ||
-          event.status === "1",
+      setForm({
+        name: data?.name || "",
+        area: data?.area || "",
+        district: data?.district || "",
+        address: data?.address || "",
+        phone: data?.phone || "",
+        timings: data?.timings || "",
+        description:
+          data?.description || "",
+        map_url:
+          data?.map_url ||
+          data?.mapUrl ||
+          "",
+        image: imageName,
+        status: normalizeStatus(
+          data?.status,
+        ),
       });
+
+      /* =====================================================
+         EXISTING IMAGE PREVIEW
+      ===================================================== */
+
+      if (imageName) {
+        setPreviewUrl(
+          `${API_URL}/uploads/temples/${imageName}`,
+        );
+      } else {
+        setPreviewUrl("");
+      }
     } catch (err) {
       console.error(
-        "Fetch temple event error:",
+        "Temple GET error:",
         err,
       );
 
       setError(
         err instanceof Error
           ? err.message
-          : "Unable to load event details.",
+          : "Failed to load temple",
       );
     } finally {
       setLoading(false);
@@ -191,61 +209,21 @@ export default function EditTempleEventPage() {
   };
 
   /* =========================================================
-     DATE FORMAT
-  ========================================================= */
-
-  const formatDateForInput = (
-    value?: string,
-  ) => {
-    if (!value) return "";
-
-    /*
-     * If backend already returns:
-     * 2026-05-30
-     */
-    if (
-      /^\d{4}-\d{2}-\d{2}$/.test(value)
-    ) {
-      return value;
-    }
-
-    const date = new Date(value);
-
-    if (
-      Number.isNaN(date.getTime())
-    ) {
-      return "";
-    }
-
-    /*
-     * Avoid timezone shifting.
-     */
-    const year = date.getFullYear();
-    const month = String(
-      date.getMonth() + 1,
-    ).padStart(2, "0");
-    const day = String(
-      date.getDate(),
-    ).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  };
-
-  /* =========================================================
-     HANDLE CHANGE
+     CHANGE
   ========================================================= */
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement |
-        HTMLTextAreaElement |
-        HTMLSelectElement
+      HTMLInputElement | HTMLTextAreaElement
     >,
   ) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
-    setFormData((current) => ({
-      ...current,
+    setForm((prev) => ({
+      ...prev,
       [name]: value,
     }));
 
@@ -254,11 +232,76 @@ export default function EditTempleEventPage() {
   };
 
   /* =========================================================
-     UPDATE EVENT
+     IMAGE CHANGE
+  ========================================================= */
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file =
+      e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    /* Validate image type */
+
+    if (!file.type.startsWith("image/")) {
+      setError(
+        "Please select a valid image file.",
+      );
+      return;
+    }
+
+    /* Maximum 5 MB */
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      setError(
+        "Image size must be less than 5 MB.",
+      );
+      return;
+    }
+
+    setSelectedFile(file);
+
+    const objectUrl =
+      URL.createObjectURL(file);
+
+    setPreviewUrl(objectUrl);
+
+    setError("");
+    setSuccess("");
+  };
+
+  /* =========================================================
+     REMOVE SELECTED IMAGE
+  ========================================================= */
+
+  const removeSelectedImage = () => {
+    setSelectedFile(null);
+
+    if (form.image) {
+      setPreviewUrl(
+        `${API_URL}/uploads/temples/${form.image}`,
+      );
+    } else {
+      setPreviewUrl("");
+    }
+
+    setError("");
+    setSuccess("");
+  };
+
+  /* =========================================================
+     SUBMIT
   ========================================================= */
 
   const handleSubmit = async (
-    e: FormEvent<HTMLFormElement>,
+    e: React.FormEvent,
   ) => {
     e.preventDefault();
 
@@ -267,51 +310,37 @@ export default function EditTempleEventPage() {
 
     /* Validation */
 
-    if (!formData.title.trim()) {
+    if (!form.name.trim()) {
       setError(
-        "Please enter event title.",
+        "Please enter Temple Name.",
       );
       return;
     }
 
-    if (!formData.temple.trim()) {
+    if (!form.area.trim()) {
       setError(
-        "Please enter temple name.",
+        "Please enter Area.",
       );
       return;
     }
 
-    if (!formData.area.trim()) {
+    if (!form.district.trim()) {
       setError(
-        "Please enter area.",
+        "Please enter District.",
       );
       return;
     }
 
-    if (!formData.district.trim()) {
+    if (!form.address.trim()) {
       setError(
-        "Please enter district.",
+        "Please enter Address.",
       );
       return;
     }
 
-    if (!formData.date) {
+    if (!form.map_url.trim()) {
       setError(
-        "Please select event date.",
-      );
-      return;
-    }
-
-    if (!formData.time.trim()) {
-      setError(
-        "Please enter event time.",
-      );
-      return;
-    }
-
-    if (!formData.description.trim()) {
-      setError(
-        "Please enter event description.",
+        "Please enter Google Maps URL.",
       );
       return;
     }
@@ -319,65 +348,113 @@ export default function EditTempleEventPage() {
     try {
       setSaving(true);
 
-      const response = await fetch(
-        `${EVENTS_API}/${id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: formData.title.trim(),
-            temple: formData.temple.trim(),
-            area: formData.area.trim(),
-            district: formData.district.trim(),
-            date: formData.date,
-            time: formData.time.trim(),
-            description:
-              formData.description.trim(),
-            type: formData.type,
-            status: formData.status,
-          }),
-        },
+      const formData =
+        new FormData();
+
+      formData.append(
+        "name",
+        form.name.trim(),
       );
 
-      const data = await response
-        .json()
-        .catch(() => null);
+      formData.append(
+        "area",
+        form.area.trim(),
+      );
+
+      formData.append(
+        "district",
+        form.district.trim(),
+      );
+
+      formData.append(
+        "address",
+        form.address.trim(),
+      );
+
+      formData.append(
+        "phone",
+        form.phone.trim(),
+      );
+
+      formData.append(
+        "timings",
+        form.timings.trim(),
+      );
+
+      formData.append(
+        "description",
+        form.description.trim(),
+      );
+
+      formData.append(
+        "map_url",
+        form.map_url.trim(),
+      );
+
+      /* =====================================================
+         SEND STATUS AS STRING
+         Backend can convert it to boolean / number.
+      ===================================================== */
+
+      formData.append(
+        "status",
+        form.status
+          ? "true"
+          : "false",
+      );
+
+      /* =====================================================
+         IMAGE
+         Only send when a new image is selected.
+      ===================================================== */
+
+      if (selectedFile) {
+        formData.append(
+          "image",
+          selectedFile,
+        );
+      }
+
+      const response =
+        await fetch(
+          `${API_URL}/temples/${id}`,
+          {
+            method: "PATCH",
+            body: formData,
+          },
+        );
+
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
             : data?.message ||
-                `Failed to update event. Status: ${response.status}`,
+                "Failed to update temple",
         );
       }
 
       setSuccess(
-        "Temple event updated successfully.",
+        "Temple updated successfully.",
       );
 
-      /*
-       * Go back to event management
-       * after successful update.
-       */
       setTimeout(() => {
         router.push(
-          "/admin/temple-events",
+          "/admin/temples",
         );
-        router.refresh();
-      }, 700);
+      }, 1000);
     } catch (err) {
       console.error(
-        "Update temple event error:",
+        "Temple UPDATE error:",
         err,
       );
 
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to update temple event.",
+          : "Failed to update temple",
       );
     } finally {
       setSaving(false);
@@ -390,761 +467,533 @@ export default function EditTempleEventPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50/80">
-        <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-gray-50 px-4 py-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-2xl border border-gray-100 bg-white p-16 text-center shadow-sm">
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#650014]" />
 
-          <div className="flex min-h-[500px] items-center justify-center">
-
-            <div className="flex flex-col items-center">
-
-              <div
-                className="
-                  h-10
-                  w-10
-                  animate-spin
-                  rounded-full
-                  border-4
-                  border-gray-200
-                  border-t-[#8B1E3F]
-                "
-              />
-
-              <p className="mt-4 text-sm text-gray-500">
-                Loading event details...
-              </p>
-
-            </div>
-
+            <p className="mt-4 text-sm text-gray-500">
+              Loading temple details...
+            </p>
           </div>
-
-        </main>
-      </div>
+        </div>
+      </main>
     );
   }
 
   /* =========================================================
-     RENDER
+     PAGE
   ========================================================= */
 
   return (
-    <div className="min-h-screen bg-gray-50/80">
-
-      <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    <main className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="mx-auto max-w-5xl">
 
         {/* ===================================================
             HEADER
         =================================================== */}
 
-        <div
-          className="
-            mb-7
-            flex
-            flex-col
-            gap-4
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
+        <div className="mb-6">
+          <Link
+            href="/admin/temples"
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-[#650014]"
+          >
+            <FaArrowLeft className="text-xs" />
+            Back to Temples
+          </Link>
 
-          <div className="flex items-center gap-3">
-
-            <div
-              className="
-                flex
-                h-11
-                w-11
-                items-center
-                justify-center
-                rounded-xl
-                bg-[#f8eef2]
-                text-[#8B1E3F]
-              "
-            >
-              <FaPlaceOfWorship />
+          <div className="mt-5 flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#f8eef2] text-[#650014]">
+              <FaPlaceOfWorship className="text-xl" />
             </div>
 
             <div>
-
               <h1 className="text-2xl font-semibold text-gray-900">
-                Edit Temple Event
+                Edit Temple
               </h1>
 
               <p className="mt-1 text-sm text-gray-500">
-                Update Vasavi Ammavari temple event details.
+                Update temple information,
+                location, contact details
+                and temple image.
               </p>
-
             </div>
-
           </div>
-
-          <Link
-            href="/admin/temple-events"
-            className="
-              inline-flex
-              items-center
-              justify-center
-              gap-2
-              rounded-xl
-              border
-              border-gray-200
-              bg-white
-              px-5
-              py-3
-              text-sm
-              font-semibold
-              text-gray-600
-              shadow-sm
-              transition
-              hover:bg-gray-50
-              hover:text-gray-900
-            "
-          >
-            <FaArrowLeft className="text-xs" />
-            Back to Events
-          </Link>
-
         </div>
+
+        {/* ===================================================
+            ALERTS
+        =================================================== */}
+
+        {error && (
+          <div className="mb-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-5 flex items-center gap-2 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+            <FaCheckCircle />
+            {success}
+          </div>
+        )}
 
         {/* ===================================================
             FORM
         =================================================== */}
 
-        <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+        >
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
 
-          <div
-            className="
-              overflow-hidden
-              rounded-2xl
-              border
-              border-gray-100
-              bg-white
-              shadow-sm
-            "
-          >
+            {/* FORM HEADER */}
 
-            {/* =================================================
-                FORM HEADER
-            ================================================== */}
+            <div className="border-b border-gray-100 px-5 py-5 sm:px-7">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Temple Information
+              </h2>
 
-            <div className="border-b border-gray-100 px-6 py-5">
-
-              <div className="flex items-center gap-3">
-
-                <div
-                  className="
-                    flex
-                    h-10
-                    w-10
-                    items-center
-                    justify-center
-                    rounded-xl
-                    bg-[#f8eef2]
-                    text-[#8B1E3F]
-                  "
-                >
-                  <FaCalendarAlt />
-                </div>
-
-                <div>
-
-                  <h2 className="font-semibold text-gray-900">
-                    Event Information
-                  </h2>
-
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    Update the event information below.
-                  </p>
-
-                </div>
-
-              </div>
-
+              <p className="mt-1 text-sm text-gray-500">
+                Update the details displayed
+                on the temple directory.
+              </p>
             </div>
 
-            {/* =================================================
-                ERROR / SUCCESS
-            ================================================== */}
+            <div className="space-y-8 p-5 sm:p-7">
 
-            {(error || success) && (
-              <div className="px-6 pt-5">
+              {/* =================================================
+                  BASIC DETAILS
+              ================================================= */}
 
-                {error && (
-                  <div
-                    className="
-                      rounded-xl
-                      border
-                      border-red-100
-                      bg-red-50
-                      px-4
-                      py-3
-                      text-sm
-                      text-red-600
-                    "
-                  >
-                    {error}
-                  </div>
-                )}
+              <section>
+                <div className="mb-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#650014]">
+                    Basic Details
+                  </h3>
 
-                {success && (
-                  <div
-                    className="
-                      rounded-xl
-                      border
-                      border-green-100
-                      bg-green-50
-                      px-4
-                      py-3
-                      text-sm
-                      text-green-600
-                    "
-                  >
-                    {success}
-                  </div>
-                )}
-
-              </div>
-            )}
-
-            {/* =================================================
-                FORM BODY
-            ================================================== */}
-
-            <div className="px-6 py-6">
-
-              <div className="grid gap-6 md:grid-cols-2">
-
-                {/* EVENT TITLE */}
-
-                <div className="md:col-span-2">
-
-                  <label
-                    htmlFor="title"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Event Title{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
-
-                  <input
-                    id="title"
-                    name="title"
-                    type="text"
-                    value={formData.title}
-                    onChange={handleChange}
-                    placeholder="e.g. Vasavi Ammavari Jayanthi"
-                    className="
-                      h-11
-                      w-full
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-gray-50/70
-                      px-4
-                      text-sm
-                      text-gray-700
-                      outline-none
-                      transition
-                      placeholder:text-gray-400
-                      focus:border-gray-300
-                      focus:bg-white
-                      focus:ring-4
-                      focus:ring-gray-100
-                    "
-                  />
-
+                  <div className="mt-2 h-px bg-gray-100" />
                 </div>
 
-                {/* TEMPLE */}
+                <div className="grid gap-5 md:grid-cols-2">
 
-                <div className="md:col-span-2">
+                  {/* TEMPLE NAME */}
 
-                  <label
-                    htmlFor="temple"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Temple Name{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
-
-                  <div className="relative">
-
-                    <FaPlaceOfWorship
-                      className="
-                        absolute
-                        left-4
-                        top-1/2
-                        -translate-y-1/2
-                        text-sm
-                        text-gray-400
-                      "
-                    />
+                  <div className="md:col-span-2">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Temple Name
+                      <span className="ml-1 text-red-500">
+                        *
+                      </span>
+                    </label>
 
                     <input
-                      id="temple"
-                      name="temple"
                       type="text"
-                      value={formData.temple}
+                      name="name"
+                      value={form.name}
                       onChange={handleChange}
-                      placeholder="e.g. Sri Vasavi Kanyaka Parameshwari Temple"
-                      className="
-                        h-11
-                        w-full
-                        rounded-xl
-                        border
-                        border-gray-200
-                        bg-gray-50/70
-                        pl-11
-                        pr-4
-                        text-sm
-                        text-gray-700
-                        outline-none
-                        transition
-                        placeholder:text-gray-400
-                        focus:border-gray-300
-                        focus:bg-white
-                        focus:ring-4
-                        focus:ring-gray-100
-                      "
+                      placeholder="Sri Vasavi Kanyaka Parameshwari Temple"
+                      className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none transition focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
                     />
-
                   </div>
 
-                </div>
+                  {/* AREA */}
 
-                {/* AREA */}
-
-                <div>
-
-                  <label
-                    htmlFor="area"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Area{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
-
-                  <div className="relative">
-
-                    <FaMapMarkerAlt
-                      className="
-                        absolute
-                        left-4
-                        top-1/2
-                        -translate-y-1/2
-                        text-sm
-                        text-gray-400
-                      "
-                    />
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Area
+                      <span className="ml-1 text-red-500">
+                        *
+                      </span>
+                    </label>
 
                     <input
-                      id="area"
+                      type="text"
                       name="area"
-                      type="text"
-                      value={formData.area}
+                      value={form.area}
                       onChange={handleChange}
-                      placeholder="e.g. Kukatpally"
-                      className="
-                        h-11
-                        w-full
-                        rounded-xl
-                        border
-                        border-gray-200
-                        bg-gray-50/70
-                        pl-11
-                        pr-4
-                        text-sm
-                        text-gray-700
-                        outline-none
-                        transition
-                        placeholder:text-gray-400
-                        focus:border-gray-300
-                        focus:bg-white
-                        focus:ring-4
-                        focus:ring-gray-100
-                      "
+                      placeholder="Uppal"
+                      className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
                     />
-
                   </div>
 
-                </div>
+                  {/* DISTRICT */}
 
-                {/* DISTRICT */}
-
-                <div>
-
-                  <label
-                    htmlFor="district"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    District{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
-
-                  <input
-                    id="district"
-                    name="district"
-                    type="text"
-                    value={formData.district}
-                    onChange={handleChange}
-                    placeholder="e.g. Hyderabad"
-                    className="
-                      h-11
-                      w-full
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-gray-50/70
-                      px-4
-                      text-sm
-                      text-gray-700
-                      outline-none
-                      transition
-                      placeholder:text-gray-400
-                      focus:border-gray-300
-                      focus:bg-white
-                      focus:ring-4
-                      focus:ring-gray-100
-                    "
-                  />
-
-                </div>
-
-                {/* DATE */}
-
-                <div>
-
-                  <label
-                    htmlFor="date"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Event Date{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
-
-                  <div className="relative">
-
-                    <FaCalendarAlt
-                      className="
-                        absolute
-                        left-4
-                        top-1/2
-                        -translate-y-1/2
-                        text-sm
-                        text-gray-400
-                      "
-                    />
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      District
+                      <span className="ml-1 text-red-500">
+                        *
+                      </span>
+                    </label>
 
                     <input
-                      id="date"
-                      name="date"
-                      type="date"
-                      value={formData.date}
+                      type="text"
+                      name="district"
+                      value={form.district}
                       onChange={handleChange}
-                      className="
-                        h-11
-                        w-full
-                        rounded-xl
-                        border
-                        border-gray-200
-                        bg-gray-50/70
-                        pl-11
-                        pr-4
-                        text-sm
-                        text-gray-700
-                        outline-none
-                        transition
-                        focus:border-gray-300
-                        focus:bg-white
-                        focus:ring-4
-                        focus:ring-gray-100
-                      "
+                      placeholder="Hyderabad"
+                      className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
                     />
-
                   </div>
+                </div>
+              </section>
 
+              {/* =================================================
+                  LOCATION
+              ================================================= */}
+
+              <section>
+                <div className="mb-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#650014]">
+                    Location Details
+                  </h3>
+
+                  <div className="mt-2 h-px bg-gray-100" />
                 </div>
 
-                {/* TIME */}
+                <div className="space-y-5">
 
-                <div>
+                  {/* ADDRESS */}
 
-                  <label
-                    htmlFor="time"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Event Time{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <FaMapMarkerAlt className="text-[#650014]" />
+                      Address
+                      <span className="text-red-500">
+                        *
+                      </span>
+                    </label>
 
-                  <div className="relative">
-
-                    <FaClock
-                      className="
-                        absolute
-                        left-4
-                        top-1/2
-                        -translate-y-1/2
-                        text-sm
-                        text-gray-400
-                      "
+                    <textarea
+                      name="address"
+                      value={form.address}
+                      onChange={handleChange}
+                      rows={3}
+                      placeholder="Enter complete temple address"
+                      className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
                     />
+                  </div>
+
+                  {/* GOOGLE MAPS URL */}
+
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      Google Maps URL
+                      <span className="ml-1 text-red-500">
+                        *
+                      </span>
+                    </label>
 
                     <input
-                      id="time"
-                      name="time"
-                      type="text"
-                      value={formData.time}
+                      type="url"
+                      name="map_url"
+                      value={form.map_url}
                       onChange={handleChange}
-                      placeholder="e.g. 6:00 AM – 9:00 PM"
-                      className="
-                        h-11
-                        w-full
-                        rounded-xl
-                        border
-                        border-gray-200
-                        bg-gray-50/70
-                        pl-11
-                        pr-4
-                        text-sm
-                        text-gray-700
-                        outline-none
-                        transition
-                        placeholder:text-gray-400
-                        focus:border-gray-300
-                        focus:bg-white
-                        focus:ring-4
-                        focus:ring-gray-100
-                      "
+                      placeholder="https://www.google.com/maps/..."
+                      className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
                     />
+                  </div>
+                </div>
+              </section>
 
+              {/* =================================================
+                  CONTACT
+              ================================================= */}
+
+              <section>
+                <div className="mb-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#650014]">
+                    Contact & Timings
+                  </h3>
+
+                  <div className="mt-2 h-px bg-gray-100" />
+                </div>
+
+                <div className="grid gap-5 md:grid-cols-2">
+
+                  {/* PHONE */}
+
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <FaPhoneAlt className="text-[#650014]" />
+                      Phone Number
+                    </label>
+
+                    <input
+                      type="text"
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="+91 98765 43210"
+                      className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
+                    />
                   </div>
 
+                  {/* TIMINGS */}
+
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                      <FaClock className="text-[#650014]" />
+                      Temple Timings
+                    </label>
+
+                    <input
+                      type="text"
+                      name="timings"
+                      value={form.timings}
+                      onChange={handleChange}
+                      placeholder="6:00 AM – 11:00 AM | 6:00 PM – 8:00 PM"
+                      className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* =================================================
+                  DESCRIPTION
+              ================================================= */}
+
+              <section>
+                <div className="mb-5">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-[#650014]">
+                    Description
+                  </h3>
+
+                  <div className="mt-2 h-px bg-gray-100" />
                 </div>
 
-                {/* TYPE */}
+                <textarea
+                  name="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  rows={5}
+                  placeholder="Enter temple description..."
+                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm leading-6 text-gray-700 outline-none focus:border-[#650014] focus:bg-white focus:ring-4 focus:ring-[#650014]/5"
+                />
+              </section>
 
-                <div>
+              {/* =================================================
+                  TEMPLE IMAGE
+              ================================================= */}
 
-                  <label
-                    htmlFor="type"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Event Type
+              <section>
+                <div className="mb-5">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#650014]">
+                    <FaImage />
+                    Temple Image
+                  </h3>
+
+                  <div className="mt-2 h-px bg-gray-100" />
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
+
+                  {/* IMAGE PREVIEW */}
+
+                  <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+
+                    {previewUrl ? (
+                      <div className="relative h-[280px]">
+
+                        <img
+                          src={previewUrl}
+                          alt={
+                            form.name ||
+                            "Temple image"
+                          }
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display =
+                              "none";
+                          }}
+                        />
+
+                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-14">
+
+                          <p className="text-sm font-semibold text-white">
+                            {selectedFile
+                              ? selectedFile.name
+                              : form.image}
+                          </p>
+
+                          <p className="mt-1 text-xs text-white/75">
+                            {selectedFile
+                              ? "New image selected"
+                              : "Current temple image"}
+                          </p>
+
+                        </div>
+
+                        {selectedFile && (
+                          <button
+                            type="button"
+                            onClick={
+                              removeSelectedImage
+                            }
+                            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-gray-700 shadow-md transition hover:bg-red-50 hover:text-red-600"
+                            title="Remove selected image"
+                          >
+                            <FaTimes />
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex h-[280px] flex-col items-center justify-center">
+
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#f8eef2]">
+                          <FaImage className="text-2xl text-[#650014]" />
+                        </div>
+
+                        <p className="mt-4 text-sm font-semibold text-gray-700">
+                          No image available
+                        </p>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                          Upload a temple image
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* UPLOAD */}
+
+                  <div className="flex flex-col justify-center">
+
+                    <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
+
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+                        <FaUpload className="text-xl text-[#650014]" />
+                      </div>
+
+                      <h4 className="mt-4 text-sm font-semibold text-gray-800">
+                        Change Temple Image
+                      </h4>
+
+                      <p className="mt-2 text-xs leading-5 text-gray-500">
+                        JPG, JPEG, PNG or WEBP
+                        <br />
+                        Maximum size 5 MB
+                      </p>
+
+                      <label className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-[#650014] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8a1025]">
+
+                        <FaUpload />
+
+                        Choose Image
+
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={
+                            handleImageChange
+                          }
+                          className="hidden"
+                        />
+                      </label>
+
+                      {selectedFile && (
+                        <div className="mt-4 rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+                          ✓ New image ready
+                          to upload
+                        </div>
+                      )}
+                    </div>
+
+                    {!selectedFile &&
+                      form.image && (
+                        <p className="mt-3 break-all text-center text-xs text-gray-400">
+                          Current file:{" "}
+                          {form.image}
+                        </p>
+                      )}
+                  </div>
+                </div>
+              </section>
+
+              {/* =================================================
+                  STATUS
+              ================================================= */}
+
+              <section>
+                <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+
+                  <label className="flex cursor-pointer items-center justify-between gap-4">
+
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">
+                        Temple Status
+                      </p>
+
+                      <p className="mt-1 text-xs text-gray-500">
+                        Active temples will be
+                        visible in the public
+                        temple directory.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm(
+                          (prev) => ({
+                            ...prev,
+                            status:
+                              !prev.status,
+                          }),
+                        );
+
+                        setError("");
+                        setSuccess("");
+                      }}
+                      className={`relative h-6 w-11 shrink-0 rounded-full transition ${
+                        form.status
+                          ? "bg-[#650014]"
+                          : "bg-gray-300"
+                      }`}
+                      aria-label={
+                        form.status
+                          ? "Deactivate temple"
+                          : "Activate temple"
+                      }
+                    >
+                      <span
+                        className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition ${
+                          form.status
+                            ? "left-6"
+                            : "left-1"
+                        }`}
+                      />
+                    </button>
                   </label>
 
-                  <select
-                    id="type"
-                    name="type"
-                    value={formData.type}
-                    onChange={handleChange}
-                    className="
-                      h-11
-                      w-full
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-gray-50/70
-                      px-4
-                      text-sm
-                      text-gray-600
-                      outline-none
-                      transition
-                      focus:border-gray-300
-                      focus:bg-white
-                      focus:ring-4
-                      focus:ring-gray-100
-                    "
-                  >
-                    <option value="Special Pooja">
-                      Special Pooja
-                    </option>
+                  <div className="mt-3 flex items-center gap-2 text-xs font-medium">
 
-                    <option value="Abhishekam">
-                      Abhishekam
-                    </option>
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        form.status
+                          ? "bg-green-500"
+                          : "bg-gray-400"
+                      }`}
+                    />
 
-                    <option value="Pooja">
-                      Pooja
-                    </option>
-
-                    <option value="Festival">
-                      Festival
-                    </option>
-
-                    <option value="Devotional">
-                      Devotional
-                    </option>
-
-                    <option value="Bhajan">
-                      Bhajan
-                    </option>
-
-                    <option value="Community">
-                      Community
-                    </option>
-                  </select>
-
+                    {form.status
+                      ? "Active"
+                      : "Inactive"}
+                  </div>
                 </div>
-
-                {/* STATUS */}
-
-                <div>
-
-                  <label
-                    htmlFor="status"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Status
-                  </label>
-
-                  <select
-                    id="status"
-                    name="status"
-                    value={
-                      formData.status
-                        ? "1"
-                        : "0"
-                    }
-                    onChange={(e) =>
-                      setFormData(
-                        (current) => ({
-                          ...current,
-                          status:
-                            e.target.value ===
-                            "1",
-                        }),
-                      )
-                    }
-                    className="
-                      h-11
-                      w-full
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-gray-50/70
-                      px-4
-                      text-sm
-                      text-gray-600
-                      outline-none
-                      transition
-                      focus:border-gray-300
-                      focus:bg-white
-                      focus:ring-4
-                      focus:ring-gray-100
-                    "
-                  >
-                    <option value="1">
-                      Active
-                    </option>
-
-                    <option value="0">
-                      Inactive
-                    </option>
-                  </select>
-
-                </div>
-
-                {/* DESCRIPTION */}
-
-                <div className="md:col-span-2">
-
-                  <label
-                    htmlFor="description"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Description{" "}
-                    <span className="text-red-500">
-                      *
-                    </span>
-                  </label>
-
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={
-                      formData.description
-                    }
-                    onChange={handleChange}
-                    rows={5}
-                    placeholder="Enter event description..."
-                    className="
-                      w-full
-                      resize-none
-                      rounded-xl
-                      border
-                      border-gray-200
-                      bg-gray-50/70
-                      px-4
-                      py-3
-                      text-sm
-                      leading-6
-                      text-gray-700
-                      outline-none
-                      transition
-                      placeholder:text-gray-400
-                      focus:border-gray-300
-                      focus:bg-white
-                      focus:ring-4
-                      focus:ring-gray-100
-                    "
-                  />
-
-                </div>
-
-              </div>
-
+              </section>
             </div>
 
             {/* =================================================
                 FOOTER
-            ================================================== */}
+            ================================================= */}
 
-            <div
-              className="
-                flex
-                flex-col-reverse
-                gap-3
-                border-t
-                border-gray-100
-                bg-gray-50/50
-                px-6
-                py-5
-                sm:flex-row
-                sm:justify-end
-              "
-            >
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50/60 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
 
               <Link
-                href="/admin/temple-events"
-                className="
-                  inline-flex
-                  h-11
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-gray-200
-                  bg-white
-                  px-6
-                  text-sm
-                  font-semibold
-                  text-gray-600
-                  transition
-                  hover:bg-gray-50
-                "
+                href="/admin/temples"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-white px-5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
               >
                 Cancel
               </Link>
@@ -1152,59 +1001,25 @@ export default function EditTempleEventPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="
-                  inline-flex
-                  h-11
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-xl
-                  bg-[#8B1E3F]
-                  px-6
-                  text-sm
-                  font-semibold
-                  text-white
-                  shadow-sm
-                  transition
-                  hover:bg-[#751833]
-                  disabled:cursor-not-allowed
-                  disabled:opacity-60
-                "
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#650014] px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8a1025] disabled:cursor-not-allowed disabled:opacity-60"
               >
-
                 {saving ? (
                   <>
-                    <span
-                      className="
-                        h-4
-                        w-4
-                        animate-spin
-                        rounded-full
-                        border-2
-                        border-white/30
-                        border-t-white
-                      "
-                    />
-
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                     Updating...
                   </>
                 ) : (
                   <>
-                    <FaSave className="text-xs" />
-                    Update Event
+                    <FaSave />
+                    Update Temple
                   </>
                 )}
-
               </button>
-
             </div>
-
           </div>
-
         </form>
-
-      </main>
-
-    </div>
+      </div>
+    </main>
   );
 }
+
