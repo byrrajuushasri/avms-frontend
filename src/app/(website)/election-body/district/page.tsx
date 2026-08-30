@@ -30,7 +30,7 @@ type ExecutiveBody = {
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const EXECUTIVE_API = `${BACKEND_URL}/executive-bodies`;
+
 
 /* =====================================================
    TELANGANA 33 DISTRICTS
@@ -117,7 +117,7 @@ export default function DistrictBodyPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(EXECUTIVE_API, {
+        const response = await fetch(BACKEND_URL, {
           method: "GET",
           cache: "no-store",
         });

@@ -47,7 +47,7 @@ type NewsItem = {
    API
 ========================================================= */
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-const BACKEND_URL = `${BACKEND_URL}/news`;
+
 
 /* =========================================================
    CATEGORIES
