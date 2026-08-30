@@ -38,7 +38,7 @@ type NewsCategory =
   | "District News"
   | "Mandal News"
   | "Sangam News";
-
+ 
 type MediaItem = {
   id: number;
   title: string;
