@@ -135,7 +135,7 @@ const fetchMembers = async () => {
         ? localStorage.getItem("token")
         : null;
 
-    const response = await fetch(BACKEND_URL, {
+    const response = await fetch(BACKEND_URL + "/membership-register" , {
       method: "GET",
       cache: "no-store",
       headers: {
