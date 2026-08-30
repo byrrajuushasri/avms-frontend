@@ -14,14 +14,18 @@ import {
   FaCalendarAlt,
   FaStar,
   FaUpload,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 /* =========================================================
    API
 ========================================================= */
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "https://avms-backend-production.up.railway.app";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const MEDIA_API = `${BACKEND_URL}/media`;
 
 /* =========================================================
    TYPES
@@ -42,7 +46,7 @@ type MediaItem = {
   category: NewsCategory;
   location?: string | null;
   date: string;
-  mediaType: "Image";
+  mediaType?: "Image";
   mediaUrl: string;
   featured: boolean;
   status: NewsStatus;
@@ -88,10 +92,12 @@ const emptyForm: FormDataType = {
 };
 
 /* =========================================================
-   IMAGE URL HELPER
+   IMAGE URL
 ========================================================= */
 
-const getMediaUrl = (url: string | null | undefined) => {
+const getMediaUrl = (
+  url: string | null | undefined
+): string => {
   if (!url) return "";
 
   if (
@@ -102,7 +108,9 @@ const getMediaUrl = (url: string | null | undefined) => {
     return url;
   }
 
-  return `${BACKEND_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${BACKEND_URL}${
+    url.startsWith("/") ? "" : "/"
+  }${url}`;
 };
 
 /* =========================================================
@@ -110,26 +118,34 @@ const getMediaUrl = (url: string | null | undefined) => {
 ========================================================= */
 
 export default function MediaPage() {
+  /* =======================================================
+     STATE
+  ======================================================= */
+
   const [media, setMedia] = useState<MediaItem[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [saving, setSaving] = useState(false);
 
   const [showForm, setShowForm] = useState(false);
 
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] =
+    useState<number | null>(null);
 
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] =
+    useState<number | null>(null);
 
   const [search, setSearch] = useState("");
 
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] =
+    useState("All");
 
-  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] =
+    useState("All");
 
   const [formData, setFormData] =
     useState<FormDataType>(emptyForm);
-
-  /* =========================================================
-     FILE STATE
-  ========================================================= */
 
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
@@ -137,61 +153,67 @@ export default function MediaPage() {
   const [previewUrl, setPreviewUrl] =
     useState<string>("");
 
-  const [loading, setLoading] = useState(true);
-
-  const [saving, setSaving] = useState(false);
-
   const [error, setError] = useState("");
 
-  /* =========================================================
-     GET NEWS
-  ========================================================= */
+  /* =======================================================
+     FETCH MEDIA
+  ======================================================= */
 
   const fetchMedia = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await fetch(BACKEND_URL + "/media", {
+      console.log("GET MEDIA:", MEDIA_API);
+
+      const response = await fetch(MEDIA_API, {
         method: "GET",
         cache: "no-store",
       });
 
+      const data = await response.json().catch(() => null);
+
+      console.log("GET MEDIA RESPONSE:", response.status);
+      console.log("GET MEDIA DATA:", data);
+
       if (!response.ok) {
         throw new Error(
-          `Failed to load news. Status: ${response.status}`
+          data?.message ||
+            `Failed to load media. Status: ${response.status}`
         );
       }
 
-      const data = await response.json();
-
       if (Array.isArray(data)) {
         setMedia(data);
+      } else if (Array.isArray(data?.data)) {
+        setMedia(data.data);
       } else {
         setMedia([]);
       }
     } catch (err) {
-      console.error("GET /news error:", err);
+      console.error("GET /media error:", err);
 
       setError(
-        "News data load avvaledu. NestJS server http://localhost:5000 running lo undho check cheyyandi."
+        err instanceof Error
+          ? err.message
+          : "Failed to load media."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  /* =========================================================
+  /* =======================================================
      INITIAL LOAD
-  ========================================================= */
+  ======================================================= */
 
   useEffect(() => {
     fetchMedia();
   }, []);
 
-  /* =========================================================
+  /* =======================================================
      CLEANUP PREVIEW
-  ========================================================= */
+  ======================================================= */
 
   useEffect(() => {
     return () => {
@@ -201,13 +223,15 @@ export default function MediaPage() {
     };
   }, [previewUrl]);
 
-  /* =========================================================
+  /* =======================================================
      FORM CHANGE
-  ========================================================= */
+  ======================================================= */
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      HTMLInputElement |
+        HTMLSelectElement |
+        HTMLTextAreaElement
     >
   ) => {
     const { name, value } = e.target;
@@ -218,9 +242,9 @@ export default function MediaPage() {
     }));
   };
 
-  /* =========================================================
-     FEATURED CHANGE
-  ========================================================= */
+  /* =======================================================
+     FEATURED
+  ======================================================= */
 
   const handleFeaturedChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -231,22 +255,16 @@ export default function MediaPage() {
     }));
   };
 
-  /* =========================================================
+  /* =======================================================
      FILE CHANGE
-  ========================================================= */
+  ======================================================= */
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
 
-    if (!file) {
-      return;
-    }
-
-    /* -------------------------------------------------------
-       CHECK IMAGE TYPE
-    ------------------------------------------------------- */
+    if (!file) return;
 
     const allowedTypes = [
       "image/jpeg",
@@ -257,16 +275,12 @@ export default function MediaPage() {
 
     if (!allowedTypes.includes(file.type)) {
       setError(
-        "Please select a JPG, PNG, WEBP or GIF image."
+        "Please select JPG, PNG, WEBP or GIF image."
       );
 
       e.target.value = "";
       return;
     }
-
-    /* -------------------------------------------------------
-       CHECK FILE SIZE
-    ------------------------------------------------------- */
 
     if (file.size > 5 * 1024 * 1024) {
       setError(
@@ -279,27 +293,14 @@ export default function MediaPage() {
 
     setError("");
 
-    /* -------------------------------------------------------
-       OLD PREVIEW CLEANUP
-    ------------------------------------------------------- */
-
     if (previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
     }
 
-    /* -------------------------------------------------------
-       SET FILE
-    ------------------------------------------------------- */
-
-    setSelectedFile(file);
-
     const objectUrl = URL.createObjectURL(file);
 
+    setSelectedFile(file);
     setPreviewUrl(objectUrl);
-
-    /* -------------------------------------------------------
-       CLEAR OLD MEDIA URL
-    ------------------------------------------------------- */
 
     setFormData((prev) => ({
       ...prev,
@@ -307,9 +308,9 @@ export default function MediaPage() {
     }));
   };
 
-  /* =========================================================
-     REMOVE SELECTED IMAGE
-  ========================================================= */
+  /* =======================================================
+     REMOVE IMAGE
+  ======================================================= */
 
   const removeSelectedImage = () => {
     if (previewUrl.startsWith("blob:")) {
@@ -325,9 +326,9 @@ export default function MediaPage() {
     }));
   };
 
-  /* =========================================================
-     OPEN ADD FORM
-  ========================================================= */
+  /* =======================================================
+     ADD FORM
+  ======================================================= */
 
   const openAddForm = () => {
     setEditingId(null);
@@ -341,14 +342,13 @@ export default function MediaPage() {
 
     setSelectedFile(null);
     setPreviewUrl("");
-
     setError("");
     setShowForm(true);
   };
 
-  /* =========================================================
+  /* =======================================================
      CLOSE FORM
-  ========================================================= */
+  ======================================================= */
 
   const closeForm = () => {
     if (saving) return;
@@ -365,9 +365,9 @@ export default function MediaPage() {
     setError("");
   };
 
-  /* =========================================================
+  /* =======================================================
      EDIT
-  ========================================================= */
+  ======================================================= */
 
   const handleEdit = (item: MediaItem) => {
     setEditingId(item.id);
@@ -381,7 +381,7 @@ export default function MediaPage() {
         ? String(item.date).split("T")[0]
         : "",
       mediaUrl: item.mediaUrl || "",
-      featured: item.featured ?? false,
+      featured: Boolean(item.featured),
       status: item.status || "Active",
     });
 
@@ -399,9 +399,9 @@ export default function MediaPage() {
     setShowForm(true);
   };
 
-  /* =========================================================
-     SAVE / UPDATE
-  ========================================================= */
+  /* =======================================================
+     SUBMIT
+  ======================================================= */
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
@@ -410,9 +410,9 @@ export default function MediaPage() {
 
     setError("");
 
-    /* =======================================================
+    /* =====================================================
        VALIDATION
-    ======================================================= */
+    ===================================================== */
 
     if (!formData.title.trim()) {
       setError("Please enter Title.");
@@ -434,10 +434,6 @@ export default function MediaPage() {
       return;
     }
 
-    /* -------------------------------------------------------
-       IMAGE VALIDATION
-    ------------------------------------------------------- */
-
     if (
       editingId === null &&
       !selectedFile
@@ -449,15 +445,11 @@ export default function MediaPage() {
     try {
       setSaving(true);
 
-      /* =====================================================
-         FORMDATA
-      ===================================================== */
+      /* ===================================================
+         FORM DATA
+      =================================================== */
 
       const body = new FormData();
-
-      /* -----------------------------------------------------
-         TEXT FIELDS
-      ----------------------------------------------------- */
 
       body.append(
         "title",
@@ -484,14 +476,6 @@ export default function MediaPage() {
         formData.date
       );
 
-      /* -----------------------------------------------------
-         IMPORTANT
-
-         Backend entity expects mediaType.
-
-         Since video is removed, always send Image.
-      ----------------------------------------------------- */
-
       body.append(
         "mediaType",
         "Image"
@@ -507,17 +491,9 @@ export default function MediaPage() {
         formData.status
       );
 
-      /* -----------------------------------------------------
-         IMPORTANT
-
-         Backend controller uses:
-
-         FileInterceptor("media")
-
-         Therefore frontend MUST use:
-
-         body.append("media", selectedFile)
-      ----------------------------------------------------- */
+      /* ===================================================
+         IMAGE
+      =================================================== */
 
       if (selectedFile) {
         body.append(
@@ -526,11 +502,9 @@ export default function MediaPage() {
         );
       }
 
-      /* -----------------------------------------------------
-         EDIT WITHOUT NEW IMAGE
-
-         Send existing mediaUrl.
-      ----------------------------------------------------- */
+      /* ===================================================
+         EXISTING IMAGE
+      =================================================== */
 
       if (
         editingId !== null &&
@@ -543,69 +517,68 @@ export default function MediaPage() {
         );
       }
 
-      /* =====================================================
-         URL
-      ===================================================== */
+      /* ===================================================
+         API URL
+      =================================================== */
 
       const url =
         editingId !== null
-          ? `${BACKEND_URL}/${editingId}`
-          : BACKEND_URL;
-
-      /* =====================================================
-         METHOD
-      ===================================================== */
+          ? `${MEDIA_API}/${editingId}`
+          : MEDIA_API;
 
       const method =
         editingId !== null
           ? "PATCH"
           : "POST";
 
-      /* =====================================================
-         REQUEST
+      console.log("MEDIA REQUEST");
+      console.log("URL:", url);
+      console.log("METHOD:", method);
 
-         DO NOT manually set Content-Type.
-         Browser automatically creates multipart boundary.
-      ===================================================== */
+      /* ===================================================
+         REQUEST
+      =================================================== */
 
       const response = await fetch(url, {
         method,
         body,
       });
 
-      /* =====================================================
-         RESPONSE
-      ===================================================== */
+      const data =
+        await response.json().catch(() => null);
 
-      let data: any = null;
+      console.log(
+        "MEDIA RESPONSE STATUS:",
+        response.status
+      );
 
-      try {
-        data = await response.json();
-      } catch {
-        data = null;
-      }
+      console.log(
+        "MEDIA RESPONSE DATA:",
+        data
+      );
+
+      /* ===================================================
+         ERROR
+      =================================================== */
 
       if (!response.ok) {
         let message =
           "Failed to save news.";
 
-        if (
-          Array.isArray(data?.message)
-        ) {
+        if (Array.isArray(data?.message)) {
           message =
             data.message.join(", ");
-        } else if (
-          data?.message
-        ) {
-          message = data.message;
+        } else if (data?.message) {
+          message =
+            data.message;
         }
 
         throw new Error(message);
       }
 
-      /* =====================================================
+      /* ===================================================
          SUCCESS
-      ===================================================== */
+      =================================================== */
 
       await fetchMedia();
 
@@ -613,7 +586,7 @@ export default function MediaPage() {
 
     } catch (err) {
       console.error(
-        "Save news error:",
+        "Save media error:",
         err
       );
 
@@ -627,32 +600,38 @@ export default function MediaPage() {
     }
   };
 
-  /* =========================================================
+  /* =======================================================
      DELETE
-  ========================================================= */
+  ======================================================= */
 
   const handleDelete = async () => {
-    if (deleteId === null) {
-      return;
-    }
+    if (deleteId === null) return;
 
     try {
       setError("");
 
-      const response = await fetch(
-        `${BACKEND_URL}/${deleteId}`,
-        {
-          method: "DELETE",
-        }
+      const url =
+        `${MEDIA_API}/${deleteId}`;
+
+      console.log(
+        "DELETE MEDIA:",
+        url
       );
 
-      let data: any = null;
+      const response =
+        await fetch(url, {
+          method: "DELETE",
+        });
 
-      try {
-        data = await response.json();
-      } catch {
-        data = null;
-      }
+      const data =
+        await response.json().catch(
+          () => null
+        );
+
+      console.log(
+        "DELETE STATUS:",
+        response.status
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -667,7 +646,7 @@ export default function MediaPage() {
 
     } catch (err) {
       console.error(
-        "Delete news error:",
+        "Delete media error:",
         err
       );
 
@@ -681,9 +660,9 @@ export default function MediaPage() {
     }
   };
 
-  /* =========================================================
+  /* =======================================================
      FILTER
-  ========================================================= */
+  ======================================================= */
 
   const filteredMedia = useMemo(() => {
     const searchText =
@@ -711,8 +690,7 @@ export default function MediaPage() {
 
       const matchesCategory =
         categoryFilter === "All" ||
-        item.category ===
-          categoryFilter;
+        item.category === categoryFilter;
 
       return (
         matchesSearch &&
@@ -727,32 +705,37 @@ export default function MediaPage() {
     categoryFilter,
   ]);
 
-  /* =========================================================
+  /* =======================================================
      COUNTS
-  ========================================================= */
+  ======================================================= */
 
-  const featuredCount = media.filter(
-    (item) => item.featured
-  ).length;
+  const featuredCount =
+    media.filter(
+      (item) => Boolean(item.featured)
+    ).length;
 
-  const activeCount = media.filter(
-    (item) => item.status === "Active"
-  ).length;
+  const activeCount =
+    media.filter(
+      (item) =>
+        item.status === "Active"
+    ).length;
 
-  const inactiveCount = media.filter(
-    (item) => item.status === "Inactive"
-  ).length;
+  const inactiveCount =
+    media.filter(
+      (item) =>
+        item.status === "Inactive"
+    ).length;
 
-  /* =========================================================
+  /* =======================================================
      RENDER
-  ========================================================= */
+  ======================================================= */
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
 
-      {/* =====================================================
+      {/* ===================================================
           HEADER
-      ===================================================== */}
+      =================================================== */}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 
@@ -785,9 +768,9 @@ export default function MediaPage() {
 
       </div>
 
-      {/* =====================================================
+      {/* ===================================================
           ERROR
-      ===================================================== */}
+      =================================================== */}
 
       {error && (
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -795,16 +778,13 @@ export default function MediaPage() {
         </div>
       )}
 
-      {/* =====================================================
-          STATISTICS
-      ===================================================== */}
+      {/* ===================================================
+          STATS
+      =================================================== */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-        {/* TOTAL */}
-
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-
           <p className="text-sm text-gray-500">
             Total News
           </p>
@@ -812,21 +792,16 @@ export default function MediaPage() {
           <h2 className="text-2xl font-bold mt-2 text-gray-900">
             {media.length}
           </h2>
-
         </div>
-
-        {/* IMAGES */}
 
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
 
           <div className="flex items-center gap-2">
-
             <FaImage className="text-blue-600" />
 
             <p className="text-sm text-gray-500">
               Images
             </p>
-
           </div>
 
           <h2 className="text-2xl font-bold text-blue-600 mt-2">
@@ -835,18 +810,14 @@ export default function MediaPage() {
 
         </div>
 
-        {/* ACTIVE */}
-
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
 
           <div className="flex items-center gap-2">
-
             <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
 
             <p className="text-sm text-gray-500">
               Active
             </p>
-
           </div>
 
           <h2 className="text-2xl font-bold text-green-600 mt-2">
@@ -855,18 +826,14 @@ export default function MediaPage() {
 
         </div>
 
-        {/* FEATURED */}
-
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
 
           <div className="flex items-center gap-2">
-
             <FaStar className="text-yellow-500" />
 
             <p className="text-sm text-gray-500">
               Featured
             </p>
-
           </div>
 
           <h2 className="text-2xl font-bold text-yellow-600 mt-2">
@@ -877,15 +844,13 @@ export default function MediaPage() {
 
       </div>
 
-      {/* =====================================================
-          SEARCH & FILTER
-      ===================================================== */}
+      {/* ===================================================
+          SEARCH
+      =================================================== */}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-
-          {/* SEARCH */}
 
           <div className="relative">
 
@@ -903,8 +868,6 @@ export default function MediaPage() {
 
           </div>
 
-          {/* CATEGORY */}
-
           <select
             value={categoryFilter}
             onChange={(e) =>
@@ -914,7 +877,6 @@ export default function MediaPage() {
             }
             className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
           >
-
             <option value="All">
               All Categories
             </option>
@@ -929,10 +891,7 @@ export default function MediaPage() {
                 </option>
               )
             )}
-
           </select>
-
-          {/* STATUS */}
 
           <select
             value={statusFilter}
@@ -943,7 +902,6 @@ export default function MediaPage() {
             }
             className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
           >
-
             <option value="All">
               All Status
             </option>
@@ -955,16 +913,15 @@ export default function MediaPage() {
             <option value="Inactive">
               Inactive
             </option>
-
           </select>
 
         </div>
 
       </div>
 
-      {/* =====================================================
+      {/* ===================================================
           LOADING
-      ===================================================== */}
+      =================================================== */}
 
       {loading && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
@@ -978,9 +935,9 @@ export default function MediaPage() {
         </div>
       )}
 
-      {/* =====================================================
-          MEDIA GRID
-      ===================================================== */}
+      {/* ===================================================
+          GRID
+      =================================================== */}
 
       {!loading &&
         filteredMedia.length > 0 && (
@@ -1012,34 +969,23 @@ export default function MediaPage() {
                     ) : (
 
                       <div className="w-full h-full flex items-center justify-center text-gray-300">
-
                         <FaImage className="text-5xl" />
-
                       </div>
 
                     )}
 
-                    {/* CATEGORY */}
-
                     <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/95 backdrop-blur text-xs font-semibold text-[#8B1E3F] shadow-sm">
-
                       {item.category}
-
                     </span>
-
-                    {/* STATUS */}
 
                     <span
                       className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
-                        item.status ===
-                        "Active"
+                        item.status === "Active"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
-
                       {item.status}
-
                     </span>
 
                   </div>
@@ -1048,23 +994,20 @@ export default function MediaPage() {
 
                   <div className="p-5">
 
-                    <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mb-2">
 
                       <span className="flex items-center gap-1">
-
                         <FaImage />
-
                         Image
-
                       </span>
 
                       {item.date && (
                         <span className="flex items-center gap-1">
-
                           <FaCalendarAlt />
 
-                          {item.date}
-
+                          {String(
+                            item.date
+                          ).split("T")[0]}
                         </span>
                       )}
 
@@ -1079,19 +1022,17 @@ export default function MediaPage() {
                     </p>
 
                     {item.location && (
-                      <p className="text-xs text-gray-400 mt-2">
-                        Location:{" "}
+                      <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
+                        <FaMapMarkerAlt />
+
                         {item.location}
                       </p>
                     )}
 
                     {item.featured && (
                       <div className="flex items-center gap-1 text-xs font-semibold text-yellow-600 mt-3">
-
                         <FaStar />
-
                         Featured News
-
                       </div>
                     )}
 
@@ -1106,11 +1047,8 @@ export default function MediaPage() {
                         }
                         className="flex-1 h-10 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center gap-2 text-sm font-semibold hover:bg-yellow-50 hover:text-yellow-600"
                       >
-
                         <FaEdit />
-
                         Edit
-
                       </button>
 
                       <button
@@ -1122,9 +1060,7 @@ export default function MediaPage() {
                         }
                         className="w-10 h-10 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center hover:bg-red-50 hover:text-red-600"
                       >
-
                         <FaTrash />
-
                       </button>
 
                     </div>
@@ -1139,9 +1075,9 @@ export default function MediaPage() {
           </div>
         )}
 
-      {/* =====================================================
+      {/* ===================================================
           EMPTY
-      ===================================================== */}
+      =================================================== */}
 
       {!loading &&
         filteredMedia.length === 0 && (
@@ -1161,9 +1097,9 @@ export default function MediaPage() {
           </div>
         )}
 
-      {/* =====================================================
+      {/* ===================================================
           ADD / EDIT MODAL
-      ===================================================== */}
+      =================================================== */}
 
       {showForm && (
 
@@ -1178,19 +1114,15 @@ export default function MediaPage() {
               <div className="flex items-center gap-3">
 
                 <div className="w-10 h-10 rounded-xl bg-[#f8eef2] text-[#8B1E3F] flex items-center justify-center">
-
                   <FaPhotoVideo />
-
                 </div>
 
                 <div>
 
                   <h2 className="font-bold text-gray-900">
-
                     {editingId !== null
                       ? "Edit News"
                       : "Add News"}
-
                   </h2>
 
                   <p className="text-xs text-gray-500 mt-1">
@@ -1206,9 +1138,7 @@ export default function MediaPage() {
                 onClick={closeForm}
                 className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-50"
               >
-
                 <FaTimes />
-
               </button>
 
             </div>
@@ -1244,21 +1174,16 @@ export default function MediaPage() {
                     Select Category
                   </option>
 
-                  <option value="State News">
-                    State News
-                  </option>
-
-                  <option value="District News">
-                    District News
-                  </option>
-
-                  <option value="Mandal News">
-                    Mandal News
-                  </option>
-
-                  <option value="Sangam News">
-                    Sangam News
-                  </option>
+                  {categories.map(
+                    (category) => (
+                      <option
+                        key={category}
+                        value={category}
+                      >
+                        {category}
+                      </option>
+                    )
+                  )}
 
                 </select>
 
@@ -1366,9 +1291,7 @@ export default function MediaPage() {
 
               </div>
 
-              {/* =================================================
-                  IMAGE UPLOAD
-              ================================================= */}
+              {/* IMAGE */}
 
               <div>
 
@@ -1422,11 +1345,9 @@ export default function MediaPage() {
                         />
 
                         <div className="absolute bottom-3 left-3 right-3 bg-black/60 text-white rounded-lg px-3 py-2 text-xs">
-
                           {selectedFile
                             ? selectedFile.name
                             : "Current image"}
-
                         </div>
 
                       </div>
@@ -1436,7 +1357,6 @@ export default function MediaPage() {
                   </label>
 
                   {previewUrl && (
-
                     <button
                       type="button"
                       onClick={
@@ -1444,21 +1364,16 @@ export default function MediaPage() {
                       }
                       className="mt-3 w-full h-10 rounded-lg bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100"
                     >
-
                       Remove Image
-
                     </button>
-
                   )}
 
                 </div>
 
                 <p className="text-xs text-gray-400 mt-2">
-
                   {editingId !== null
                     ? "Select a new image only if you want to replace the current image."
                     : "Select the image you want to upload."}
-
                 </p>
 
               </div>
@@ -1529,16 +1444,12 @@ export default function MediaPage() {
 
               </div>
 
-              {/* FORM ERROR */}
+              {/* ERROR */}
 
               {error && (
-
                 <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-
                   {error}
-
                 </div>
-
               )}
 
               {/* BUTTONS */}
@@ -1551,9 +1462,7 @@ export default function MediaPage() {
                   disabled={saving}
                   className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50"
                 >
-
                   Cancel
-
                 </button>
 
                 <button
@@ -1565,23 +1474,18 @@ export default function MediaPage() {
                   {saving ? (
 
                     <>
-
                       <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-
                       Saving...
-
                     </>
 
                   ) : (
 
                     <>
-
                       <FaSave />
 
                       {editingId !== null
                         ? "Update News"
                         : "Save News"}
-
                     </>
 
                   )}
@@ -1597,9 +1501,9 @@ export default function MediaPage() {
         </div>
       )}
 
-      {/* =====================================================
+      {/* ===================================================
           DELETE MODAL
-      ===================================================== */}
+      =================================================== */}
 
       {deleteId !== null && (
 
