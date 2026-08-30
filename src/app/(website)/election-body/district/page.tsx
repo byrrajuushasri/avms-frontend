@@ -117,7 +117,7 @@ export default function DistrictBodyPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(BACKEND_URL, {
+        const response = await fetch(BACKEND_URL + "/executive-bodies", {
           method: "GET",
           cache: "no-store",
         });

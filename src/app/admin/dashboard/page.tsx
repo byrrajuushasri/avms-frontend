@@ -1,5 +1,6 @@
 "use client";
 
+import { register } from "module";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -68,6 +69,7 @@ type Member = {
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "http://localhost:5000";
+
 
 
 /* =========================================================
@@ -270,7 +272,7 @@ const fetchMembers = async () => {
         ? localStorage.getItem("token")
         : null;
 
-    const response = await fetch(BACKEND_URL, {
+    const response = await fetch(BACKEND_URL + "/membership-register", {
       method: "GET",
       cache: "no-store",
       headers: {
