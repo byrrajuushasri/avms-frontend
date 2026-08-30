@@ -43,6 +43,8 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
   };
 
 
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"; 
+
 
 
   useEffect(() => {
@@ -52,7 +54,7 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
         setError("");
 
         const response = await fetch(
-          "http://localhost:5000/matrimonial-users",
+          `${BACKEND_URL}/matrimonial-users`,
           {
             cache: "no-store",
           }

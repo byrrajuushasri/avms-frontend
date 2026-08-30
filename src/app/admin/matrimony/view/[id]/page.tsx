@@ -17,7 +17,10 @@ import {
   FaPrayingHands,
 } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000";
+
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+  ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/matrimonial-users`
+  : "http://localhost:5000/matrimonial-users";
 
 interface Member {
   id: number;

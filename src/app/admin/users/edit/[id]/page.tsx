@@ -21,6 +21,8 @@ interface UserFormData {
   status: string;
 }
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
 export default function EditUserPage() {
   const router = useRouter();
   const params = useParams();
@@ -51,7 +53,7 @@ export default function EditUserPage() {
         setError("");
 
         const response = await fetch(
-          `http://localhost:5000/users/${id}`
+          `${BACKEND_URL}/users/${id}`
         );
 
         if (!response.ok) {

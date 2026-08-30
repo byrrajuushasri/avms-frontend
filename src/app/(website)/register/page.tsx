@@ -529,9 +529,11 @@ export default function RegisterPage() {
     setMemberVerified(false);
     setMemberId("");
 
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
     try {
       const response = await fetch(
-        "http://localhost:5000/matrimonial-users/check-member",
+        `${BACKEND_URL}/matrimonial-users/check-member`,
         {
           method: "POST",
           headers: {
@@ -770,8 +772,10 @@ export default function RegisterPage() {
          REGISTER API
       ========================================= */
 
+     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
       const response = await fetch(
-        "http://localhost:5000/matrimonial-users/register",
+        `${BACKEND_URL}/matrimonial-users/register`,
         {
           method: "POST",
           body: formDataToSend,

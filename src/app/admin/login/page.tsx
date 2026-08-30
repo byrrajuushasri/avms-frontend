@@ -47,8 +47,10 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"; 
+
       const response = await fetch(
-        "http://localhost:5000/auth/login",
+        `${BACKEND_URL}/auth/login`,
         {
           method: "POST",
           headers: {

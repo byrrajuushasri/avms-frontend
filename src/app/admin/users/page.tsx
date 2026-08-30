@@ -93,6 +93,7 @@ export default function AdminDashboard() {
   /* =======================================================
      GET USERS
   ======================================================= */
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -101,7 +102,7 @@ export default function AdminDashboard() {
         setError("");
 
         const response = await fetch(
-          "http://localhost:5000/users"
+          `${BACKEND_URL}/users`
         );
 
         if (!response.ok) {
