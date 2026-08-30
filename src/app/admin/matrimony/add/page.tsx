@@ -12,7 +12,7 @@ import {
 
 
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/matrimonial-users`
   : "http://localhost:5000/matrimonial-users";  
 
@@ -294,7 +294,7 @@ const handleSubmit = async (
     // =========================================
 
     const response = await fetch(
-      `${API_URL}/matrimonial-users/register`,
+      `${BACKEND_URL}/matrimonial-users/register`,
       {
         method: "POST",
         body: formDataToSend,

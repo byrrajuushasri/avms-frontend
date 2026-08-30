@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
   ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/matrimonial-users`
   : "http://localhost:5000/matrimonial-users";
 
@@ -89,7 +89,7 @@ export default function ViewProfilePage() {
         setError("");
 
         const response = await fetch(
-          `${API_URL}/matrimonial-users/${id}`,
+          `${BACKEND_URL}/matrimonial-users/${id}`,
           {
             method: "GET",
             cache: "no-store",
@@ -180,7 +180,7 @@ export default function ViewProfilePage() {
   const photoUrl = member.photo
     ? member.photo.startsWith("http")
       ? member.photo
-      : `${API_URL}/uploads/matrimonial/${member.photo}`
+      : `${BACKEND_URL}/uploads/matrimonial/${member.photo}`
     : null;
 
   // =========================================================

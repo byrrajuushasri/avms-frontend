@@ -67,7 +67,7 @@ type ExecutiveMember = {
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const API_URL =
+const BACKEND_URL =
   `${BACKEND_URL}/membership-register`;
 
 /* =========================================================
@@ -321,7 +321,7 @@ export default function StateContactsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(BACKEND_URL, {
         method: "GET",
         cache: "no-store",
       });

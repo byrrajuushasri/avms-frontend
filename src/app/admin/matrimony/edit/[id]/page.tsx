@@ -521,7 +521,7 @@ export default function EditMatrimonialMemberPage() {
       );
 
       const response = await fetch(
-        `${API_URL}/matrimonial-users/${id}`,
+        `${BACKEND_URL}/matrimonial-users/${id}`,
         {
           method: "PUT",
           body: formData,
@@ -603,7 +603,7 @@ export default function EditMatrimonialMemberPage() {
           </p>
 
           <p className="text-xs text-gray-400 mt-3 break-all">
-            API: {API_URL}/matrimonial-users/
+            API: {BACKEND_URL}/matrimonial-users/
             {id}
           </p>
 

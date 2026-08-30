@@ -21,10 +21,10 @@ import {
    API
 ========================================================= */
 
-const API_URL =
+const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const EVENTS_API = `${API_URL}/temple-events`;
+const EVENTS_API = `${BACKEND_URL}/temple-events`;
 
 /* =========================================================
    TYPE

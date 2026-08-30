@@ -17,7 +17,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
-const API_URL =
+const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "http://localhost:5000";
 
@@ -90,7 +90,7 @@ export default function EditTemplePage() {
       setError("");
 
       const response = await fetch(
-        `${API_URL}/temples/${id}`,
+        `${BACKEND_URL}/temples/${id}`,
         {
           method: "GET",
           cache: "no-store",
@@ -131,7 +131,7 @@ export default function EditTemplePage() {
       // Existing image preview
       if (data?.image) {
         setPreviewUrl(
-          `${API_URL}/uploads/temples/${data.image}`,
+          `${BACKEND_URL}/uploads/temples/${data.image}`,
         );
       }
     } catch (err) {
@@ -217,7 +217,7 @@ export default function EditTemplePage() {
 
     if (form.image) {
       setPreviewUrl(
-        `${API_URL}/uploads/temples/${form.image}`,
+        `${BACKEND_URL}/uploads/temples/${form.image}`,
       );
     } else {
       setPreviewUrl("");
@@ -328,7 +328,7 @@ export default function EditTemplePage() {
       }
 
       const response = await fetch(
-        `${API_URL}/temples/${id}`,
+        `${BACKEND_URL}/temples/${id}`,
         {
           method: "PATCH",
           body: formData,

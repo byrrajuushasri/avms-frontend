@@ -47,7 +47,7 @@ type NewsItem = {
    API
 ========================================================= */
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-const API_URL = `${BACKEND_URL}/news`;
+const BACKEND_URL = `${BACKEND_URL}/news`;
 
 /* =========================================================
    CATEGORIES
@@ -170,7 +170,7 @@ export default function StateNewsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(BACKEND_URL, {
         method: "GET",
         cache: "no-store",
       });

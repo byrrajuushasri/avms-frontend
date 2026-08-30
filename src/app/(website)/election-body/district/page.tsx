@@ -27,10 +27,10 @@ type ExecutiveBody = {
    API
 ===================================================== */
 
-const API_URL =
+const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const EXECUTIVE_API = `${API_URL}/executive-bodies`;
+const EXECUTIVE_API = `${BACKEND_URL}/executive-bodies`;
 
 /* =====================================================
    TELANGANA 33 DISTRICTS

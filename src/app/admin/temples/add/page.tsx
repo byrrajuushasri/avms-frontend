@@ -21,10 +21,10 @@ import {
    API
 ========================================================= */
 
-const API_URL =
+const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const TEMPLE_API = `${API_URL}/temples`;
+const TEMPLE_API = `${BACKEND_URL}/temples`;
 
 /* =========================================================
    DISTRICTS

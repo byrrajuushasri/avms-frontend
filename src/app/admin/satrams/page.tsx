@@ -22,10 +22,10 @@ import {
    API
 ========================================================= */
 
-const API_URL =
+const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const SATRAMS_API = `${API_URL}/satrams`;
+const SATRAMS_API = `${BACKEND_URL}/satrams`;
 
 /* =========================================================
    TYPE

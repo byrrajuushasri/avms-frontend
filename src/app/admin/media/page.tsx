@@ -21,9 +21,6 @@ import {
 ========================================================= */
 
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-  ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/news`
-  : "http://localhost:5000/news";
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
 /* =========================================================
@@ -155,7 +152,7 @@ export default function MediaPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(BACKEND_URL + "/media", {
         method: "GET",
         cache: "no-store",
       });
@@ -552,8 +549,8 @@ export default function MediaPage() {
 
       const url =
         editingId !== null
-          ? `${API_URL}/${editingId}`
-          : API_URL;
+          ? `${BACKEND_URL}/${editingId}`
+          : BACKEND_URL;
 
       /* =====================================================
          METHOD
@@ -643,7 +640,7 @@ export default function MediaPage() {
       setError("");
 
       const response = await fetch(
-        `${API_URL}/${deleteId}`,
+        `${BACKEND_URL}/${deleteId}`,
         {
           method: "DELETE",
         }

@@ -18,10 +18,10 @@ import {
    API
 ========================================================= */
 
-const API_URL =
+const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-const TEMPLES_API = `${API_URL}/temples`;
+const TEMPLES_API = `${BACKEND_URL}/temples`;
 
 /* =========================================================
    PAGINATION
@@ -339,7 +339,7 @@ export default function TemplesPage() {
       return image;
     }
 
-    return `${API_URL}/uploads/temples/${image}`;
+    return `${BACKEND_URL}/uploads/temples/${image}`;
   };
 
   /* =========================================================
