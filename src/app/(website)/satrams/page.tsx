@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import {
   FaArrowLeft,
   FaArrowRight,
@@ -16,8 +15,16 @@ import {
 } from "react-icons/fa";
 
 /* =========================================================
-   SATRAM DATA
-   Replace this sample data with your API data later.
+   API
+========================================================= */
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const SATRAMS_API = `${API_URL}/satrams`;
+
+/* =========================================================
+   TYPE
 ========================================================= */
 
 type Satram = {
@@ -30,290 +37,159 @@ type Satram = {
   place: string;
   address: string;
   contact: string;
+  description?: string;
+  map_url?: string;
   annadanam: boolean;
   accommodation: boolean;
 };
-
-const satramData: Satram[] = [
-  {
-    id: 1,
-    name: "Akhila Bharatha Kanipaka Kshetra Arya Vysya Nityannapurna Satram",
-    state: "Andhra Pradesh",
-    district: "Chittoor",
-    mandal: "Iral",
-    sangam: "Kanipakam Arya Vysya Sangam",
-    place: "Kanipakam",
-    address: "Near Sri Varasiddi Vinayaka Swamy Temple, Kanipakam",
-    contact: "08573-281212",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 2,
-    name: "Sri Swayambu Varasiddi Vinayaka Swamy Kshetra Arya Vysya Vasavi Nityannadana Satram",
-    state: "Andhra Pradesh",
-    district: "Chittoor",
-    mandal: "Iral",
-    sangam: "Kanipakam Vasavi Sangam",
-    place: "Kanipakam",
-    address: "Temple Road, Kanipakam",
-    contact: "08573-281484",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 3,
-    name: "Vasavi Nivas Arya Vysya Nityanna Satram",
-    state: "Andhra Pradesh",
-    district: "Sri Sathya Sai",
-    mandal: "Puttaparthi",
-    sangam: "Puttaparthi Arya Vysya Sangam",
-    place: "Puttaparthi",
-    address: "Near Sri Sathya Sai Temple, Puttaparthi",
-    contact: "08555-287240",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 4,
-    name: "Arya Vysya Nitya Anna Satram",
-    state: "Andhra Pradesh",
-    district: "Kurnool",
-    mandal: "Mantralayam",
-    sangam: "Mantralayam Arya Vysya Sangam",
-    place: "Mantralayam",
-    address: "Near Sri Raghavendra Swamy Temple, Mantralayam",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 5,
-    name: "Akhila Bharatha Srisaila Kshetra Arya Vysya Nithya Annapurna Satram",
-    state: "Andhra Pradesh",
-    district: "Nandyal",
-    mandal: "Srisailam",
-    sangam: "Srisaila Arya Vysya Sangam",
-    place: "Srisailam",
-    address: "Near Srisailam Bus Stand, Srisailam",
-    contact: "9490197035",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 6,
-    name: "Sri Durga Malleswara Vasavi Arya Vysya Sathram",
-    state: "Andhra Pradesh",
-    district: "NTR",
-    mandal: "Vijayawada",
-    sangam: "Vijayawada Arya Vysya Sangam",
-    place: "Vijayawada",
-    address: "Durga Agraharam, Vijayawada",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 7,
-    name: "Srimath Ahobilam Aryavysya Satram",
-    state: "Andhra Pradesh",
-    district: "Nandyal",
-    mandal: "Ahobilam",
-    sangam: "Ahobilam Arya Vysya Sangam",
-    place: "Diguva Ahobilam",
-    address: "Diguva Ahobilam, Nandyal District",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 8,
-    name: "Simhachalam Arya Vysya Satram",
-    state: "Andhra Pradesh",
-    district: "Visakhapatnam",
-    mandal: "Visakhapatnam",
-    sangam: "Simhachalam Arya Vysya Sangam",
-    place: "Simhachalam",
-    address: "Near Simhachalam Temple, Visakhapatnam",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 9,
-    name: "Sri Kasi Annapurna Vasavi Arya Vysya Satram",
-    state: "Telangana",
-    district: "Hyderabad",
-    mandal: "Himayatnagar",
-    sangam: "Hyderabad Arya Vysya Sangam",
-    place: "Hyderabad",
-    address: "Near TTD Devasthanam, Himayatnagar, Hyderabad",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 10,
-    name: "Arya Vysya Satram",
-    state: "Telangana",
-    district: "Rajanna Sircilla",
-    mandal: "Vemulawada",
-    sangam: "Vemulawada Arya Vysya Sangam",
-    place: "Vemulawada",
-    address: "Near Raja Rajeshwara Swamy Temple, Vemulawada",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 11,
-    name: "Arya Vysya Satram",
-    state: "Telangana",
-    district: "Yadadri Bhuvanagiri",
-    mandal: "Yadagirigutta",
-    sangam: "Yadagirigutta Arya Vysya Sangam",
-    place: "Yadagirigutta",
-    address: "Near Yadadri Temple, Yadagirigutta",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 12,
-    name: "Arya Vysya Satram",
-    state: "Karnataka",
-    district: "Vijayanagara",
-    mandal: "Hospet",
-    sangam: "Hampi Arya Vysya Sangam",
-    place: "Hampi",
-    address: "Near Virupaksha Temple, Hampi",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 13,
-    name: "Arya Vysya Satram",
-    state: "Karnataka",
-    district: "Raichur",
-    mandal: "Mantralayam",
-    sangam: "Mantralayam Arya Vysya Sangam",
-    place: "Mantralayam",
-    address: "Mantralayam, Raichur District",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 14,
-    name: "Sri Sai Annapurna Arya Vysya Nityannadana Satram Trust",
-    state: "Maharashtra",
-    district: "Ahmednagar",
-    mandal: "Shirdi",
-    sangam: "Shirdi Arya Vysya Sangam",
-    place: "Shirdi",
-    address: "Near Shirdi Sai Baba Temple, Shirdi",
-    contact: "02423-255809",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 15,
-    name: "Sri Kasi Annapurna Vasavi Arya Vysya Vruddhaashramam & Nityanna Satram",
-    state: "Maharashtra",
-    district: "Ahmednagar",
-    mandal: "Shirdi",
-    sangam: "Shirdi Arya Vysya Sangam",
-    place: "Shirdi",
-    address: "Shirdi, Maharashtra",
-    contact: "9822893791",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 16,
-    name: "Arya Vysya Satram",
-    state: "Tamil Nadu",
-    district: "Kancheepuram",
-    mandal: "Kanchipuram",
-    sangam: "Kanchipuram Arya Vysya Sangam",
-    place: "Kanchipuram",
-    address: "Near Kamakshi Amman Temple, Kanchipuram",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 17,
-    name: "Arya Vysya Vasavi Nityanna Satram",
-    state: "Tamil Nadu",
-    district: "Ramanathapuram",
-    mandal: "Rameshwaram",
-    sangam: "Rameshwaram Arya Vysya Sangam",
-    place: "Rameshwaram",
-    address: "Near Old Market Street, Rameshwaram",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 18,
-    name: "Arya Vysya Satram",
-    state: "Odisha",
-    district: "Puri",
-    mandal: "Puri",
-    sangam: "Puri Arya Vysya Sangam",
-    place: "Puri",
-    address: "Near Jagannath Temple, Puri",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 19,
-    name: "Sri Kasi Annapurna Vasavi Arya Vysya Nityanna Satram",
-    state: "Uttar Pradesh",
-    district: "Varanasi",
-    mandal: "Varanasi",
-    sangam: "Kasi Arya Vysya Sangam",
-    place: "Varanasi",
-    address: "Ramapura Luxa Road, Varanasi",
-    contact: "-",
-    annadanam: true,
-    accommodation: true,
-  },
-  {
-    id: 20,
-    name: "Sri Kasi Annapurna Vasavi Arya Vysya Satram",
-    state: "Uttarakhand",
-    district: "Haridwar",
-    mandal: "Haridwar",
-    sangam: "Haridwar Arya Vysya Sangam",
-    place: "Haridwar",
-    address: "Bhupatwala, Haridwar",
-    contact: "9870971944",
-    annadanam: true,
-    accommodation: true,
-  },
-];
 
 /* =========================================================
    PAGE
 ========================================================= */
 
 export default function StateSatramsPage() {
+  /* =========================================================
+     API STATE
+  ========================================================= */
+
+  const [satramData, setSatramData] = useState<Satram[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  /* =========================================================
+     FILTER STATE
+  ========================================================= */
+
   const [search, setSearch] = useState("");
-  const [selectedState, setSelectedState] = useState("All States");
+
+  const [selectedState, setSelectedState] =
+    useState("All States");
+
   const [selectedDistrict, setSelectedDistrict] =
     useState("All Districts");
+
   const [selectedMandal, setSelectedMandal] =
     useState("All Mandals");
+
   const [selectedSangam, setSelectedSangam] =
     useState("All Sangams");
 
   const [currentPage, setCurrentPage] = useState(1);
 
   const itemsPerPage = 8;
+
+  /* =========================================================
+     GET SATRAMS
+  ========================================================= */
+
+  useEffect(() => {
+    fetchSatrams();
+  }, []);
+
+  const fetchSatrams = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(SATRAMS_API, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data?.message)
+            ? data.message.join(", ")
+            : data?.message ||
+                `Failed to fetch Satrams (${response.status})`
+        );
+      }
+
+      /*
+       * Supports both:
+       *
+       * [
+       *   { id: 1, name: "..." }
+       * ]
+       *
+       * and:
+       *
+       * {
+       *   data: [
+       *     { id: 1, name: "..." }
+       *   ]
+       * }
+       */
+
+      const result = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+        ? data.data
+        : [];
+
+      const formattedData: Satram[] = result.map(
+        (item: any) => ({
+          id: Number(item.id),
+
+          name: item.name ?? "",
+
+          state: item.state ?? "",
+
+          district: item.district ?? "",
+
+          mandal: item.mandal ?? "",
+
+          sangam: item.sangam ?? "",
+
+          place: item.place ?? "",
+
+          address: item.address ?? "",
+
+          contact: item.contact ?? "",
+
+          description:
+            item.description ?? "",
+
+          map_url:
+            item.map_url ??
+            item.mapUrl ??
+            "",
+
+          annadanam:
+            item.annadanam === true ||
+            item.annadanam === 1 ||
+            item.annadanam === "1",
+
+          accommodation:
+            item.accommodation === true ||
+            item.accommodation === 1 ||
+            item.accommodation === "1",
+        })
+      );
+
+      setSatramData(formattedData);
+    } catch (err) {
+      console.error(
+        "Fetch Satrams Error:",
+        err
+      );
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load Satrams."
+      );
+
+      setSatramData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /* =========================================================
      DROPDOWN DATA
@@ -323,26 +199,43 @@ export default function StateSatramsPage() {
     return [
       "All States",
       ...Array.from(
-        new Set(satramData.map((item) => item.state))
+        new Set(
+          satramData
+            .map((item) => item.state)
+            .filter(Boolean)
+        )
       ).sort(),
     ];
-  }, []);
+  }, [satramData]);
+
+  /* =========================================================
+     DISTRICTS
+  ========================================================= */
 
   const districts = useMemo(() => {
-    const data =
-      selectedState === "All States"
-        ? satramData
-        : satramData.filter(
-            (item) => item.state === selectedState
-          );
+    let data = satramData;
+
+    if (selectedState !== "All States") {
+      data = data.filter(
+        (item) => item.state === selectedState
+      );
+    }
 
     return [
       "All Districts",
       ...Array.from(
-        new Set(data.map((item) => item.district))
+        new Set(
+          data
+            .map((item) => item.district)
+            .filter(Boolean)
+        )
       ).sort(),
     ];
-  }, [selectedState]);
+  }, [satramData, selectedState]);
+
+  /* =========================================================
+     MANDALS
+  ========================================================= */
 
   const mandals = useMemo(() => {
     let data = satramData;
@@ -355,17 +248,30 @@ export default function StateSatramsPage() {
 
     if (selectedDistrict !== "All Districts") {
       data = data.filter(
-        (item) => item.district === selectedDistrict
+        (item) =>
+          item.district === selectedDistrict
       );
     }
 
     return [
       "All Mandals",
       ...Array.from(
-        new Set(data.map((item) => item.mandal))
+        new Set(
+          data
+            .map((item) => item.mandal)
+            .filter(Boolean)
+        )
       ).sort(),
     ];
-  }, [selectedState, selectedDistrict]);
+  }, [
+    satramData,
+    selectedState,
+    selectedDistrict,
+  ]);
+
+  /* =========================================================
+     SANGAMS
+  ========================================================= */
 
   const sangams = useMemo(() => {
     let data = satramData;
@@ -378,52 +284,78 @@ export default function StateSatramsPage() {
 
     if (selectedDistrict !== "All Districts") {
       data = data.filter(
-        (item) => item.district === selectedDistrict
+        (item) =>
+          item.district === selectedDistrict
       );
     }
 
     if (selectedMandal !== "All Mandals") {
       data = data.filter(
-        (item) => item.mandal === selectedMandal
+        (item) =>
+          item.mandal === selectedMandal
       );
     }
 
     return [
       "All Sangams",
       ...Array.from(
-        new Set(data.map((item) => item.sangam))
+        new Set(
+          data
+            .map((item) => item.sangam)
+            .filter(Boolean)
+        )
       ).sort(),
     ];
   }, [
+    satramData,
     selectedState,
     selectedDistrict,
     selectedMandal,
   ]);
 
   /* =========================================================
-     FILTER
+     FILTER DATA
   ========================================================= */
 
   const filteredSatrams = useMemo(() => {
-    const keyword = search.toLowerCase().trim();
+    const keyword = search
+      .toLowerCase()
+      .trim();
 
     return satramData.filter((item) => {
       const matchesSearch =
         !keyword ||
-        item.name.toLowerCase().includes(keyword) ||
-        item.state.toLowerCase().includes(keyword) ||
-        item.district.toLowerCase().includes(keyword) ||
-        item.mandal.toLowerCase().includes(keyword) ||
-        item.sangam.toLowerCase().includes(keyword) ||
-        item.place.toLowerCase().includes(keyword);
+        item.name
+          .toLowerCase()
+          .includes(keyword) ||
+        item.state
+          .toLowerCase()
+          .includes(keyword) ||
+        item.district
+          .toLowerCase()
+          .includes(keyword) ||
+        item.mandal
+          .toLowerCase()
+          .includes(keyword) ||
+        item.sangam
+          .toLowerCase()
+          .includes(keyword) ||
+        item.place
+          .toLowerCase()
+          .includes(keyword) ||
+        item.address
+          .toLowerCase()
+          .includes(keyword);
 
       const matchesState =
         selectedState === "All States" ||
         item.state === selectedState;
 
       const matchesDistrict =
-        selectedDistrict === "All Districts" ||
-        item.district === selectedDistrict;
+        selectedDistrict ===
+          "All Districts" ||
+        item.district ===
+          selectedDistrict;
 
       const matchesMandal =
         selectedMandal === "All Mandals" ||
@@ -442,6 +374,7 @@ export default function StateSatramsPage() {
       );
     });
   }, [
+    satramData,
     search,
     selectedState,
     selectedDistrict,
@@ -457,17 +390,32 @@ export default function StateSatramsPage() {
     filteredSatrams.length / itemsPerPage
   );
 
-  const startIndex =
-    (currentPage - 1) * itemsPerPage;
+  const safeCurrentPage =
+    totalPages > 0
+      ? Math.min(currentPage, totalPages)
+      : 1;
 
-  const paginatedSatrams = filteredSatrams.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  const startIndex =
+    (safeCurrentPage - 1) *
+    itemsPerPage;
+
+  const paginatedSatrams =
+    filteredSatrams.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
+
+  /* =========================================================
+     RESET PAGE
+  ========================================================= */
 
   const resetPage = () => {
     setCurrentPage(1);
   };
+
+  /* =========================================================
+     CLEAR FILTERS
+  ========================================================= */
 
   const clearFilters = () => {
     setSearch("");
@@ -479,7 +427,7 @@ export default function StateSatramsPage() {
   };
 
   /* =========================================================
-     SELECT HANDLERS
+     STATE CHANGE
   ========================================================= */
 
   const handleStateChange = (
@@ -492,6 +440,10 @@ export default function StateSatramsPage() {
     resetPage();
   };
 
+  /* =========================================================
+     DISTRICT CHANGE
+  ========================================================= */
+
   const handleDistrictChange = (
     value: string
   ) => {
@@ -500,6 +452,10 @@ export default function StateSatramsPage() {
     setSelectedSangam("All Sangams");
     resetPage();
   };
+
+  /* =========================================================
+     MANDAL CHANGE
+  ========================================================= */
 
   const handleMandalChange = (
     value: string
@@ -514,16 +470,59 @@ export default function StateSatramsPage() {
   ========================================================= */
 
   const stateCount = new Set(
-    satramData.map((item) => item.state)
+    satramData
+      .map((item) => item.state)
+      .filter(Boolean)
   ).size;
 
   const districtCount = new Set(
-    satramData.map((item) => item.district)
+    satramData
+      .map((item) => item.district)
+      .filter(Boolean)
   ).size;
 
   const sangamCount = new Set(
-    satramData.map((item) => item.sangam)
+    satramData
+      .map((item) => item.sangam)
+      .filter(Boolean)
   ).size;
+
+  /* =========================================================
+     LOADING
+  ========================================================= */
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-slate-50">
+        <section className="flex min-h-screen items-center justify-center">
+          <div className="text-center">
+
+            <div
+              className="
+                mx-auto
+                h-12
+                w-12
+                animate-spin
+                rounded-full
+                border-4
+                border-slate-200
+                border-t-rose-600
+              "
+            />
+
+            <p className="mt-4 text-sm font-medium text-slate-500">
+              Loading Satrams...
+            </p>
+
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  /* =========================================================
+     RENDER
+  ========================================================= */
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -531,134 +530,166 @@ export default function StateSatramsPage() {
       {/* =====================================================
           HERO
       ===================================================== */}
-<section className="relative overflow-hidden border-b border-slate-200 bg-white">
-  <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
 
-    {/* Back Button */}
-    <Link
-      href="/Satrams"
-      className="mb-7 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition-all duration-200 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
-    >
-      <FaArrowLeft className="text-xs" />
-      Back to Satrams
-    </Link>
+      <section className="relative overflow-hidden border-b border-slate-200 bg-white">
 
-    {/* Heading */}
-    <div className="max-w-4xl">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
 
-      {/* Small Label */}
-      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-rose-100 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700">
-        <FaUtensils className="text-rose-600" />
-        Arya Vysya Annadana Satrams
-      </div>
+          {/* Heading */}
 
-      
-      {/* Description */}
-      <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base lg:text-lg">
-        Explore Arya Vysya Annadana Satrams across
-        different states, districts, mandals and
-        Sangams in one place.
-      </p>
+          <div className="max-w-4xl">
 
-    </div>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-rose-100 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700">
 
-    {/* Statistics */}
-    <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+              <FaUtensils className="text-rose-600" />
 
-      {/* Satrams */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
-        <div className="flex items-center gap-3">
+              Arya Vysya Annadana Satrams
 
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
-            <FaBuilding />
+            </div>
+
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base lg:text-lg">
+              Explore Arya Vysya Annadana Satrams
+              across different states, districts,
+              mandals and Sangams in one place.
+            </p>
+
           </div>
 
-          <div>
-            <p className="text-xl font-extrabold text-slate-900">
-              {satramData.length}
-            </p>
+          {/* Statistics */}
 
-            <p className="text-xs font-medium text-slate-500">
-              Satrams
-            </p>
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+
+            {/* Satrams */}
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
+
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                  <FaBuilding />
+                </div>
+
+                <div>
+
+                  <p className="text-xl font-extrabold text-slate-900">
+                    {satramData.length}
+                  </p>
+
+                  <p className="text-xs font-medium text-slate-500">
+                    Satrams
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* States */}
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
+
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
+                  <FaMapMarkerAlt />
+                </div>
+
+                <div>
+
+                  <p className="text-xl font-extrabold text-slate-900">
+                    {stateCount}
+                  </p>
+
+                  <p className="text-xs font-medium text-slate-500">
+                    States
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Districts */}
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
+
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <FaMapMarkerAlt />
+                </div>
+
+                <div>
+
+                  <p className="text-xl font-extrabold text-slate-900">
+                    {districtCount}
+                  </p>
+
+                  <p className="text-xs font-medium text-slate-500">
+                    Districts
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Sangams */}
+
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
+
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <FaUsers />
+                </div>
+
+                <div>
+
+                  <p className="text-xl font-extrabold text-slate-900">
+                    {sangamCount}
+                  </p>
+
+                  <p className="text-xs font-medium text-slate-500">
+                    Sangams
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
           </div>
 
         </div>
-      </div>
 
-      {/* States */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
-        <div className="flex items-center gap-3">
-
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-            <FaMapMarkerAlt />
-          </div>
-
-          <div>
-            <p className="text-xl font-extrabold text-slate-900">
-              {stateCount}
-            </p>
-
-            <p className="text-xs font-medium text-slate-500">
-              States
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Districts */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
-        <div className="flex items-center gap-3">
-
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-            <FaMapMarkerAlt />
-          </div>
-
-          <div>
-            <p className="text-xl font-extrabold text-slate-900">
-              {districtCount}
-            </p>
-
-            <p className="text-xs font-medium text-slate-500">
-              Districts
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Sangams */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md">
-        <div className="flex items-center gap-3">
-
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-            <FaUsers />
-          </div>
-
-          <div>
-            <p className="text-xl font-extrabold text-slate-900">
-              {sangamCount}
-            </p>
-
-            <p className="text-xs font-medium text-slate-500">
-              Sangams
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-</section>
+      </section>
 
       {/* =====================================================
           CONTENT
       ===================================================== */}
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+        {/* API ERROR */}
+
+        {error && (
+          <div className="mb-5 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+
+            <button
+              type="button"
+              onClick={fetchSatrams}
+              className="ml-3 font-bold underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* Search + Filters */}
 
@@ -725,14 +756,19 @@ export default function StateSatramsPage() {
           <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
 
             <p className="text-sm text-slate-600">
+
               Showing{" "}
+
               <span className="font-bold text-rose-700">
                 {filteredSatrams.length}
               </span>{" "}
+
               Satrams
+
             </p>
 
             <button
+              type="button"
               onClick={clearFilters}
               className="w-fit rounded-lg border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
             >
@@ -754,7 +790,9 @@ export default function StateSatramsPage() {
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
 
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+
                 <FaSearch className="text-2xl" />
+
               </div>
 
               <h2 className="mt-5 text-xl font-bold text-slate-800">
@@ -767,6 +805,7 @@ export default function StateSatramsPage() {
               </p>
 
               <button
+                type="button"
                 onClick={clearFilters}
                 className="mt-5 rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700"
               >
@@ -784,6 +823,7 @@ export default function StateSatramsPage() {
               <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
 
                 <div>
+
                   <p className="text-sm font-semibold uppercase tracking-wider text-rose-600">
                     Satram Directory
                   </p>
@@ -791,10 +831,11 @@ export default function StateSatramsPage() {
                   <h2 className="mt-1 text-2xl font-bold text-slate-900">
                     Annadana Satrams
                   </h2>
+
                 </div>
 
                 <p className="text-sm text-slate-500">
-                  Page {currentPage} of{" "}
+                  Page {safeCurrentPage} of{" "}
                   {Math.max(totalPages, 1)}
                 </p>
 
@@ -804,14 +845,14 @@ export default function StateSatramsPage() {
 
               <div className="grid gap-5 lg:grid-cols-2">
 
-                {paginatedSatrams.map((satram) => (
-
-                  <SatramCard
-                    key={satram.id}
-                    satram={satram}
-                  />
-
-                ))}
+                {paginatedSatrams.map(
+                  (satram) => (
+                    <SatramCard
+                      key={satram.id}
+                      satram={satram}
+                    />
+                  )
+                )}
 
               </div>
 
@@ -822,10 +863,17 @@ export default function StateSatramsPage() {
                 <div className="mt-8 flex items-center justify-center gap-2">
 
                   <button
-                    disabled={currentPage === 1}
+                    type="button"
+                    disabled={
+                      safeCurrentPage === 1
+                    }
                     onClick={() =>
-                      setCurrentPage((page) =>
-                        Math.max(page - 1, 1)
+                      setCurrentPage(
+                        (page) =>
+                          Math.max(
+                            page - 1,
+                            1
+                          )
                       )
                     }
                     className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -837,17 +885,24 @@ export default function StateSatramsPage() {
                   <div className="hidden items-center gap-1 sm:flex">
 
                     {Array.from(
-                      { length: totalPages },
-                      (_, index) => index + 1
+                      {
+                        length: totalPages,
+                      },
+                      (_, index) =>
+                        index + 1
                     ).map((page) => (
 
                       <button
+                        type="button"
                         key={page}
                         onClick={() =>
-                          setCurrentPage(page)
+                          setCurrentPage(
+                            page
+                          )
                         }
                         className={`h-10 min-w-10 rounded-lg px-3 text-sm font-bold transition ${
-                          currentPage === page
+                          safeCurrentPage ===
+                          page
                             ? "bg-rose-600 text-white shadow-sm"
                             : "border border-slate-200 bg-white text-slate-600 hover:bg-rose-50 hover:text-rose-700"
                         }`}
@@ -860,15 +915,18 @@ export default function StateSatramsPage() {
                   </div>
 
                   <button
+                    type="button"
                     disabled={
-                      currentPage === totalPages
+                      safeCurrentPage ===
+                      totalPages
                     }
                     onClick={() =>
-                      setCurrentPage((page) =>
-                        Math.min(
-                          page + 1,
-                          totalPages
-                        )
+                      setCurrentPage(
+                        (page) =>
+                          Math.min(
+                            page + 1,
+                            totalPages
+                          )
                       )
                     }
                     className="flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
@@ -889,47 +947,7 @@ export default function StateSatramsPage() {
 
       </section>
 
-       
-
     </main>
-  );
-}
-
-/* =========================================================
-   STAT CARD
-========================================================= */
-
-function StatCard({
-  icon,
-  value,
-  label,
-}: {
-  icon: React.ReactNode;
-  value: number;
-  label: string;
-}) {
-  return (
-    <div className="rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/15 text-yellow-200">
-          {icon}
-        </div>
-
-        <div>
-          <p className="text-2xl font-extrabold text-white">
-            {value}
-          </p>
-
-          <p className="text-xs font-medium text-white/75">
-            {label}
-          </p>
-        </div>
-
-      </div>
-
-    </div>
   );
 }
 
@@ -1014,13 +1032,17 @@ function SatramCard({
 
             <div className="mt-2 flex flex-wrap gap-2">
 
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-rose-700 shadow-sm">
-                {satram.state}
-              </span>
+              {satram.state && (
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-rose-700 shadow-sm">
+                  {satram.state}
+                </span>
+              )}
 
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-                {satram.district}
-              </span>
+              {satram.district && (
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                  {satram.district}
+                </span>
+              )}
 
             </div>
 
@@ -1039,52 +1061,70 @@ function SatramCard({
           <DetailItem
             icon={<FaMapMarkerAlt />}
             label="Place"
-            value={satram.place}
+            value={satram.place || "-"}
           />
 
           <DetailItem
             icon={<FaMapMarkerAlt />}
             label="Mandal"
-            value={satram.mandal}
+            value={satram.mandal || "-"}
           />
 
           <DetailItem
             icon={<FaUsers />}
             label="Sangam"
-            value={satram.sangam}
+            value={satram.sangam || "-"}
           />
 
           <DetailItem
             icon={<FaPhoneAlt />}
             label="Contact"
-            value={satram.contact}
+            value={satram.contact || "-"}
           />
 
         </div>
 
         {/* Address */}
 
-        <div className="mt-4 rounded-xl bg-slate-50 p-3.5">
+        {satram.address && (
+          <div className="mt-4 rounded-xl bg-slate-50 p-3.5">
 
-          <div className="flex gap-3">
+            <div className="flex gap-3">
 
-            <FaMapMarkerAlt className="mt-1 shrink-0 text-rose-500" />
+              <FaMapMarkerAlt className="mt-1 shrink-0 text-rose-500" />
 
-            <div>
+              <div>
 
-              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                Address
-              </p>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                  Address
+                </p>
 
-              <p className="mt-1 text-sm leading-5 text-slate-700">
-                {satram.address}
-              </p>
+                <p className="mt-1 text-sm leading-5 text-slate-700">
+                  {satram.address}
+                </p>
+
+              </div>
 
             </div>
 
           </div>
+        )}
 
-        </div>
+        {/* Description */}
+
+        {satram.description && (
+          <div className="mt-4 rounded-xl border border-slate-100 bg-white p-3.5">
+
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+              Description
+            </p>
+
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              {satram.description}
+            </p>
+
+          </div>
+        )}
 
         {/* Services */}
 
@@ -1117,20 +1157,41 @@ function SatramCard({
             </p>
 
             <p className="text-sm font-bold text-slate-700">
-              {satram.district}
+              {satram.district || "-"}
             </p>
 
           </div>
 
-          {satram.contact !== "-" && (
-            <a
-              href={`tel:${satram.contact}`}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700"
-            >
-              <FaPhoneAlt />
-              Call Satram
-            </a>
-          )}
+          <div className="flex flex-wrap gap-2">
+
+            {/* MAP */}
+
+            {satram.map_url && (
+              <a
+                href={satram.map_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+              >
+                <FaMapMarkerAlt />
+                View Map
+              </a>
+            )}
+
+            {/* CALL */}
+
+            {satram.contact &&
+              satram.contact !== "-" && (
+                <a
+                  href={`tel:${satram.contact}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700"
+                >
+                  <FaPhoneAlt />
+                  Call Satram
+                </a>
+              )}
+
+          </div>
 
         </div>
 

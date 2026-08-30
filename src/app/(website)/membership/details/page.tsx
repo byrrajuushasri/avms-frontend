@@ -39,38 +39,35 @@ type Member = {
 };
 
 const API =
-  "http://localhost:5000/membership-register";
+  `${process.env.NEXT_PUBLIC_API_URL}/membership-register`;
+
+const ITEMS_PER_PAGE = 5;
 
 export default function MembershipDetailsPage() {
-  const [members, setMembers] =
-    useState<Member[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [error, setError] =
-    useState("");
-
-  const [search, setSearch] =
-    useState("");
-
-  const [district, setDistrict] =
-    useState("");
-
-  const [mandal, setMandal] =
-    useState("");
-
-  const [sangham, setSangham] =
-    useState("");
-
-  const [gender, setGender] =
-    useState("");
-
-  const [executive, setExecutive] =
-    useState("");
+  const [search, setSearch] = useState("");
+  const [district, setDistrict] = useState("");
+  const [mandal, setMandal] = useState("");
+  const [sangham, setSangham] = useState("");
+  const [gender, setGender] = useState("");
+  const [executive, setExecutive] = useState("");
 
   const [selectedMember, setSelectedMember] =
     useState<Member | null>(null);
+
+  /* =========================================================
+     PAGINATION
+  ========================================================= */
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  /* =========================================================
+     LOAD MEMBERS
+  ========================================================= */
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -83,13 +80,10 @@ export default function MembershipDetailsPage() {
         });
 
         if (!response.ok) {
-          throw new Error(
-            "Unable to load members"
-          );
+          throw new Error("Unable to load members");
         }
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
         setMembers(
           Array.isArray(data)
@@ -114,6 +108,10 @@ export default function MembershipDetailsPage() {
     loadMembers();
   }, []);
 
+  /* =========================================================
+     DISTRICTS
+  ========================================================= */
+
   const districts = useMemo(() => {
     return Array.from(
       new Set(
@@ -123,6 +121,10 @@ export default function MembershipDetailsPage() {
       )
     ).sort();
   }, [members]);
+
+  /* =========================================================
+     MANDALS
+  ========================================================= */
 
   const mandals = useMemo(() => {
     return Array.from(
@@ -138,6 +140,10 @@ export default function MembershipDetailsPage() {
       )
     ).sort();
   }, [members, district]);
+
+  /* =========================================================
+     SANGHAMS
+  ========================================================= */
 
   const sanghams = useMemo(() => {
     return Array.from(
@@ -156,9 +162,12 @@ export default function MembershipDetailsPage() {
     ).sort();
   }, [members, district, mandal]);
 
+  /* =========================================================
+     FILTER MEMBERS
+  ========================================================= */
+
   const filteredMembers = useMemo(() => {
-    const value =
-      search.trim().toLowerCase();
+    const value = search.trim().toLowerCase();
 
     return members.filter((member) => {
       const searchMatch =
@@ -201,6 +210,50 @@ export default function MembershipDetailsPage() {
     executive,
   ]);
 
+  /* =========================================================
+     TOTAL PAGES
+  ========================================================= */
+
+  const totalPages = Math.ceil(
+    filteredMembers.length / ITEMS_PER_PAGE
+  );
+
+  /* =========================================================
+     CURRENT PAGE DATA
+  ========================================================= */
+
+  const paginatedMembers = useMemo(() => {
+    const startIndex =
+      (currentPage - 1) * ITEMS_PER_PAGE;
+
+    const endIndex =
+      startIndex + ITEMS_PER_PAGE;
+
+    return filteredMembers.slice(
+      startIndex,
+      endIndex
+    );
+  }, [filteredMembers, currentPage]);
+
+  /* =========================================================
+     RESET PAGE WHEN FILTER / SEARCH CHANGES
+  ========================================================= */
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    district,
+    mandal,
+    sangham,
+    gender,
+    executive,
+  ]);
+
+  /* =========================================================
+     RESET FILTERS
+  ========================================================= */
+
   const resetFilters = () => {
     setSearch("");
     setDistrict("");
@@ -208,26 +261,95 @@ export default function MembershipDetailsPage() {
     setSangham("");
     setGender("");
     setExecutive("");
+    setCurrentPage(1);
   };
 
-  const changeDistrict = (
-    value: string
-  ) => {
+  /* =========================================================
+     DISTRICT CHANGE
+  ========================================================= */
+
+  const changeDistrict = (value: string) => {
     setDistrict(value);
     setMandal("");
     setSangham("");
+    setCurrentPage(1);
   };
 
-  const changeMandal = (
-    value: string
-  ) => {
+  /* =========================================================
+     MANDAL CHANGE
+  ========================================================= */
+
+  const changeMandal = (value: string) => {
     setMandal(value);
     setSangham("");
+    setCurrentPage(1);
   };
+
+  /* =========================================================
+     PAGE CHANGE
+  ========================================================= */
+
+  const goToPage = (page: number) => {
+    if (
+      page < 1 ||
+      page > totalPages
+    ) {
+      return;
+    }
+
+    setCurrentPage(page);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  /* =========================================================
+     PAGINATION PAGE NUMBERS
+  ========================================================= */
+
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = [];
+
+    for (
+      let i = 1;
+      i <= totalPages;
+      i++
+    ) {
+      pages.push(i);
+    }
+
+    return pages;
+  }, [totalPages]);
+
+  /* =========================================================
+     DISPLAY RANGE
+  ========================================================= */
+
+  const startRecord =
+    filteredMembers.length === 0
+      ? 0
+      : (currentPage - 1) *
+          ITEMS_PER_PAGE +
+        1;
+
+  const endRecord = Math.min(
+    currentPage * ITEMS_PER_PAGE,
+    filteredMembers.length
+  );
+
+  /* =========================================================
+     UI
+  ========================================================= */
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
+
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
         <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
@@ -241,8 +363,14 @@ export default function MembershipDetailsPage() {
           </p>
         </div>
 
+        {/* =================================================
+            FILTERS
+        ================================================= */}
+
         <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+            {/* SEARCH */}
 
             <div className="lg:col-span-3">
               <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -258,6 +386,8 @@ export default function MembershipDetailsPage() {
                 className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-50"
               />
             </div>
+
+            {/* DISTRICT */}
 
             <FilterSelect
               label="District"
@@ -277,6 +407,8 @@ export default function MembershipDetailsPage() {
                 </option>
               ))}
             </FilterSelect>
+
+            {/* MANDAL */}
 
             <FilterSelect
               label="Mandal"
@@ -298,6 +430,8 @@ export default function MembershipDetailsPage() {
               ))}
             </FilterSelect>
 
+            {/* SANGHAM */}
+
             <FilterSelect
               label="Sangham"
               value={sangham}
@@ -318,6 +452,8 @@ export default function MembershipDetailsPage() {
               ))}
             </FilterSelect>
 
+            {/* GENDER */}
+
             <FilterSelect
               label="Gender"
               value={gender}
@@ -326,13 +462,17 @@ export default function MembershipDetailsPage() {
               <option value="">
                 All Gender
               </option>
+
               <option value="Male">
                 Male
               </option>
+
               <option value="Female">
                 Female
               </option>
             </FilterSelect>
+
+            {/* EXECUTIVE */}
 
             <FilterSelect
               label="Executive Member"
@@ -342,13 +482,17 @@ export default function MembershipDetailsPage() {
               <option value="">
                 All Members
               </option>
+
               <option value="Yes">
                 Executive Members
               </option>
+
               <option value="No">
                 Non-Executive Members
               </option>
             </FilterSelect>
+
+            {/* RESET */}
 
             <div className="flex items-end">
               <button
@@ -359,18 +503,46 @@ export default function MembershipDetailsPage() {
                 Reset Filters
               </button>
             </div>
+
           </div>
         </div>
 
-        <div className="mb-4">
+        {/* =================================================
+            RESULT COUNT
+        ================================================= */}
+
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-600">
             Showing{" "}
+            <strong>
+              {startRecord}
+              {filteredMembers.length > 0 &&
+                `-${endRecord}`}
+            </strong>{" "}
+            of{" "}
             <strong>
               {filteredMembers.length}
             </strong>{" "}
             members
           </p>
+
+          <p className="text-sm text-gray-500">
+            Page{" "}
+            <strong>
+              {totalPages === 0
+                ? 0
+                : currentPage}
+            </strong>{" "}
+            of{" "}
+            <strong>
+              {totalPages}
+            </strong>
+          </p>
         </div>
+
+        {/* =================================================
+            ERROR
+        ================================================= */}
 
         {error && (
           <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -378,14 +550,20 @@ export default function MembershipDetailsPage() {
           </div>
         )}
 
+        {/* =================================================
+            TABLE
+        ================================================= */}
+
         {loading ? (
           <div className="rounded-2xl bg-white p-10 text-center text-sm text-gray-500 shadow-sm">
             Loading members...
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+
             <div className="overflow-x-auto">
               <table className="min-w-full">
+
                 <thead className="bg-rose-50">
                   <tr>
                     {[
@@ -409,28 +587,39 @@ export default function MembershipDetailsPage() {
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
-                  {filteredMembers.map(
+
+                  {paginatedMembers.map(
                     (member) => (
                       <tr
                         key={member.id}
                         className="hover:bg-gray-50"
                       >
+
+                        {/* MEMBER ID */}
+
                         <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-rose-600">
                           {member.member_id}
                         </td>
+
+                        {/* MEMBER */}
 
                         <td className="px-5 py-4">
                           <div className="font-medium text-gray-900">
                             {member.full_name}
                           </div>
+
                           <div className="text-xs text-gray-500">
                             {member.email}
                           </div>
                         </td>
 
+                        {/* MOBILE */}
+
                         <td className="px-5 py-4 text-sm">
                           {member.mobile}
                         </td>
+
+                        {/* DISTRICT */}
 
                         <td className="px-5 py-4 text-sm">
                           {member.district?.replaceAll(
@@ -439,15 +628,22 @@ export default function MembershipDetailsPage() {
                           )}
                         </td>
 
+                        {/* MANDAL */}
+
                         <td className="px-5 py-4 text-sm">
                           {member.mandal}
                         </td>
+
+                        {/* SANGHAM */}
 
                         <td className="px-5 py-4 text-sm">
                           {member.sangham}
                         </td>
 
+                        {/* EXECUTIVE */}
+
                         <td className="px-5 py-4">
+
                           {member.executive_member ===
                           "Yes" ? (
                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
@@ -458,9 +654,13 @@ export default function MembershipDetailsPage() {
                               No
                             </span>
                           )}
+
                         </td>
 
+                        {/* ACTION */}
+
                         <td className="px-5 py-4">
+
                           <button
                             type="button"
                             onClick={() =>
@@ -472,28 +672,132 @@ export default function MembershipDetailsPage() {
                           >
                             View
                           </button>
+
                         </td>
+
                       </tr>
                     )
                   )}
+
                 </tbody>
               </table>
             </div>
+
+            {/* =================================================
+                NO MEMBERS
+            ================================================= */}
 
             {filteredMembers.length === 0 && (
               <div className="p-10 text-center text-sm text-gray-500">
                 No members found.
               </div>
             )}
+
+            {/* =================================================
+                PAGINATION
+            ================================================= */}
+
+            {filteredMembers.length > 0 &&
+              totalPages > 1 && (
+                <div className="flex flex-col gap-4 border-t border-gray-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+
+                  {/* RECORD INFO */}
+
+                  <div className="text-sm text-gray-500">
+                    Showing{" "}
+                    <span className="font-semibold text-gray-700">
+                      {startRecord}
+                    </span>
+                    {" - "}
+                    <span className="font-semibold text-gray-700">
+                      {endRecord}
+                    </span>
+                    {" of "}
+                    <span className="font-semibold text-gray-700">
+                      {filteredMembers.length}
+                    </span>
+                  </div>
+
+                  {/* PAGINATION BUTTONS */}
+
+                  <div className="flex flex-wrap items-center gap-2">
+
+                    {/* PREVIOUS */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        goToPage(
+                          currentPage - 1
+                        )
+                      }
+                      disabled={currentPage === 1}
+                      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Previous
+                    </button>
+
+                    {/* PAGE NUMBERS */}
+
+                    {pageNumbers.map(
+                      (page) => (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() =>
+                            goToPage(page)
+                          }
+                          className={`min-w-10 rounded-lg px-3 py-2 text-sm font-semibold ${
+                            currentPage ===
+                            page
+                              ? "bg-rose-600 text-white"
+                              : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
+
+                    {/* NEXT */}
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        goToPage(
+                          currentPage + 1
+                        )
+                      }
+                      disabled={
+                        currentPage ===
+                        totalPages
+                      }
+                      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      Next
+                    </button>
+
+                  </div>
+                </div>
+              )}
+
           </div>
         )}
       </div>
 
+      {/* =====================================================
+          MEMBER DETAILS MODAL
+      ===================================================== */}
+
       {selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+
           <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
 
+            {/* MODAL HEADER */}
+
             <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
+
               <div>
                 <h2 className="text-xl font-bold">
                   Member Details
@@ -513,53 +817,74 @@ export default function MembershipDetailsPage() {
               >
                 ×
               </button>
+
             </div>
+
+            {/* DETAILS */}
 
             <div className="grid grid-cols-1 gap-5 p-6 sm:grid-cols-2">
 
               <Detail
                 label="Full Name"
-                value={selectedMember.full_name}
+                value={
+                  selectedMember.full_name
+                }
               />
 
               <Detail
                 label="Mobile"
-                value={selectedMember.mobile}
+                value={
+                  selectedMember.mobile
+                }
               />
 
               <Detail
                 label="Email"
-                value={selectedMember.email}
+                value={
+                  selectedMember.email
+                }
               />
 
               <Detail
                 label="Occupation"
-                value={selectedMember.occupation}
+                value={
+                  selectedMember.occupation
+                }
               />
 
               <Detail
                 label="Gender"
-                value={selectedMember.gender}
+                value={
+                  selectedMember.gender
+                }
               />
 
               <Detail
                 label="Date of Birth"
-                value={selectedMember.date_of_birth}
+                value={
+                  selectedMember.date_of_birth
+                }
               />
 
               <Detail
                 label="District"
-                value={selectedMember.district}
+                value={
+                  selectedMember.district
+                }
               />
 
               <Detail
                 label="Mandal"
-                value={selectedMember.mandal}
+                value={
+                  selectedMember.mandal
+                }
               />
 
               <Detail
                 label="Sangham"
-                value={selectedMember.sangham}
+                value={
+                  selectedMember.sangham
+                }
               />
 
               <Detail
@@ -586,7 +911,8 @@ export default function MembershipDetailsPage() {
               <Detail
                 label="Mahashaba Amount"
                 value={
-                  selectedMember.mahashaba_amount_paid != null
+                  selectedMember.mahashaba_amount_paid !=
+                  null
                     ? String(
                         selectedMember.mahashaba_amount_paid
                       )
@@ -625,7 +951,8 @@ export default function MembershipDetailsPage() {
               <Detail
                 label="Sangham Amount"
                 value={
-                  selectedMember.sangam_amount_paid != null
+                  selectedMember.sangam_amount_paid !=
+                  null
                     ? String(
                         selectedMember.sangam_amount_paid
                       )
@@ -668,13 +995,18 @@ export default function MembershipDetailsPage() {
 
               <Detail
                 label="Status"
-                value={selectedMember.status}
+                value={
+                  selectedMember.status
+                }
               />
 
               <Detail
                 label="Registered On"
-                value={selectedMember.created_at}
+                value={
+                  selectedMember.created_at
+                }
               />
+
             </div>
           </div>
         </div>
@@ -682,6 +1014,10 @@ export default function MembershipDetailsPage() {
     </div>
   );
 }
+
+/* =========================================================
+   FILTER SELECT
+========================================================= */
 
 function FilterSelect({
   label,
@@ -716,6 +1052,10 @@ function FilterSelect({
   );
 }
 
+/* =========================================================
+   DETAIL
+========================================================= */
+
 function Detail({
   label,
   value,
@@ -735,3 +1075,4 @@ function Detail({
     </div>
   );
 }
+

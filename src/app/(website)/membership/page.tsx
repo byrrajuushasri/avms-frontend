@@ -231,7 +231,7 @@ const designations = [
   "General Secretary",
   "President",
   "Vice President",
-  "Joint Secretary",
+  "Treasurer",
   "Media",
 ];
 

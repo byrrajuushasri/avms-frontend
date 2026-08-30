@@ -151,59 +151,23 @@ const menuItems: MenuItem[] = [
 
   {
     label: "Satrams",
+    href: "/satrams",
     icon: FaUtensils,
-    children: [
-      {
-        label: "All Satrams",
-        href: "/satrams/statesatrams",
-      },
-    ],
+     
   },
 
   {
     label: "Media",
+    href: "/media/news",
     icon: FaImages,
-    children: [
-      {
-        label: "State Body News",
-        href: "/media/state-news",
-      },
-      {
-        label: "District Body News",
-        href: "/media/district-news",
-      },
-      {
-        label: "Mandal Body News",
-        href: "/media/mandal-news",
-      },
-      {
-        label: "Sangam Body News",
-        href: "/media/sangam-news",
-      },
-    ],
   },
+   
 
   {
     label: "Contact",
+    href: "/contact",
     icon: FaEnvelope,
-    children: [
-      {
-        label: "State",
-        href: "/contact/state-contacts",
-      },
-      {
-        label: "District",
-        href: "/contact/dist-contacts",
-      },
-      {
-        label: "Mandal",
-        href: "/contact/mandal-contacts",
-      },
-      {
-        label: "Sangam",
-        href: "/contact/sangam-contacts",
-      },
-    ],
+     
   },
 ];
 

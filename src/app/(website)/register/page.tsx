@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import {
   FaHeart,
   FaCheckCircle,
   FaLock,
+  FaTimes,
 } from "react-icons/fa";
 
 /* =========================================================
@@ -344,12 +346,12 @@ function GotramSelect({
           Select Gotram
         </option>
 
-        {gotramList.map((gotram, index) => (
+        {gotramList.map((gotram) => (
           <option
             key={gotram}
             value={gotram}
           >
-            {index + 1}. {gotram}
+             {gotram}
           </option>
         ))}
       </select>
@@ -383,10 +385,44 @@ export default function RegisterPage() {
     useState("");
 
   /* =========================================================
-     MEMBERSHIP VERIFICATION DATA
+     TOAST
+  ========================================================= */
 
-     Mobile + Email are ONLY used for verification.
-     They are NOT displayed again in the Matrimonial form.
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    memberId?: string;
+  }>({
+    show: false,
+    message: "",
+    memberId: "",
+  });
+
+  /* =========================================================
+     SHOW GREEN TOAST
+  ========================================================= */
+
+  const showGreenToast = (
+    message: string,
+    matrimonialId?: string
+  ) => {
+    setToast({
+      show: true,
+      message,
+      memberId: matrimonialId || "",
+    });
+
+    setTimeout(() => {
+      setToast({
+        show: false,
+        message: "",
+        memberId: "",
+      });
+    }, 4000);
+  };
+
+  /* =========================================================
+     MEMBERSHIP VERIFICATION DATA
   ========================================================= */
 
   const [verificationData, setVerificationData] =
@@ -397,8 +433,6 @@ export default function RegisterPage() {
 
   /* =========================================================
      MATRIMONIAL FORM DATA
-
-     Profile Category defaults to Professional.
   ========================================================= */
 
   const [formData, setFormData] = useState({
@@ -481,7 +515,6 @@ export default function RegisterPage() {
     const email =
       verificationData.email.trim();
 
-    /* Both empty */
     if (!mobile && !email) {
       setVerificationError(
         "Please enter Mobile Number or Email."
@@ -523,16 +556,14 @@ export default function RegisterPage() {
       ========================================= */
 
       if (data.alreadyRegistered) {
-        setVerificationError(
-          `${
-            data.message ||
-            "This Member is already registered in Matrimonial."
-          }${
-            data.data
-              ?.matrimonial_member_id
-              ? ` Matrimonial ID: ${data.data.matrimonial_member_id}`
-              : ""
-          }`
+        const matrimonialId =
+          data.data
+            ?.matrimonial_member_id || "";
+
+        showGreenToast(
+          data.message ||
+            "This Member is already registered in Matrimonial.",
+          matrimonialId
         );
 
         return;
@@ -577,9 +608,6 @@ export default function RegisterPage() {
         "Member verified successfully. You can now complete the Matrimonial form."
       );
 
-      /* Keep verified details internally.
-         They are NOT displayed again in form. */
-
       setVerificationData({
         mobile: verifiedMobile,
         email: verifiedEmail,
@@ -621,10 +649,7 @@ export default function RegisterPage() {
     }
 
     /* =========================================
-       CHECK VERIFIED MEMBER DETAILS
-
-       These are hidden/internal values.
-       They are not shown again in the form.
+       VERIFIED MEMBER DETAILS
     ========================================= */
 
     const verifiedMobile =
@@ -679,13 +704,7 @@ export default function RegisterPage() {
         new FormData();
 
       /* =========================================
-         VERIFIED MEMBERSHIP DATA
-
-         IMPORTANT:
-         These are NOT visible duplicate fields.
-
-         They are sent internally because the
-         backend requires Mobile / Email.
+         MEMBERSHIP DATA
       ========================================= */
 
       formDataToSend.append(
@@ -704,7 +723,7 @@ export default function RegisterPage() {
       );
 
       /* =========================================
-         MATRIMONIAL FIELDS ONLY
+         MATRIMONIAL FIELDS
       ========================================= */
 
       const fields = [
@@ -779,11 +798,22 @@ export default function RegisterPage() {
           data.data?.matrimonial_member_id ||
           "";
 
-        alert(
-          `Registration Successful!\nMatrimonial ID: ${matrimonialId}`
+        /* =========================================
+           GREEN SUCCESS TOAST
+        ========================================= */
+
+        showGreenToast(
+          "Matrimonial registration successfully completed.",
+          matrimonialId
         );
 
-        router.push("/search");
+        /* =========================================
+           REDIRECT AFTER TOAST
+        ========================================= */
+
+        setTimeout(() => {
+          router.push("/search");
+        }, 1800);
 
         return;
       }
@@ -793,15 +823,18 @@ export default function RegisterPage() {
       ========================================= */
 
       if (data.alreadyRegistered) {
-        alert(
-          `${
-            data.message ||
-            "This Member is already registered in Matrimonial."
-          }\nMatrimonial ID: ${
-            data.data
-              ?.matrimonial_member_id ||
-            ""
-          }`
+        const matrimonialId =
+          data.data
+            ?.matrimonial_member_id || "";
+
+        /* =========================================
+           GREEN ALREADY REGISTERED TOAST
+        ========================================= */
+
+        showGreenToast(
+          data.message ||
+            "This Member is already registered in Matrimonial.",
+          matrimonialId
         );
 
         return;
@@ -838,9 +871,70 @@ export default function RegisterPage() {
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
 
-      {/* ===============================================
+      {/* =====================================================
+          GREEN TOAST
+      ===================================================== */}
+
+      {toast.show && (
+        <div className="fixed right-5 top-5 z-[9999] w-[calc(100%-40px)] max-w-md animate-[slideIn_0.3s_ease-out]">
+
+          <div className="rounded-2xl border border-green-200 bg-white p-4 shadow-2xl">
+
+            <div className="flex items-start gap-3">
+
+              {/* CHECK ICON */}
+
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <FaCheckCircle className="text-xl" />
+              </div>
+
+              {/* MESSAGE */}
+
+              <div className="flex-1">
+
+                <p className="font-bold text-green-700">
+                  Success
+                </p>
+
+                <p className="mt-1 text-sm text-gray-700">
+                  {toast.message}
+                </p>
+
+                {toast.memberId && (
+                  <p className="mt-1 text-sm font-bold text-[#8B1E3F]">
+                    Matrimonial ID:{" "}
+                    {toast.memberId}
+                  </p>
+                )}
+
+              </div>
+
+              {/* CLOSE */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setToast({
+                    show: false,
+                    message: "",
+                    memberId: "",
+                  })
+                }
+                className="text-gray-400 transition hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* =====================================================
           BACKGROUND
-      =============================================== */}
+      ===================================================== */}
 
       <div className="absolute -left-56 top-20 h-[500px] w-[500px] rounded-full bg-pink-200/40 blur-[120px]" />
 
@@ -850,17 +944,17 @@ export default function RegisterPage() {
 
       <FaHeart className="absolute bottom-24 right-16 text-8xl text-rose-300 opacity-20" />
 
-      {/* ===============================================
+      {/* =====================================================
           MAIN CARD
-      =============================================== */}
+      ===================================================== */}
 
       <div className="relative z-10 flex justify-center px-4 py-10 sm:px-6">
 
         <div className="w-full max-w-6xl rounded-3xl border border-pink-100 bg-white/95 p-5 shadow-[0_20px_60px_rgba(233,30,99,0.12)] backdrop-blur sm:p-8 lg:p-10">
 
-          {/* =============================================
+          {/* =================================================
               HEADER
-          ============================================= */}
+          ================================================= */}
 
           <div className="mb-8 text-center">
 
@@ -874,9 +968,9 @@ export default function RegisterPage() {
 
           </div>
 
-          {/* =============================================
+          {/* =================================================
               MEMBERSHIP VERIFICATION
-          ============================================= */}
+          ================================================= */}
 
           <div className="mb-10 rounded-2xl border border-pink-200 bg-pink-50/60 p-5">
 
@@ -1020,9 +1114,9 @@ export default function RegisterPage() {
 
           </div>
 
-          {/* =============================================
-              MATRIMONIAL FORM AREA
-          ============================================= */}
+          {/* =================================================
+              MATRIMONIAL FORM
+          ================================================= */}
 
           <div
             className={
@@ -1054,18 +1148,16 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* =========================================
+            {/* =================================================
                 FORM
-            ========================================= */}
+            ================================================= */}
 
             <form
               onSubmit={handleSubmit}
               className="grid gap-5 md:grid-cols-2"
             >
 
-              {/* =======================================
-                  PROFILE CATEGORY
-              ======================================= */}
+              {/* PROFILE CATEGORY */}
 
               <div>
 
@@ -1105,9 +1197,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  FATHER NAME
-              ======================================= */}
+              {/* FATHER NAME */}
 
               <div>
 
@@ -1128,9 +1218,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  MOTHER NAME
-              ======================================= */}
+              {/* MOTHER NAME */}
 
               <div>
 
@@ -1151,9 +1239,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  FATHER GOTRAM
-              ======================================= */}
+              {/* FATHER GOTRAM */}
 
               <GotramSelect
                 name="father_gotram"
@@ -1164,9 +1250,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
               />
 
-              {/* =======================================
-                  MOTHER GOTRAM
-              ======================================= */}
+              {/* MOTHER GOTRAM */}
 
               <GotramSelect
                 name="mother_gotram"
@@ -1177,9 +1261,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
               />
 
-              {/* =======================================
-                  GRAND MOTHER GOTRAM
-              ======================================= */}
+              {/* GRAND MOTHER GOTRAM */}
 
               <GotramSelect
                 name="grandmother_gotram"
@@ -1190,9 +1272,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
               />
 
-              {/* =======================================
-                  NAKSHATRAM
-              ======================================= */}
+              {/* NAKSHATRAM */}
 
               <div>
 
@@ -1228,9 +1308,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  PADHAM
-              ======================================= */}
+              {/* PADHAM */}
 
               <div>
 
@@ -1269,9 +1347,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  RASI
-              ======================================= */}
+              {/* RASI */}
 
               <div>
 
@@ -1305,9 +1381,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  COLOR
-              ======================================= */}
+              {/* COLOR */}
 
               <div>
 
@@ -1341,9 +1415,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  HEIGHT
-              ======================================= */}
+              {/* HEIGHT */}
 
               <div>
 
@@ -1362,9 +1434,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  EDUCATION
-              ======================================= */}
+              {/* EDUCATION */}
 
               <div>
 
@@ -1400,9 +1470,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  SALARY / INCOME
-              ======================================= */}
+              {/* SALARY */}
 
               <div>
 
@@ -1423,9 +1491,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  ADDRESS
-              ======================================= */}
+              {/* ADDRESS */}
 
               <div>
 
@@ -1444,9 +1510,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  FATHER DETAILS
-              ======================================= */}
+              {/* FATHER DETAILS */}
 
               <div>
 
@@ -1482,9 +1546,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  MOTHER DETAILS
-              ======================================= */}
+              {/* MOTHER DETAILS */}
 
               <div>
 
@@ -1524,9 +1586,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  BROTHER DETAILS
-              ======================================= */}
+              {/* BROTHER DETAILS */}
 
               <div>
 
@@ -1567,9 +1627,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  SISTER DETAILS
-              ======================================= */}
+              {/* SISTER DETAILS */}
 
               <div>
 
@@ -1610,9 +1668,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  PROPERTY DETAILS
-              ======================================= */}
+              {/* PROPERTY DETAILS */}
 
               <div>
 
@@ -1633,9 +1689,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  PREFERRED REQUIREMENTS
-              ======================================= */}
+              {/* PREFERRED REQUIREMENTS */}
 
               <div>
 
@@ -1656,9 +1710,7 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* =======================================
-                  SUBMIT
-              ======================================= */}
+              {/* SUBMIT */}
 
               <div className="mt-6 flex justify-center md:col-span-2">
 
@@ -1681,6 +1733,24 @@ export default function RegisterPage() {
         </div>
 
       </div>
+
+      {/* =====================================================
+          TOAST ANIMATION
+      ===================================================== */}
+
+      <style jsx>{`
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(30px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
 
     </section>
   );

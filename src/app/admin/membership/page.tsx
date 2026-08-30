@@ -72,6 +72,13 @@ interface Member {
   created_at: string;
 }
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000";
+
+const API_URL =
+  `${BACKEND_URL}/membership-register`;
+
 /* =========================================================
    PAGE
 ========================================================= */
@@ -106,38 +113,86 @@ export default function AdminDashboard() {
     fetchMembers();
   }, []);
 
-  const fetchMembers = async () => {
-    try {
-      setLoading(true);
-      setError("");
 
-      const response = await fetch(
-        "http://localhost:5000/membership-register",
-        {
-          method: "GET",
-        }
+const fetchMembers = async () => {
+  try {
+    setLoading(true);
+    setError("");
+
+    // Get logged-in user
+    const userData =
+      typeof window !== "undefined"
+        ? localStorage.getItem("user")
+        : null;
+
+    const loggedInUser = userData
+      ? JSON.parse(userData)
+      : null;
+
+    console.log("Logged-in User:", loggedInUser);
+
+    // Get token if available
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
+
+    const response = await fetch(API_URL, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
+      },
+    });
+
+    // API error
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch members. Status: ${response.status}`,
       );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch membership members");
-      }
-
-      const data = await response.json();
-
-      console.log("Membership API data:", data);
-
-      setMembers(data);
-    } catch (error) {
-      console.error("Error fetching members:", error);
-
-      setError(
-        "Unable to load membership members. Please check backend."
-      );
-    } finally {
-      setLoading(false);
     }
-  };
 
+    const data = await response.json();
+
+    console.log("Members API Response:", data);
+
+    // Support all possible API response formats
+    const memberArray = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.data)
+      ? data.data
+      : Array.isArray(data?.members)
+      ? data.members
+      : [];
+
+    // Always set array
+    setMembers(memberArray);
+
+    // Empty result is NOT an API error
+    if (memberArray.length === 0) {
+      setError("");
+    }
+  } catch (err) {
+    console.error(
+      "Dashboard Members API Error:",
+      err,
+    );
+
+    setMembers([]);
+
+    setError(
+      "Members data load కాలేదు. Backend server running ఉందో check చేయండి.",
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   /* =========================================================
      SEARCH
   ========================================================= */

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ interface Member {
   mobile: string;
   gender: string;
   password: string;
+  role: string;
   created_at: string;
 }
 
@@ -31,6 +33,7 @@ export default function EditMemberPage() {
     mobile: "",
     gender: "",
     password: "",
+    role: "",
     created_at: "",
   });
 
@@ -41,6 +44,7 @@ export default function EditMemberPage() {
   // =========================
   // GET MEMBER BY ID
   // =========================
+
   useEffect(() => {
     if (!memberId) return;
 
@@ -49,28 +53,71 @@ export default function EditMemberPage() {
         setLoading(true);
         setError("");
 
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("token")
+            : null;
+
         const response = await fetch(
-          `http://localhost:5000/membership-register/${memberId}`
+          `http://localhost:5000/membership-register/${memberId}`,
+          {
+            method: "GET",
+            headers: {
+              ...(token
+                ? {
+                    Authorization: `Bearer ${token}`,
+                  }
+                : {}),
+            },
+            cache: "no-store",
+          }
         );
 
         if (!response.ok) {
-          throw new Error("Failed to load member");
+          throw new Error(
+            "Failed to load member"
+          );
         }
 
         const data = await response.json();
 
+        console.log(
+          "Member Details:",
+          data
+        );
+
         setMember({
-          full_name: data.full_name || "",
-          email: data.email || "",
-          mobile: data.mobile || "",
-          gender: data.gender || "",
-          password: data.password || "",
-          created_at: data.created_at || "",
+          full_name:
+            data.full_name || "",
+
+          email:
+            data.email || "",
+
+          mobile:
+            data.mobile || "",
+
+          gender:
+            data.gender || "",
+
+          // Never load existing password
+          password: "",
+
+          // Load existing role
+          role:
+            data.role || "",
+
+          created_at:
+            data.created_at || "",
         });
       } catch (error) {
-        console.error("Fetch member error:", error);
+        console.error(
+          "Fetch member error:",
+          error
+        );
 
-        setError("Unable to load member details.");
+        setError(
+          "Unable to load member details."
+        );
       } finally {
         setLoading(false);
       }
@@ -82,8 +129,11 @@ export default function EditMemberPage() {
   // =========================
   // HANDLE CHANGE
   // =========================
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -96,6 +146,7 @@ export default function EditMemberPage() {
   // =========================
   // UPDATE MEMBER
   // =========================
+
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -105,37 +156,104 @@ export default function EditMemberPage() {
       setSaving(true);
       setError("");
 
+      // GET LOGIN TOKEN
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token")
+          : null;
+
+      console.log(
+        "Token exists:",
+        !!token
+      );
+
+      if (!token) {
+        setError(
+          "Login session expired. Please login again."
+        );
+        return;
+      }
+
+      // =========================
+      // UPDATE API
+      // =========================
+
       const response = await fetch(
         `http://localhost:5000/membership-register/${memberId}`,
         {
           method: "PUT",
+
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${token}`,
           },
+
           body: JSON.stringify({
-            full_name: member.full_name,
-            mobile: member.mobile,
-            email: member.email,
-            password: member.password,
-            gender: member.gender,
+            full_name:
+              member.full_name,
+
+            mobile:
+              member.mobile,
+
+            email:
+              member.email,
+
+            gender:
+              member.gender,
+
+            role:
+              member.role,
+
+            // Only send password when
+            // admin entered a new password
+            ...(member.password.trim()
+              ? {
+                  password:
+                    member.password.trim(),
+                }
+              : {}),
           }),
         }
       );
 
-      const result = await response.json();
+      const result =
+        await response.json();
+
+      console.log(
+        "Update API Status:",
+        response.status
+      );
+
+      console.log(
+        "Update API Response:",
+        result
+      );
 
       if (!response.ok) {
         throw new Error(
-          result.message || "Failed to update member"
+          result?.message ||
+            "Failed to update member"
         );
       }
 
-      alert("Member updated successfully!");
+      alert(
+        "Member updated successfully!"
+      );
 
-      router.push("/admin/membership");
+      router.push(
+        "/admin/membership"
+      );
+
       router.refresh();
+
     } catch (error) {
-      console.error("Update member error:", error);
+      console.error(
+        "Update member error:",
+        error
+      );
 
       setError(
         error instanceof Error
@@ -150,6 +268,7 @@ export default function EditMemberPage() {
   // =========================
   // LOADING
   // =========================
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50/80 flex items-center justify-center">
@@ -163,15 +282,18 @@ export default function EditMemberPage() {
   // =========================
   // PAGE
   // =========================
+
   return (
     <div className="min-h-screen bg-gray-50/80">
 
       <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1200px] mx-auto">
 
         {/* HEADER */}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
 
           <div>
+
             <div className="flex items-center gap-3 mb-2">
 
               <Link
@@ -204,28 +326,33 @@ export default function EditMemberPage() {
             <p className="text-sm text-gray-500 ml-12">
               Update matrimonial member information.
             </p>
+
           </div>
 
         </div>
 
         {/* ERROR */}
+
         {error && (
-          <div className="
-            mb-5
-            px-4
-            py-3
-            rounded-xl
-            border
-            border-red-200
-            bg-red-50
-            text-sm
-            text-red-600
-          ">
+          <div
+            className="
+              mb-5
+              px-4
+              py-3
+              rounded-xl
+              border
+              border-red-200
+              bg-red-50
+              text-sm
+              text-red-600
+            "
+          >
             {error}
           </div>
         )}
 
         {/* FORM */}
+
         <form
           onSubmit={handleSubmit}
           className="
@@ -239,6 +366,7 @@ export default function EditMemberPage() {
         >
 
           {/* FORM HEADER */}
+
           <div className="px-6 py-5 border-b border-gray-100">
 
             <div className="flex items-center gap-3">
@@ -259,6 +387,7 @@ export default function EditMemberPage() {
               </div>
 
               <div>
+
                 <h2 className="font-semibold text-gray-900">
                   Member Information
                 </h2>
@@ -266,6 +395,7 @@ export default function EditMemberPage() {
                 <p className="text-xs text-gray-400 mt-1">
                   Member ID: {memberId}
                 </p>
+
               </div>
 
             </div>
@@ -273,12 +403,15 @@ export default function EditMemberPage() {
           </div>
 
           {/* FORM BODY */}
+
           <div className="p-6">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* MEMBER ID */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Member ID
                 </label>
@@ -300,10 +433,13 @@ export default function EditMemberPage() {
                     outline-none
                   "
                 />
+
               </div>
 
               {/* NAME */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Member Name
                 </label>
@@ -329,10 +465,13 @@ export default function EditMemberPage() {
                     focus:ring-[#8B1E3F]/10
                   "
                 />
+
               </div>
 
               {/* EMAIL */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email ID
                 </label>
@@ -358,10 +497,13 @@ export default function EditMemberPage() {
                     focus:ring-[#8B1E3F]/10
                   "
                 />
+
               </div>
 
               {/* PHONE */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
                 </label>
@@ -387,10 +529,13 @@ export default function EditMemberPage() {
                     focus:ring-[#8B1E3F]/10
                   "
                 />
+
               </div>
 
               {/* GENDER */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Gender
                 </label>
@@ -415,6 +560,7 @@ export default function EditMemberPage() {
                     focus:ring-[#8B1E3F]/10
                   "
                 >
+
                   <option value="">
                     Select Gender
                   </option>
@@ -426,13 +572,63 @@ export default function EditMemberPage() {
                   <option value="Male">
                     Male
                   </option>
+
                 </select>
+
+              </div>
+
+              {/* ROLE */}
+
+              <div>
+
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role
+                </label>
+
+                <select
+                  name="role"
+                  value={member.role}
+                  onChange={handleChange}
+                  required
+                  className="
+                    w-full
+                    h-11
+                    px-4
+                    rounded-xl
+                    border
+                    border-gray-200
+                    bg-white
+                    text-sm
+                    outline-none
+                    focus:border-[#8B1E3F]
+                    focus:ring-2
+                    focus:ring-[#8B1E3F]/10
+                  "
+                >
+
+                  <option value="">
+                    Select Role
+                  </option>
+
+                  <option value="sangam_admin">
+                    Sangham Admin
+                  </option>
+
+                  <option value="user">
+                    Member
+                  </option>
+
+
+                </select>
+
               </div>
 
               {/* PASSWORD */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                  New Password
                 </label>
 
                 <input
@@ -440,8 +636,7 @@ export default function EditMemberPage() {
                   name="password"
                   value={member.password}
                   onChange={handleChange}
-                  placeholder="Enter password"
-                  required
+                  placeholder="Leave blank to keep current password"
                   className="
                     w-full
                     h-11
@@ -456,10 +651,13 @@ export default function EditMemberPage() {
                     focus:ring-[#8B1E3F]/10
                   "
                 />
+
               </div>
 
               {/* CREATED DATE */}
+
               <div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Created Date
                 </label>
@@ -494,6 +692,7 @@ export default function EditMemberPage() {
                     outline-none
                   "
                 />
+
               </div>
 
             </div>
@@ -501,6 +700,7 @@ export default function EditMemberPage() {
           </div>
 
           {/* FOOTER */}
+
           <div
             className="
               px-6
@@ -556,11 +756,13 @@ export default function EditMemberPage() {
                 transition
               "
             >
+
               <FaSave />
 
               {saving
                 ? "Updating..."
                 : "Save Changes"}
+
             </button>
 
           </div>
@@ -572,3 +774,4 @@ export default function EditMemberPage() {
     </div>
   );
 }
+

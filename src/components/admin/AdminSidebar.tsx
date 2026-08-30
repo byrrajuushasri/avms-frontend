@@ -2,100 +2,267 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-
+import { useEffect, useState } from "react";
 
 import {
   FaHome,
   FaUsers,
   FaCrown,
   FaCog,
-  FaEnvelope,
   FaHeart,
   FaBuilding,
   FaPhotoVideo,
-  FaUserTie,
   FaSignOutAlt,
   FaTimes,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
+
+/* =========================================================
+   MENU + ROLE PERMISSIONS
+========================================================= */
 
 const menu = [
   {
     name: "Dashboard",
     path: "/admin/dashboard",
     icon: FaHome,
+    roles: [
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
   },
+
   {
     name: "Users",
     path: "/admin/users",
     icon: FaUsers,
+    roles: [
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
   },
+
   {
-    name: "Membership",
+    name: "Members",
     path: "/admin/membership",
     icon: FaCrown,
+    roles: [
+      "super_admin",
+      "state_admin",
+    ],
   },
-  {
-    name: "Contact Users",
-    path: "/admin/contact-users",
-    icon: FaEnvelope,
-  },
+
   {
     name: "Matrimony",
     path: "/admin/matrimony",
     icon: FaHeart,
+    roles: [
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
   },
+
   {
     name: "Executive Bodies",
     path: "/admin/executive-bodies",
     icon: FaBuilding,
+    roles: [
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
   },
-  {
-    name: "Executive Members",
-    path: "/admin/executive-members",
-    icon: FaUserTie,
-  },
+
   {
     name: "Media",
     path: "/admin/media",
     icon: FaPhotoVideo,
+    roles: [
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
   },
+
+  {
+    name: "Temples",
+    path: "/admin/temples",
+    icon: FaPhotoVideo,
+    roles: [
+      "super_admin",
+      "state_admin",
+    ],
+  },
+
+  {
+    name: "Temples Events",
+    path: "/admin/temple-events",
+    icon: FaPhotoVideo,
+    roles: [
+      "super_admin",
+      "state_admin",
+    ],
+  },
+
+  {
+    name: "Satrams",
+    path: "/admin/satrams",
+    icon: FaPhotoVideo,
+    roles: [
+      "super_admin",
+      "state_admin",
+    ],
+  },
+
   {
     name: "Settings",
     path: "/admin/settings",
     icon: FaCog,
+    roles: [
+      "super_admin",
+    ],
   },
 ];
+
+/* =========================================================
+   TYPES
+========================================================= */
+
+interface AdminSidebarProps {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
+
+/* =========================================================
+   COMPONENT
+========================================================= */
 
 export default function AdminSidebar({
   open,
   setOpen,
-}: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
+  collapsed,
+  setCollapsed,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  /* =========================
+  const [role, setRole] = useState<string | null>(null);
+  const [userName, setUserName] = useState("");
+  const [loaded, setLoaded] = useState(false);
+
+  /* =========================================================
+     GET LOGGED-IN USER
+  ========================================================= */
+
+  useEffect(() => {
+    try {
+      const storedAdmin = localStorage.getItem("admin");
+
+      const token =
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token");
+
+      /* -----------------------------------------
+         No token = logout
+      ----------------------------------------- */
+
+      if (!token) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      /* -----------------------------------------
+         Get user from localStorage
+      ----------------------------------------- */
+
+      if (storedAdmin) {
+        const user = JSON.parse(storedAdmin);
+
+        setRole(user?.role || "user");
+        setUserName(user?.full_name || "");
+      } else {
+        router.replace("/admin/login");
+        return;
+      }
+
+      setLoaded(true);
+    } catch (error) {
+      console.error("Failed to read logged-in user:", error);
+
+      localStorage.removeItem("admin");
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("token");
+
+      router.replace("/admin/login");
+    }
+  }, [router]);
+
+  /* =========================================================
+     ROLE BASED MENU
+  ========================================================= */
+
+  const visibleMenu = menu.filter((item) =>
+    item.roles.includes(role || "")
+  );
+
+  /* =========================================================
      LOGOUT
-  ========================= */
+  ========================================================= */
 
   const handleLogout = () => {
-    // Remove login information if stored
     localStorage.removeItem("adminToken");
     localStorage.removeItem("admin");
     localStorage.removeItem("token");
 
-    // Close mobile sidebar
+    setRole(null);
+    setUserName("");
     setOpen(false);
 
-    // Go to login page
-    router.push("/admin/login");
+    router.replace("/admin/login");
   };
+
+  /* =========================================================
+     TOGGLE COLLAPSE
+  ========================================================= */
+
+  const handleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
+  /* =========================================================
+     LOADING
+  ========================================================= */
+
+  if (!loaded) {
+    return null;
+  }
+
+  /* =========================================================
+     SIDEBAR
+  ========================================================= */
 
   return (
     <>
-      {/* ================= MOBILE OVERLAY ================= */}
+      {/* =====================================================
+          MOBILE OVERLAY
+      ===================================================== */}
 
       {open && (
         <div
@@ -103,15 +270,17 @@ export default function AdminSidebar({
           className="
             fixed
             inset-0
+            z-40
             bg-black/20
             backdrop-blur-[2px]
-            z-40
             lg:hidden
           "
         />
       )}
 
-      {/* ================= SIDEBAR ================= */}
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
 
       <aside
         className={`
@@ -120,160 +289,268 @@ export default function AdminSidebar({
           left-0
           z-50
           h-screen
-          w-72
+
           bg-white
           border-r
           border-gray-100
+
           shadow-[4px_0_20px_rgba(0,0,0,0.03)]
+
           flex
           flex-col
 
           transform
-          transition-transform
+          transition-all
           duration-300
           ease-in-out
 
           ${
             open
               ? "translate-x-0"
-              : "-translate-x-full"
+              : "-translate-x-full lg:translate-x-0"
           }
 
-          lg:translate-x-0
+          ${
+            collapsed
+              ? "w-20"
+              : "w-72"
+          }
         `}
       >
-        {/* ================= LOGO ================= */}
+
+        {/* ===================================================
+            LOGO
+        =================================================== */}
 
         <div
-          className="
+          className={`
             h-[76px]
-            px-6
+            shrink-0
+
             flex
             items-center
-            justify-between
+
             border-b
             border-gray-100
-            shrink-0
-          "
+
+            transition-all
+            duration-300
+
+            ${
+              collapsed
+                ? "justify-center px-3"
+                : "justify-between px-5"
+            }
+          `}
         >
-          {/* LOGO */}
 
           <Link
             href="/admin/dashboard"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3"
+            className={`
+              flex
+              items-center
+
+              ${
+                collapsed
+                  ? "justify-center"
+                  : "gap-3"
+              }
+            `}
           >
-            {/* Logo Icon */}
+
+            {/* LOGO ICON */}
 
             <div
               className="
-                w-10
-                h-10
-                rounded-xl
-                bg-gray-50
-                text-gray-900
                 flex
+                h-10
+                w-10
+                shrink-0
                 items-center
                 justify-center
+
+                rounded-xl
+
+                bg-gray-50
+                text-gray-900
+
                 font-bold
                 text-sm
+
                 shadow-sm
               "
             >
               AV
             </div>
 
-            {/* Logo Text */}
+            {/* LOGO TEXT */}
 
-            <div>
-              <h1
-                className="
-                  text-lg
-                  font-bold
-                  text-gray-900
-                  leading-none
-                "
-              >
-                AV Matrimony
-              </h1>
+            {!collapsed && (
+              <div className="whitespace-nowrap">
 
-              <p
-                className="
-                  text-[10px]
-                  text-gray-400
-                  mt-1
-                  tracking-wide
-                  uppercase
-                "
-              >
-                Admin Panel
-              </p>
-            </div>
+                <h1
+                  className="
+                    text-lg
+                    font-bold
+                    leading-none
+                    text-gray-900
+                  "
+                >
+                  AV Matrimony
+                </h1>
+
+                <p
+                  className="
+                    mt-1
+                    text-[10px]
+                    uppercase
+                    tracking-wide
+                    text-gray-400
+                  "
+                >
+                  Admin Panel
+                </p>
+
+              </div>
+            )}
+
           </Link>
 
           {/* MOBILE CLOSE */}
 
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close sidebar"
-            className="
-              lg:hidden
-              w-9
-              h-9
-              rounded-lg
-              flex
-              items-center
-              justify-center
-              text-gray-400
-              hover:text-gray-700
-              hover:bg-gray-50
-              transition
-            "
-          >
-            <FaTimes className="text-sm" />
-          </button>
+          {!collapsed && (
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Close sidebar"
+              className="
+                flex
+                h-9
+                w-9
+                items-center
+                justify-center
+
+                rounded-lg
+
+                text-gray-400
+
+                transition
+
+                hover:bg-gray-50
+                hover:text-gray-700
+
+                lg:hidden
+              "
+            >
+              <FaTimes className="text-sm" />
+            </button>
+          )}
+
         </div>
 
-        {/* ================= NAVIGATION ================= */}
+        {/* ===================================================
+            USER ROLE
+        =================================================== */}
+
+        {!collapsed && (
+          <div className="px-4 pt-4">
+
+            <div
+              className="
+                rounded-xl
+                border
+                border-gray-100
+                bg-gray-50
+                px-3
+                py-3
+              "
+            >
+
+              <p className="text-xs text-gray-400">
+                Logged in as
+              </p>
+
+              <p className="mt-1 text-sm font-semibold text-gray-800 truncate">
+                {userName || "Administrator"}
+              </p>
+
+              <span
+                className="
+                  inline-flex
+                  mt-2
+                  rounded-full
+                  bg-[#f8eef2]
+                  px-2.5
+                  py-1
+                  text-[10px]
+                  font-bold
+                  uppercase
+                  tracking-wide
+                  text-[#8B1E3F]
+                "
+              >
+                {role?.replace("_", " ")}
+              </span>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* ===================================================
+            NAVIGATION
+        =================================================== */}
 
         <nav
           className="
             flex-1
-            px-4
-            py-6
             overflow-y-auto
-            scrollbar-thin
+            overflow-x-hidden
+            px-3
+            py-6
           "
         >
+
           <div className="space-y-1">
-            {menu.map((item) => {
+
+            {visibleMenu.map((item) => {
               const Icon = item.icon;
 
               const active =
                 pathname === item.path ||
-                pathname.startsWith(
-                  `${item.path}/`
-                );
+                pathname.startsWith(`${item.path}/`);
 
               return (
                 <Link
                   key={item.path}
                   href={item.path}
                   onClick={() => setOpen(false)}
+                  title={
+                    collapsed
+                      ? item.name
+                      : undefined
+                  }
                   className={`
                     relative
                     group
+
                     flex
                     items-center
-                    gap-3
-                    px-3
-                    py-3
+
                     rounded-xl
+
                     text-sm
                     font-medium
+
                     transition-all
                     duration-200
+
+                    ${
+                      collapsed
+                        ? "h-12 justify-center px-2"
+                        : "gap-3 px-3 py-3"
+                    }
 
                     ${
                       active
@@ -290,6 +567,7 @@ export default function AdminSidebar({
                     }
                   `}
                 >
+
                   {/* ACTIVE INDICATOR */}
 
                   {active && (
@@ -298,10 +576,14 @@ export default function AdminSidebar({
                         absolute
                         left-0
                         top-1/2
-                        -translate-y-1/2
-                        w-1
+
                         h-7
+                        w-1
+
+                        -translate-y-1/2
+
                         rounded-r-full
+
                         bg-[#8B1E3F]
                       "
                     />
@@ -311,14 +593,17 @@ export default function AdminSidebar({
 
                   <span
                     className={`
-                      w-9
-                      h-9
-                      rounded-lg
                       flex
+                      h-9
+                      w-9
+                      shrink-0
+
                       items-center
                       justify-center
+
+                      rounded-lg
+
                       transition-all
-                      shrink-0
 
                       ${
                         active
@@ -337,106 +622,213 @@ export default function AdminSidebar({
                     <Icon className="text-[15px]" />
                   </span>
 
-                  {/* MENU NAME */}
+                  {/* NAME */}
 
-                  <span className="flex-1">
-                    {item.name}
-                  </span>
+                  {!collapsed && (
+                    <span className="flex-1 whitespace-nowrap">
+                      {item.name}
+                    </span>
+                  )}
 
                   {/* ACTIVE DOT */}
 
-                  {active && (
+                  {!collapsed && active && (
                     <span
                       className="
-                        w-1.5
                         h-1.5
-                        rounded-full
-                        bg-[#8B1E3F]
+                        w-1.5
                         shrink-0
+
+                        rounded-full
+
+                        bg-[#8B1E3F]
                       "
                     />
                   )}
+
                 </Link>
               );
             })}
+
+            {/* NO ACCESS */}
+
+            {visibleMenu.length === 0 && (
+              <div
+                className="
+                  px-3
+                  py-4
+                  text-center
+                  text-sm
+                  text-gray-400
+                "
+              >
+                No menu access
+              </div>
+            )}
+
           </div>
+
         </nav>
 
-        {/* ================= BOTTOM AREA ================= */}
+        {/* ===================================================
+            BOTTOM
+        =================================================== */}
 
         <div
           className="
-            px-4
-            py-4
+            shrink-0
+
             border-t
             border-gray-100
-            shrink-0
-            space-y-2
+
+            px-3
+            py-4
           "
         >
-          {/* ================= LOGOUT BUTTON ================= */}
+
+          {/* LOGOUT */}
 
           <button
             type="button"
             onClick={handleLogout}
-            className="
-              w-full
+            title={
+              collapsed
+                ? "Logout"
+                : undefined
+            }
+            className={`
+              group
+
               flex
+              w-full
               items-center
-              gap-3
-              px-3
-              py-3
+
               rounded-xl
+
               text-sm
               font-medium
               text-gray-600
-              hover:bg-red-50
-              hover:text-red-600
+
               transition-all
               duration-200
-              group
-            "
+
+              hover:bg-red-50
+              hover:text-red-600
+
+              ${
+                collapsed
+                  ? "h-12 justify-center px-2"
+                  : "gap-3 px-3 py-3"
+              }
+            `}
           >
-            {/* Logout Icon */}
 
             <span
               className="
-                w-9
-                h-9
-                rounded-lg
                 flex
+                h-9
+                w-9
+                shrink-0
+
                 items-center
                 justify-center
+
+                rounded-lg
+
                 bg-gray-50
                 text-gray-400
+
+                transition
+
                 group-hover:bg-red-100
                 group-hover:text-red-600
-                transition
               "
             >
               <FaSignOutAlt className="text-[15px]" />
             </span>
 
-            <span className="flex-1 text-left">
-              Logout
-            </span>
+            {!collapsed && (
+              <span className="flex-1 text-left">
+                Logout
+              </span>
+            )}
+
           </button>
 
-          {/* ================= FOOTER ================= */}
+          {/* FOOTER */}
 
-          <div
-            className="
-              px-3
-              py-2
-              text-[11px]
-              text-gray-400
-              text-center
-            "
-          >
-            AV Matrimony Admin
-          </div>
+          {!collapsed && (
+            <div
+              className="
+                px-3
+                py-2
+
+                text-center
+                text-[11px]
+                text-gray-400
+              "
+            >
+              AV Matrimony Admin
+            </div>
+          )}
+
         </div>
+
+        {/* ===================================================
+            COLLAPSE BUTTON
+        =================================================== */}
+
+        <button
+          type="button"
+          onClick={handleCollapse}
+          title={
+            collapsed
+              ? "Expand sidebar"
+              : "Collapse sidebar"
+          }
+          className="
+            absolute
+            -right-3
+            top-[88px]
+            z-50
+
+            hidden
+            h-7
+            w-7
+
+            items-center
+            justify-center
+
+            rounded-full
+
+            border
+            border-gray-200
+
+            bg-white
+
+            text-gray-500
+
+            shadow-md
+
+            transition-all
+
+            hover:bg-gray-50
+            hover:text-gray-900
+
+            lg:flex
+          "
+        >
+
+          {collapsed ? (
+            <FaChevronRight className="text-[10px]" />
+          ) : (
+            <FaChevronLeft className="text-[10px]" />
+          )}
+
+        </button>
+
       </aside>
     </>
   );
 }
+
