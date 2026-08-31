@@ -36,18 +36,7 @@ const menu = [
     ],
   },
 
-  {
-    name: "Users",
-    path: "/admin/users",
-    icon: FaUsers,
-    roles: [
-      "super_admin",
-      "state_admin",
-      "district_admin",
-      "mandal_admin",
-      "sangam_admin",
-    ],
-  },
+  
 
   {
     name: "Members",

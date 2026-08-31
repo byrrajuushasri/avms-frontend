@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+
 import {
   FaPhoneAlt,
   FaEnvelope,
@@ -27,9 +28,11 @@ type ExecutiveMember = {
 
   full_name?: string;
   name?: string;
+  member_name?: string;
 
   mobile?: string;
   phone?: string;
+  mobile_number?: string;
 
   email?: string;
 
@@ -38,6 +41,9 @@ type ExecutiveMember = {
   profile_photo?: string | null;
 
   designation?: string | null;
+  designation_name?: string | null;
+  post?: string | null;
+  position?: string | null;
 
   executive_body?: string | null;
   executiveBody?: string | null;
@@ -64,10 +70,13 @@ type ExecutiveMember = {
    API
 ========================================================= */
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000"
+).replace(/\/$/, "");
 
-
+const MEMBERS_API =
+  `${BACKEND_URL}/membership-register/public/executives`;
 /* =========================================================
    ALLOWED DESIGNATIONS
 ========================================================= */
@@ -77,6 +86,26 @@ const ALLOWED_DESIGNATIONS: ExecutiveDesignation[] = [
   "Vice President",
   "General Secretary",
   "Joint Secretary",
+];
+
+/* =========================================================
+   BODY FILTERS
+========================================================= */
+
+const bodyFilters = [
+  "State",
+  "District",
+  "Mandal",
+  "Sangam",
+];
+
+/* =========================================================
+   DESIGNATION FILTERS
+========================================================= */
+
+const designationFilters = [
+  "All",
+  ...ALLOWED_DESIGNATIONS,
 ];
 
 /* =========================================================
@@ -105,13 +134,16 @@ const getDesignation = (
       member.position,
   );
 
-  if (raw === "president") {
+  if (
+    raw === "president" ||
+    raw.includes("president") &&
+    !raw.includes("vice")
+  ) {
     return "President";
   }
 
   if (
     raw === "vice president" ||
-    raw === "vice-president" ||
     raw === "vicepresident"
   ) {
     return "Vice President";
@@ -119,7 +151,6 @@ const getDesignation = (
 
   if (
     raw === "general secretary" ||
-    raw === "general-secretary" ||
     raw === "generalsecretary"
   ) {
     return "General Secretary";
@@ -127,7 +158,6 @@ const getDesignation = (
 
   if (
     raw === "joint secretary" ||
-    raw === "joint-secretary" ||
     raw === "jointsecretary"
   ) {
     return "Joint Secretary";
@@ -140,7 +170,9 @@ const getDesignation = (
    EXECUTIVE BODY NORMALIZER
 ========================================================= */
 
-const getExecutiveBody = (member: ExecutiveMember) => {
+const getExecutiveBody = (
+  member: ExecutiveMember,
+) => {
   return normalizeText(
     member.executive_body ??
       member.executiveBody ??
@@ -152,31 +184,69 @@ const getExecutiveBody = (member: ExecutiveMember) => {
 };
 
 /* =========================================================
+   BODY NORMALIZER
+========================================================= */
+
+const getBodyType = (
+  member: ExecutiveMember,
+) => {
+  const body = getExecutiveBody(member);
+
+  if (
+    body === "state" ||
+    body === "state body" ||
+    body.startsWith("state ")
+  ) {
+    return "State";
+  }
+
+  if (
+    body === "district" ||
+    body === "dist" ||
+    body === "district body" ||
+    body === "dist body" ||
+    body.startsWith("district ") ||
+    body.startsWith("dist ")
+  ) {
+    return "District";
+  }
+
+  if (
+    body === "mandal" ||
+    body === "mandal body" ||
+    body.startsWith("mandal ")
+  ) {
+    return "Mandal";
+  }
+
+  if (
+    body === "sangam" ||
+    body === "sangam body" ||
+    body.startsWith("sangam ")
+  ) {
+    return "Sangam";
+  }
+
+  return "";
+};
+
+/* =========================================================
    CHECK EXECUTIVE BODY
 ========================================================= */
 
-const isExecutiveBody = (member: ExecutiveMember) => {
-  const body = getExecutiveBody(member);
-
-  return (
-    body === "state" ||
-    body === "district" ||
-    body === "dist" ||
-    body === "mandal" ||
-    body === "sangam" ||
-    body === "state body" ||
-    body === "district body" ||
-    body === "dist body" ||
-    body === "mandal body" ||
-    body === "sangam body"
-  );
+const isExecutiveBody = (
+  member: ExecutiveMember,
+) => {
+  return Boolean(getBodyType(member));
 };
 
 /* =========================================================
    PHOTO URL
 ========================================================= */
 
-const getPhotoUrl = (member: ExecutiveMember) => {
+const getPhotoUrl = (
+  member: ExecutiveMember,
+) => {
   const photo =
     member.photo ??
     member.image ??
@@ -189,9 +259,14 @@ const getPhotoUrl = (member: ExecutiveMember) => {
 
   const value = String(photo).trim();
 
+  if (!value) {
+    return "";
+  }
+
   if (
     value.startsWith("http://") ||
-    value.startsWith("https://")
+    value.startsWith("https://") ||
+    value.startsWith("blob:")
   ) {
     return value;
   }
@@ -207,7 +282,9 @@ const getPhotoUrl = (member: ExecutiveMember) => {
    MEMBER NAME
 ========================================================= */
 
-const getMemberName = (member: ExecutiveMember) => {
+const getMemberName = (
+  member: ExecutiveMember,
+) => {
   return (
     member.full_name ??
     member.name ??
@@ -220,7 +297,9 @@ const getMemberName = (member: ExecutiveMember) => {
    PHONE
 ========================================================= */
 
-const getPhone = (member: ExecutiveMember) => {
+const getPhone = (
+  member: ExecutiveMember,
+) => {
   return (
     member.mobile ??
     member.phone ??
@@ -233,7 +312,9 @@ const getPhone = (member: ExecutiveMember) => {
    EMAIL
 ========================================================= */
 
-const getEmail = (member: ExecutiveMember) => {
+const getEmail = (
+  member: ExecutiveMember,
+) => {
   return member.email ?? "";
 };
 
@@ -241,27 +322,13 @@ const getEmail = (member: ExecutiveMember) => {
    BODY DISPLAY NAME
 ========================================================= */
 
-const getBodyName = (member: ExecutiveMember) => {
-  const body = getExecutiveBody(member);
+const getBodyName = (
+  member: ExecutiveMember,
+) => {
+  const body = getBodyType(member);
 
-  if (body.includes("state")) {
-    return "State Body";
-  }
-
-  if (
-    body.includes("district") ||
-    body === "dist" ||
-    body.includes("dist")
-  ) {
-    return "District Body";
-  }
-
-  if (body.includes("mandal")) {
-    return "Mandal Body";
-  }
-
-  if (body.includes("sangam")) {
-    return "Sangam Body";
+  if (body) {
+    return `${body} Body`;
   }
 
   return "Executive Body";
@@ -271,7 +338,9 @@ const getBodyName = (member: ExecutiveMember) => {
    LOCATION
 ========================================================= */
 
-const getLocation = (member: ExecutiveMember) => {
+const getLocation = (
+  member: ExecutiveMember,
+) => {
   if (member.location) {
     return member.location;
   }
@@ -291,11 +360,29 @@ const getLocation = (member: ExecutiveMember) => {
 };
 
 /* =========================================================
+   STATUS
+========================================================= */
+
+const isActiveMember = (
+  member: ExecutiveMember,
+) => {
+  if (!member.status) {
+    return true;
+  }
+
+  return (
+    normalizeText(member.status) === "active"
+  );
+};
+
+/* =========================================================
    PAGE
 ========================================================= */
 
 export default function StateContactsPage() {
-  const [members, setMembers] = useState<ExecutiveMember[]>([]);
+  const [members, setMembers] = useState<
+    ExecutiveMember[]
+  >([]);
 
   const [selectedBody, setSelectedBody] =
     useState("State");
@@ -303,9 +390,11 @@ export default function StateContactsPage() {
   const [selectedDesignation, setSelectedDesignation] =
     useState("All");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
   const [selectedMember, setSelectedMember] =
     useState<ExecutiveMember | null>(null);
@@ -319,12 +408,42 @@ export default function StateContactsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(BACKEND_URL, {
-        method: "GET",
-        cache: "no-store",
-      });
+      console.log(
+        "Executive Members API:",
+        MEMBERS_API,
+      );
+
+      const response = await fetch(
+        MEMBERS_API,
+        {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+          },
+        },
+      );
+
+      console.log(
+        "Executive API Status:",
+        response.status,
+        response.statusText,
+      );
 
       if (!response.ok) {
+        let errorText = "";
+
+        try {
+          errorText = await response.text();
+        } catch {
+          errorText = "";
+        }
+
+        console.error(
+          "Executive API Error Response:",
+          errorText,
+        );
+
         throw new Error(
           `Failed to fetch members. Status: ${response.status}`,
         );
@@ -332,13 +451,46 @@ export default function StateContactsPage() {
 
       const data = await response.json();
 
-      const memberArray = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data?.members)
-        ? data.members
-        : [];
+      console.log(
+        "Executive Members Response:",
+        data,
+      );
+
+      /*
+        Supported responses:
+
+        []
+
+        {
+          data: []
+        }
+
+        {
+          members: []
+        }
+
+        {
+          items: []
+        }
+      */
+
+      let memberArray: ExecutiveMember[] = [];
+
+      if (Array.isArray(data)) {
+        memberArray = data;
+      } else if (
+        Array.isArray(data?.data)
+      ) {
+        memberArray = data.data;
+      } else if (
+        Array.isArray(data?.members)
+      ) {
+        memberArray = data.members;
+      } else if (
+        Array.isArray(data?.items)
+      ) {
+        memberArray = data.items;
+      }
 
       setMembers(memberArray);
     } catch (err) {
@@ -348,7 +500,7 @@ export default function StateContactsPage() {
       );
 
       setError(
-        "Executive Members data load కాలేదు. Backend server running ఉందో check చేయండి.",
+        "Executive Members data load కాలేదు. Backend server మరియు API endpoint check చేయండి.",
       );
 
       setMembers([]);
@@ -375,6 +527,7 @@ export default function StateContactsPage() {
         getDesignation(member);
 
       return (
+        isActiveMember(member) &&
         isExecutiveBody(member) &&
         designation !== null
       );
@@ -392,17 +545,15 @@ export default function StateContactsPage() {
           getDesignation(member);
 
         const body =
-          getExecutiveBody(member);
+          getBodyType(member);
 
-        let bodyMatch = true;
+        /* BODY */
 
-        if (selectedBody !== "All") {
-          bodyMatch =
-            body ===
-              normalizeText(selectedBody) ||
-            body ===
-              `${normalizeText(selectedBody)} body`;
-        }
+        const bodyMatch =
+          selectedBody === "All" ||
+          body === selectedBody;
+
+        /* DESIGNATION */
 
         const designationMatch =
           selectedDesignation === "All" ||
@@ -422,18 +573,37 @@ export default function StateContactsPage() {
   ]);
 
   /* =======================================================
-     BODY BUTTONS
+     CHANGE BODY
   ======================================================= */
 
-  const bodyFilters = [
-  
-    "State",
-    "District",
-    "Mandal",
-    "Sangam",
-  ];
+  const changeBody = (
+    body: string,
+  ) => {
+    setSelectedBody(body);
+    setSelectedDesignation("All");
+  };
 
-   
+  /* =======================================================
+     CHANGE DESIGNATION
+  ======================================================= */
+
+  const changeDesignation = (
+    designation: string,
+  ) => {
+    setSelectedDesignation(
+      designation,
+    );
+  };
+
+  /* =======================================================
+     CLEAR FILTERS
+  ======================================================= */
+
+  const clearFilters = () => {
+    setSelectedBody("State");
+    setSelectedDesignation("All");
+  };
+
   /* =======================================================
      RENDER
   ======================================================= */
@@ -460,8 +630,8 @@ export default function StateContactsPage() {
             </h1>
 
             <p className="mt-3 text-sm sm:text-base text-gray-500">
-              President, Vice President, General Secretary
-              and Joint Secretary
+              President, Vice President, General
+              Secretary and Joint Secretary
             </p>
 
           </div>
@@ -494,7 +664,7 @@ export default function StateContactsPage() {
                   key={body}
                   type="button"
                   onClick={() =>
-                    setSelectedBody(body)
+                    changeBody(body)
                   }
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
                     selectedBody === body
@@ -510,8 +680,8 @@ export default function StateContactsPage() {
             </div>
 
           </div>
-
-     Executive Body
+ 
+           
 
         </div>
 
@@ -533,9 +703,17 @@ export default function StateContactsPage() {
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-                <p className="text-sm text-red-700">
-                  {error}
-                </p>
+                <div>
+
+                  <p className="text-sm text-red-700">
+                    {error}
+                  </p>
+
+                  <p className="mt-1 text-xs text-red-500 break-all">
+                    API: {MEMBERS_API}
+                  </p>
+
+                </div>
 
                 <button
                   type="button"
@@ -561,12 +739,14 @@ export default function StateContactsPage() {
               <div>
 
                 <h2 className="text-xl font-bold text-gray-900">
-                  Executive Members
+                  {selectedBody} Executive Members
                 </h2>
 
                 <p className="text-sm text-gray-500 mt-1">
-                  President, Vice President, General
-                  Secretary and Joint Secretary
+                  {selectedDesignation ===
+                  "All"
+                    ? "All Executive Designations"
+                    : selectedDesignation}
                 </p>
 
               </div>
@@ -620,7 +800,9 @@ export default function StateContactsPage() {
                   (member, index) => {
 
                     const designation =
-                      getDesignation(member);
+                      getDesignation(
+                        member,
+                      );
 
                     const photo =
                       getPhotoUrl(member);
@@ -725,7 +907,9 @@ export default function StateContactsPage() {
                           {phone && (
 
                             <a
-                              href={`tel:${phone.replace(
+                              href={`tel:${String(
+                                phone,
+                              ).replace(
                                 /\s/g,
                                 "",
                               )}`}
@@ -733,7 +917,9 @@ export default function StateContactsPage() {
                             >
 
                               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#a00018] text-white">
+
                                 <FaPhoneAlt className="text-sm" />
+
                               </div>
 
                               <div className="min-w-0">
@@ -762,7 +948,9 @@ export default function StateContactsPage() {
                             >
 
                               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#800018] text-white">
+
                                 <FaEnvelope className="text-sm" />
+
                               </div>
 
                               <div className="min-w-0">
@@ -788,7 +976,9 @@ export default function StateContactsPage() {
                             <div className="mt-3 flex items-start gap-3 rounded-xl bg-gray-50 p-3">
 
                               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[#a00018]">
+
                                 <FaMapMarkerAlt className="text-sm" />
+
                               </div>
 
                               <div className="min-w-0">
@@ -853,11 +1043,18 @@ export default function StateContactsPage() {
                 </h3>
 
                 <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
-                  Selected Executive Body or Designation
-                  members are not available.
+                  No active Executive Members
+                  are available for the selected
+                  body and designation.
                 </p>
 
-               
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-5 rounded-lg bg-[#800018] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a00018]"
+                >
+                  Reset Filters
+                </button>
 
               </div>
 
@@ -971,6 +1168,17 @@ export default function StateContactsPage() {
                 )}
               </p>
 
+              {selectedMember.member_id && (
+
+                <p className="mt-2 text-xs text-gray-400">
+                  Member ID:{" "}
+                  {selectedMember.member_id}
+                </p>
+
+              )}
+
+              {/* PHONE */}
+
               {getPhone(
                 selectedMember,
               ) && (
@@ -978,26 +1186,34 @@ export default function StateContactsPage() {
                 <a
                   href={`tel:${getPhone(
                     selectedMember,
-                  ).replace(/\s/g, "")}`}
-                  className="mt-5 flex items-center gap-3 rounded-xl bg-gray-50 p-4"
+                  ).replace(
+                    /\s/g,
+                    "",
+                  )}`}
+                  className="mt-5 flex items-center gap-3 rounded-xl bg-gray-50 p-4 hover:bg-red-50"
                 >
 
                   <FaPhoneAlt className="text-[#800018]" />
 
                   <div>
+
                     <p className="text-xs text-gray-400">
                       Phone
                     </p>
+
                     <p className="font-semibold text-gray-700">
                       {getPhone(
                         selectedMember,
                       )}
                     </p>
+
                   </div>
 
                 </a>
 
               )}
+
+              {/* EMAIL */}
 
               {getEmail(
                 selectedMember,
@@ -1007,25 +1223,30 @@ export default function StateContactsPage() {
                   href={`mailto:${getEmail(
                     selectedMember,
                   )}`}
-                  className="mt-3 flex items-center gap-3 rounded-xl bg-gray-50 p-4"
+                  className="mt-3 flex items-center gap-3 rounded-xl bg-gray-50 p-4 hover:bg-red-50"
                 >
 
                   <FaEnvelope className="text-[#800018]" />
 
                   <div className="min-w-0">
+
                     <p className="text-xs text-gray-400">
                       Email
                     </p>
+
                     <p className="font-semibold text-gray-700 break-all">
                       {getEmail(
                         selectedMember,
                       )}
                     </p>
+
                   </div>
 
                 </a>
 
               )}
+
+              {/* LOCATION */}
 
               {getLocation(
                 selectedMember,
@@ -1036,19 +1257,34 @@ export default function StateContactsPage() {
                   <FaMapMarkerAlt className="mt-1 text-[#800018]" />
 
                   <div>
+
                     <p className="text-xs text-gray-400">
                       Location
                     </p>
+
                     <p className="font-semibold text-gray-700">
                       {getLocation(
                         selectedMember,
                       )}
                     </p>
+
                   </div>
 
                 </div>
 
               )}
+
+              {/* CLOSE */}
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedMember(null)
+                }
+                className="mt-6 w-full rounded-xl bg-[#800018] px-4 py-3 text-sm font-semibold text-white hover:bg-[#a00018]"
+              >
+                Close
+              </button>
 
             </div>
 
@@ -1061,3 +1297,4 @@ export default function StateContactsPage() {
     </main>
   );
 }
+

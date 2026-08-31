@@ -32,13 +32,13 @@ type NewsItem = {
   id: number;
   title: string;
   description: string;
-  category: NewsCategory;
+  category: NewsCategory | string;
   location?: string | null;
   date: string;
-  mediaType?: string;
-  mediaUrl: string;
+  mediaType?: string | null;
+  mediaUrl?: string | null;
   featured?: boolean;
-  status?: "Active" | "Inactive";
+  status?: "Active" | "Inactive" | string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -46,8 +46,26 @@ type NewsItem = {
 /* =========================================================
    API
 ========================================================= */
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000"
+).replace(/\/+$/, "");
+
+/*
+  IMPORTANT:
+  Your previous code was calling:
+  
+      http://localhost:5000
+
+  which caused 404.
+
+  News API should be:
+  
+      http://localhost:5000/news
+*/
+
+const NEWS_API = `${BACKEND_URL}/news`;
 
 /* =========================================================
    CATEGORIES
@@ -80,24 +98,6 @@ const categories = [
    HELPERS
 ========================================================= */
 
-/*
-  Convert backend image path into browser URL.
-
-  Examples:
-
-  /uploads/news/image.jpg
-  ->
-  http://localhost:5000/uploads/news/image.jpg
-
-  uploads/news/image.jpg
-  ->
-  http://localhost:5000/uploads/news/image.jpg
-
-  http://localhost:5000/uploads/news/image.jpg
-  ->
-  same URL
-*/
-
 const getMediaUrl = (url?: string | null) => {
   if (!url) return "";
 
@@ -105,6 +105,9 @@ const getMediaUrl = (url?: string | null) => {
 
   if (!cleanUrl) return "";
 
+  /*
+    Already a complete URL
+  */
   if (
     cleanUrl.startsWith("http://") ||
     cleanUrl.startsWith("https://") ||
@@ -113,10 +116,22 @@ const getMediaUrl = (url?: string | null) => {
     return cleanUrl;
   }
 
+  /*
+    Backend relative path
+
+    /uploads/news/image.jpg
+    ->
+    http://localhost:5000/uploads/news/image.jpg
+  */
   if (cleanUrl.startsWith("/")) {
     return `${BACKEND_URL}${cleanUrl}`;
   }
 
+  /*
+    uploads/news/image.jpg
+    ->
+    http://localhost:5000/uploads/news/image.jpg
+  */
   return `${BACKEND_URL}/${cleanUrl}`;
 };
 
@@ -138,6 +153,25 @@ const formatDate = (date?: string) => {
     month: "short",
     year: "numeric",
   });
+};
+
+/* =========================================================
+   NORMALIZE MEDIA TYPE
+========================================================= */
+
+const isImageNews = (item: NewsItem) => {
+  /*
+    If mediaType is not available, allow the record.
+    This prevents old database records from disappearing.
+  */
+
+  if (!item.mediaType) {
+    return true;
+  }
+
+  return String(item.mediaType)
+    .trim()
+    .toLowerCase() === "image";
 };
 
 /* =========================================================
@@ -170,12 +204,36 @@ export default function StateNewsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(BACKEND_URL, {
+      console.log("Fetching News API:", NEWS_API);
+
+      const response = await fetch(NEWS_API, {
         method: "GET",
         cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
       });
 
+      console.log(
+        "News API Status:",
+        response.status,
+        response.statusText
+      );
+
       if (!response.ok) {
+        let errorMessage = "";
+
+        try {
+          errorMessage = await response.text();
+        } catch {
+          errorMessage = "";
+        }
+
+        console.error(
+          "News API Error Response:",
+          errorMessage
+        );
+
         throw new Error(
           `Failed to fetch news. Status: ${response.status}`
         );
@@ -183,30 +241,83 @@ export default function StateNewsPage() {
 
       const data = await response.json();
 
-      const newsArray = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.data)
-        ? data.data
-        : [];
+      console.log("News API Response:", data);
 
       /*
-        IMPORTANT:
+        Supported API responses:
 
-        Only Image news will be shown on client.
+        1. [
+             {...},
+             {...}
+           ]
+
+        2. {
+             data: [
+               {...},
+               {...}
+             ]
+           }
+
+        3. {
+             items: [
+               {...}
+             ]
+           }
+      */
+
+      let newsArray: NewsItem[] = [];
+
+      if (Array.isArray(data)) {
+        newsArray = data;
+      } else if (Array.isArray(data?.data)) {
+        newsArray = data.data;
+      } else if (Array.isArray(data?.items)) {
+        newsArray = data.items;
+      } else if (Array.isArray(data?.news)) {
+        newsArray = data.news;
+      }
+
+      /*
+        Only image news.
       */
 
       const imageNews = newsArray.filter(
-        (item: NewsItem) =>
-          String(item.mediaType || "").toLowerCase() ===
-          "image"
+        (item) => isImageNews(item)
       );
 
-      setNewsData(imageNews);
+      /*
+        Active news only.
+        If status doesn't exist, allow the record.
+      */
+
+      const activeNews = imageNews.filter(
+        (item) =>
+          !item.status ||
+          String(item.status).toLowerCase() === "active"
+      );
+
+      /*
+        Sort latest first.
+      */
+
+      activeNews.sort((a, b) => {
+        const dateA = new Date(
+          a.date || a.createdAt || ""
+        ).getTime();
+
+        const dateB = new Date(
+          b.date || b.createdAt || ""
+        ).getTime();
+
+        return dateB - dateA;
+      });
+
+      setNewsData(activeNews);
     } catch (err) {
       console.error("News API Error:", err);
 
       setError(
-        "News data load కాలేదు. Backend server running ఉందో check చేయండి."
+        "News data load కాలేదు. Backend server మరియు News API endpoint check చేయండి."
       );
 
       setNewsData([]);
@@ -228,7 +339,9 @@ export default function StateNewsPage() {
   ======================================================= */
 
   const filteredNews = useMemo(() => {
-    const searchText = search.toLowerCase().trim();
+    const searchText = search
+      .toLowerCase()
+      .trim();
 
     return newsData.filter((news) => {
       /*
@@ -258,18 +371,7 @@ export default function StateNewsPage() {
           ?.toLowerCase()
           .includes(searchText);
 
-      /*
-        Active only
-      */
-
-      const statusMatch =
-        !news.status || news.status === "Active";
-
-      return (
-        categoryMatch &&
-        searchMatch &&
-        statusMatch
-      );
+      return categoryMatch && searchMatch;
     });
   }, [
     newsData,
@@ -293,7 +395,8 @@ export default function StateNewsPage() {
   const featuredNews = newsData.find(
     (news) =>
       news.featured === true &&
-      (!news.status || news.status === "Active")
+      (!news.status ||
+        String(news.status).toLowerCase() === "active")
   );
 
   /* =======================================================
@@ -442,7 +545,7 @@ export default function StateNewsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
 
           {/* =================================================
-              ERROR
+              API INFO / ERROR
           ================================================= */}
 
           {error && (
@@ -451,9 +554,17 @@ export default function StateNewsPage() {
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-                <p className="text-sm text-red-700">
-                  {error}
-                </p>
+                <div>
+
+                  <p className="text-sm text-red-700">
+                    {error}
+                  </p>
+
+                  <p className="text-xs text-red-500 mt-1 break-all">
+                    API: {NEWS_API}
+                  </p>
+
+                </div>
 
                 <button
                   type="button"
@@ -613,17 +724,17 @@ export default function StateNewsPage() {
                       </span>
 
                       {featuredNews.location && (
+
                         <span className="flex items-center gap-1">
                           <FaMapMarkerAlt />
                           {featuredNews.location}
                         </span>
+
                       )}
 
                       <span className="flex items-center gap-1">
                         <FaCalendarAlt />
-                        {formatDate(
-                          featuredNews.date
-                        )}
+                        {formatDate(featuredNews.date)}
                       </span>
 
                     </div>
@@ -811,20 +922,28 @@ export default function StateNewsPage() {
                   </div>
 
                   <h3 className="text-lg font-bold text-gray-900 mt-4">
-                    No News Found
+                    {newsData.length === 0
+                      ? "No News Available"
+                      : "No News Found"}
                   </h3>
 
                   <p className="text-sm text-gray-500 mt-1">
-                    Try another search or category.
+                    {newsData.length === 0
+                      ? "News will appear here when published."
+                      : "Try another search or category."}
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="mt-5 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold"
-                  >
-                    Clear Filters
-                  </button>
+                  {newsData.length > 0 && (
+
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="mt-5 bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold"
+                    >
+                      Clear Filters
+                    </button>
+
+                  )}
 
                 </div>
 

@@ -2,18 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+/* =========================================================
+   TYPES
+========================================================= */
+
 type Member = {
   id: number;
   member_id: string;
-
   full_name: string;
   mobile: string;
   email: string;
   occupation: string;
-
   gender: string;
   date_of_birth: string;
-
   district: string;
   mandal: string;
   sangham: string;
@@ -38,30 +39,43 @@ type Member = {
   created_at: string;
 };
 
-const API =
-  `${process.env.NEXT_PUBLIC_BACKEND_URL}/membership-register`;
+/* =========================================================
+   API
+========================================================= */
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/+$/, "") ||
+  "http://localhost:5000";
+
+const API = `${BACKEND_URL}/membership-register`;
 
 const ITEMS_PER_PAGE = 5;
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default function MembershipDetailsPage() {
   const [members, setMembers] = useState<Member[]>([]);
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
+
   const [district, setDistrict] = useState("");
+
   const [mandal, setMandal] = useState("");
+
   const [sangham, setSangham] = useState("");
+
   const [gender, setGender] = useState("");
+
   const [executive, setExecutive] = useState("");
 
   const [selectedMember, setSelectedMember] =
     useState<Member | null>(null);
-
-  /* =========================================================
-     PAGINATION
-  ========================================================= */
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -69,42 +83,179 @@ export default function MembershipDetailsPage() {
      LOAD MEMBERS
   ========================================================= */
 
-  useEffect(() => {
-    const loadMembers = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const loadMembers = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        const response = await fetch(API, {
-          cache: "no-store",
-        });
+      /* -------------------------------------------------------
+         GET TOKEN FROM LOCAL STORAGE
+      ------------------------------------------------------- */
 
-        if (!response.ok) {
-          throw new Error("Unable to load members");
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token")
+          : null;
+
+      /* -------------------------------------------------------
+         GET LOGGED-IN USER
+      ------------------------------------------------------- */
+
+      const userData =
+        typeof window !== "undefined"
+          ? localStorage.getItem("user")
+          : null;
+
+      const loggedInUser = userData
+        ? JSON.parse(userData)
+        : null;
+
+      console.log(
+        "Logged-in User:",
+        loggedInUser
+      );
+
+      console.log(
+        "Token available:",
+        Boolean(token)
+      );
+
+      console.log(
+        "Fetching members from:",
+        API
+      );
+
+      /* -------------------------------------------------------
+         API REQUEST
+      ------------------------------------------------------- */
+
+      const response = await fetch(API, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+
+          /* IMPORTANT:
+             Send JWT exactly like working Admin page
+          */
+
+          ...(token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {}),
+        },
+      });
+
+      console.log(
+        "Membership API status:",
+        response.status,
+        response.statusText
+      );
+
+      /* -------------------------------------------------------
+         HANDLE UNAUTHORIZED
+      ------------------------------------------------------- */
+
+      if (response.status === 401) {
+        throw new Error(
+          "Unauthorized. Please login again."
+        );
+      }
+
+      /* -------------------------------------------------------
+         OTHER API ERRORS
+      ------------------------------------------------------- */
+
+      if (!response.ok) {
+        let errorMessage = "";
+
+        try {
+          const errorData =
+            await response.json();
+
+          errorMessage =
+            errorData?.message ||
+            errorData?.error ||
+            "";
+        } catch {
+          // Response was not JSON
         }
 
-        const data = await response.json();
-
-        setMembers(
-          Array.isArray(data)
-            ? data
-            : Array.isArray(data?.data)
-            ? data.data
-            : []
+        throw new Error(
+          errorMessage ||
+            `Unable to load members. Server returned ${response.status}`
         );
-      } catch (err) {
-        console.error(err);
-
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Unable to load members"
-        );
-      } finally {
-        setLoading(false);
       }
-    };
 
+      /* -------------------------------------------------------
+         RESPONSE
+      ------------------------------------------------------- */
+
+      const data = await response.json();
+
+      console.log(
+        "Membership API response:",
+        data
+      );
+
+      /* -------------------------------------------------------
+         SUPPORT DIFFERENT RESPONSE FORMATS
+      ------------------------------------------------------- */
+
+      let memberArray: Member[] = [];
+
+      if (Array.isArray(data)) {
+        memberArray = data;
+      } else if (
+        Array.isArray(data?.data)
+      ) {
+        memberArray = data.data;
+      } else if (
+        Array.isArray(data?.members)
+      ) {
+        memberArray = data.members;
+      } else if (
+        Array.isArray(data?.results)
+      ) {
+        memberArray = data.results;
+      }
+
+      console.log(
+        "Members count:",
+        memberArray.length
+      );
+
+      setMembers(memberArray);
+
+      if (memberArray.length === 0) {
+        console.warn(
+          "Membership API returned no member records."
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Membership API Error:",
+        err
+      );
+
+      setMembers([]);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load members"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* =========================================================
+     INITIAL LOAD
+  ========================================================= */
+
+  useEffect(() => {
     loadMembers();
   }, []);
 
@@ -116,10 +267,17 @@ export default function MembershipDetailsPage() {
     return Array.from(
       new Set(
         members
-          .map((m) => m.district)
-          .filter(Boolean)
+          .map(
+            (member) => member.district
+          )
+          .filter(
+            (value): value is string =>
+              Boolean(value)
+          )
       )
-    ).sort();
+    ).sort((a, b) =>
+      a.localeCompare(b)
+    );
   }, [members]);
 
   /* =========================================================
@@ -131,14 +289,21 @@ export default function MembershipDetailsPage() {
       new Set(
         members
           .filter(
-            (m) =>
+            (member) =>
               !district ||
-              m.district === district
+              member.district === district
           )
-          .map((m) => m.mandal)
-          .filter(Boolean)
+          .map(
+            (member) => member.mandal
+          )
+          .filter(
+            (value): value is string =>
+              Boolean(value)
+          )
       )
-    ).sort();
+    ).sort((a, b) =>
+      a.localeCompare(b)
+    );
   }, [members, district]);
 
   /* =========================================================
@@ -150,54 +315,94 @@ export default function MembershipDetailsPage() {
       new Set(
         members
           .filter(
-            (m) =>
+            (member) =>
               (!district ||
-                m.district === district) &&
+                member.district === district) &&
               (!mandal ||
-                m.mandal === mandal)
+                member.mandal === mandal)
           )
-          .map((m) => m.sangham)
-          .filter(Boolean)
+          .map(
+            (member) => member.sangham
+          )
+          .filter(
+            (value): value is string =>
+              Boolean(value)
+          )
       )
-    ).sort();
-  }, [members, district, mandal]);
+    ).sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }, [
+    members,
+    district,
+    mandal,
+  ]);
 
   /* =========================================================
      FILTER MEMBERS
   ========================================================= */
 
   const filteredMembers = useMemo(() => {
-    const value = search.trim().toLowerCase();
+    const value =
+      search.trim().toLowerCase();
 
     return members.filter((member) => {
       const searchMatch =
         !value ||
-        member.full_name
-          ?.toLowerCase()
+        String(
+          member.full_name ?? ""
+        )
+          .toLowerCase()
           .includes(value) ||
-        member.member_id
-          ?.toLowerCase()
+        String(
+          member.member_id ?? ""
+        )
+          .toLowerCase()
           .includes(value) ||
-        member.mobile
-          ?.toLowerCase()
+        String(
+          member.mobile ?? ""
+        )
+          .toLowerCase()
           .includes(value) ||
-        member.email
-          ?.toLowerCase()
+        String(
+          member.email ?? ""
+        )
+          .toLowerCase()
+          .includes(value) ||
+        String(
+          member.occupation ?? ""
+        )
+          .toLowerCase()
           .includes(value);
+
+      const districtMatch =
+        !district ||
+        member.district === district;
+
+      const mandalMatch =
+        !mandal ||
+        member.mandal === mandal;
+
+      const sanghamMatch =
+        !sangham ||
+        member.sangham === sangham;
+
+      const genderMatch =
+        !gender ||
+        member.gender === gender;
+
+      const executiveMatch =
+        !executive ||
+        member.executive_member ===
+          executive;
 
       return (
         searchMatch &&
-        (!district ||
-          member.district === district) &&
-        (!mandal ||
-          member.mandal === mandal) &&
-        (!sangham ||
-          member.sangham === sangham) &&
-        (!gender ||
-          member.gender === gender) &&
-        (!executive ||
-          member.executive_member ===
-            executive)
+        districtMatch &&
+        mandalMatch &&
+        sanghamMatch &&
+        genderMatch &&
+        executiveMatch
       );
     });
   }, [
@@ -215,28 +420,12 @@ export default function MembershipDetailsPage() {
   ========================================================= */
 
   const totalPages = Math.ceil(
-    filteredMembers.length / ITEMS_PER_PAGE
+    filteredMembers.length /
+      ITEMS_PER_PAGE
   );
 
   /* =========================================================
-     CURRENT PAGE DATA
-  ========================================================= */
-
-  const paginatedMembers = useMemo(() => {
-    const startIndex =
-      (currentPage - 1) * ITEMS_PER_PAGE;
-
-    const endIndex =
-      startIndex + ITEMS_PER_PAGE;
-
-    return filteredMembers.slice(
-      startIndex,
-      endIndex
-    );
-  }, [filteredMembers, currentPage]);
-
-  /* =========================================================
-     RESET PAGE WHEN FILTER / SEARCH CHANGES
+     RESET PAGE WHEN FILTERS CHANGE
   ========================================================= */
 
   useEffect(() => {
@@ -248,6 +437,47 @@ export default function MembershipDetailsPage() {
     sangham,
     gender,
     executive,
+  ]);
+
+  /* =========================================================
+     KEEP PAGE VALID
+  ========================================================= */
+
+  useEffect(() => {
+    if (
+      totalPages > 0 &&
+      currentPage > totalPages
+    ) {
+      setCurrentPage(totalPages);
+    }
+
+    if (
+      totalPages === 0 &&
+      currentPage !== 1
+    ) {
+      setCurrentPage(1);
+    }
+  }, [
+    currentPage,
+    totalPages,
+  ]);
+
+  /* =========================================================
+     PAGINATED MEMBERS
+  ========================================================= */
+
+  const paginatedMembers = useMemo(() => {
+    const startIndex =
+      (currentPage - 1) *
+      ITEMS_PER_PAGE;
+
+    return filteredMembers.slice(
+      startIndex,
+      startIndex + ITEMS_PER_PAGE
+    );
+  }, [
+    filteredMembers,
+    currentPage,
   ]);
 
   /* =========================================================
@@ -268,7 +498,9 @@ export default function MembershipDetailsPage() {
      DISTRICT CHANGE
   ========================================================= */
 
-  const changeDistrict = (value: string) => {
+  const changeDistrict = (
+    value: string
+  ) => {
     setDistrict(value);
     setMandal("");
     setSangham("");
@@ -279,7 +511,9 @@ export default function MembershipDetailsPage() {
      MANDAL CHANGE
   ========================================================= */
 
-  const changeMandal = (value: string) => {
+  const changeMandal = (
+    value: string
+  ) => {
     setMandal(value);
     setSangham("");
     setCurrentPage(1);
@@ -306,18 +540,18 @@ export default function MembershipDetailsPage() {
   };
 
   /* =========================================================
-     PAGINATION PAGE NUMBERS
+     PAGE NUMBERS
   ========================================================= */
 
   const pageNumbers = useMemo(() => {
     const pages: number[] = [];
 
     for (
-      let i = 1;
-      i <= totalPages;
-      i++
+      let page = 1;
+      page <= totalPages;
+      page++
     ) {
-      pages.push(i);
+      pages.push(page);
     }
 
     return pages;
@@ -352,15 +586,31 @@ export default function MembershipDetailsPage() {
         ================================================= */}
 
         <div className="mb-6 rounded-2xl bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
-            Existing Members
-          </h1>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 
-          <p className="mt-2 text-sm text-gray-500">
-            Search registered members by
-            name, Member ID, mobile, email,
-            district, mandal or sangham.
-          </p>
+            <div>
+              <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
+                Existing Members
+              </h1>
+
+              <p className="mt-2 text-sm text-gray-500">
+                Search registered members by
+                name, Member ID, mobile, email,
+                district, mandal or sangham.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={loadMembers}
+              disabled={loading}
+              className="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading
+                ? "Loading..."
+                : "Refresh Members"}
+            </button>
+          </div>
         </div>
 
         {/* =================================================
@@ -368,6 +618,7 @@ export default function MembershipDetailsPage() {
         ================================================= */}
 
         <div className="mb-6 rounded-2xl bg-white p-5 shadow-sm">
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 
             {/* SEARCH */}
@@ -382,8 +633,8 @@ export default function MembershipDetailsPage() {
                 onChange={(e) =>
                   setSearch(e.target.value)
                 }
-                placeholder="Name, Member ID, Mobile or Email"
-                className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none focus:border-rose-400 focus:ring-4 focus:ring-rose-50"
+                placeholder="Name, Member ID, Mobile, Email or Occupation"
+                className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-50"
               />
             </div>
 
@@ -403,7 +654,10 @@ export default function MembershipDetailsPage() {
                   key={item}
                   value={item}
                 >
-                  {item.replaceAll("_", " ")}
+                  {item.replaceAll(
+                    "_",
+                    " "
+                  )}
                 </option>
               ))}
             </FilterSelect>
@@ -498,12 +752,11 @@ export default function MembershipDetailsPage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="h-11 w-full rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                className="h-11 w-full rounded-xl border border-gray-300 bg-white px-5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
               >
                 Reset Filters
               </button>
             </div>
-
           </div>
         </div>
 
@@ -512,11 +765,13 @@ export default function MembershipDetailsPage() {
         ================================================= */}
 
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
           <p className="text-sm text-gray-600">
             Showing{" "}
             <strong>
               {startRecord}
-              {filteredMembers.length > 0 &&
+              {filteredMembers.length >
+                0 &&
                 `-${endRecord}`}
             </strong>{" "}
             of{" "}
@@ -545,8 +800,36 @@ export default function MembershipDetailsPage() {
         ================================================= */}
 
         {error && (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4">
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+              <div>
+
+                <p className="text-sm font-semibold text-red-700">
+                  Unable to load members
+                </p>
+
+                <p className="mt-1 break-all text-xs text-red-600">
+                  {error}
+                </p>
+
+                <p className="mt-2 break-all text-xs text-gray-500">
+                  API: {API}
+                </p>
+
+              </div>
+
+              <button
+                type="button"
+                onClick={loadMembers}
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                <span>↻</span>
+                Retry
+              </button>
+
+            </div>
           </div>
         )}
 
@@ -555,16 +838,24 @@ export default function MembershipDetailsPage() {
         ================================================= */}
 
         {loading ? (
-          <div className="rounded-2xl bg-white p-10 text-center text-sm text-gray-500 shadow-sm">
-            Loading members...
+          <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-rose-100 border-t-rose-600" />
+
+            <p className="mt-4 text-sm text-gray-500">
+              Loading members...
+            </p>
+
           </div>
         ) : (
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
 
             <div className="overflow-x-auto">
+
               <table className="min-w-full">
 
                 <thead className="bg-rose-50">
+
                   <tr>
                     {[
                       "Member ID",
@@ -578,12 +869,13 @@ export default function MembershipDetailsPage() {
                     ].map((title) => (
                       <th
                         key={title}
-                        className="px-5 py-4 text-left text-xs font-semibold uppercase text-gray-600"
+                        className="whitespace-nowrap px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide text-gray-600"
                       >
                         {title}
                       </th>
                     ))}
                   </tr>
+
                 </thead>
 
                 <tbody className="divide-y divide-gray-100">
@@ -592,60 +884,72 @@ export default function MembershipDetailsPage() {
                     (member) => (
                       <tr
                         key={member.id}
-                        className="hover:bg-gray-50"
+                        className="transition hover:bg-gray-50"
                       >
 
                         {/* MEMBER ID */}
 
                         <td className="whitespace-nowrap px-5 py-4 text-sm font-semibold text-rose-600">
-                          {member.member_id}
+                          {member.member_id ||
+                            "-"}
                         </td>
 
                         {/* MEMBER */}
 
                         <td className="px-5 py-4">
+
                           <div className="font-medium text-gray-900">
-                            {member.full_name}
+                            {member.full_name ||
+                              "-"}
                           </div>
 
-                          <div className="text-xs text-gray-500">
-                            {member.email}
+                          <div className="mt-1 text-xs text-gray-500">
+                            {member.email ||
+                              "-"}
                           </div>
+
                         </td>
 
                         {/* MOBILE */}
 
-                        <td className="px-5 py-4 text-sm">
-                          {member.mobile}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-gray-700">
+                          {member.mobile ||
+                            "-"}
                         </td>
 
                         {/* DISTRICT */}
 
-                        <td className="px-5 py-4 text-sm">
-                          {member.district?.replaceAll(
-                            "_",
-                            " "
-                          )}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-gray-700">
+                          {member.district
+                            ? member.district.replaceAll(
+                                "_",
+                                " "
+                              )
+                            : "-"}
                         </td>
 
                         {/* MANDAL */}
 
-                        <td className="px-5 py-4 text-sm">
-                          {member.mandal}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-gray-700">
+                          {member.mandal ||
+                            "-"}
                         </td>
 
                         {/* SANGHAM */}
 
-                        <td className="px-5 py-4 text-sm">
-                          {member.sangham}
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-gray-700">
+                          {member.sangham ||
+                            "-"}
                         </td>
 
                         {/* EXECUTIVE */}
 
                         <td className="px-5 py-4">
 
-                          {member.executive_member ===
-                          "Yes" ? (
+                          {String(
+                            member.executive_member
+                          ).toLowerCase() ===
+                          "yes" ? (
                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                               Yes
                             </span>
@@ -668,7 +972,7 @@ export default function MembershipDetailsPage() {
                                 member
                               )
                             }
-                            className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700"
+                            className="rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-700"
                           >
                             View
                           </button>
@@ -687,9 +991,31 @@ export default function MembershipDetailsPage() {
                 NO MEMBERS
             ================================================= */}
 
-            {filteredMembers.length === 0 && (
-              <div className="p-10 text-center text-sm text-gray-500">
-                No members found.
+            {filteredMembers.length ===
+              0 && (
+              <div className="p-12 text-center">
+
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                  👤
+                </div>
+
+                <h3 className="mt-4 text-lg font-bold text-gray-900">
+                  No Members Found
+                </h3>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  No members match the
+                  selected filters.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="mt-5 rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700"
+                >
+                  Clear Filters
+                </button>
+
               </div>
             )}
 
@@ -697,28 +1023,25 @@ export default function MembershipDetailsPage() {
                 PAGINATION
             ================================================= */}
 
-            {filteredMembers.length > 0 &&
+            {filteredMembers.length >
+              0 &&
               totalPages > 1 && (
                 <div className="flex flex-col gap-4 border-t border-gray-100 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-
-                  {/* RECORD INFO */}
 
                   <div className="text-sm text-gray-500">
                     Showing{" "}
                     <span className="font-semibold text-gray-700">
                       {startRecord}
-                    </span>
-                    {" - "}
+                    </span>{" "}
+                    -{" "}
                     <span className="font-semibold text-gray-700">
                       {endRecord}
-                    </span>
-                    {" of "}
+                    </span>{" "}
+                    of{" "}
                     <span className="font-semibold text-gray-700">
                       {filteredMembers.length}
                     </span>
                   </div>
-
-                  {/* PAGINATION BUTTONS */}
 
                   <div className="flex flex-wrap items-center gap-2">
 
@@ -728,10 +1051,14 @@ export default function MembershipDetailsPage() {
                       type="button"
                       onClick={() =>
                         goToPage(
-                          currentPage - 1
+                          currentPage -
+                            1
                         )
                       }
-                      disabled={currentPage === 1}
+                      disabled={
+                        currentPage ===
+                        1
+                      }
                       className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       Previous
@@ -745,9 +1072,11 @@ export default function MembershipDetailsPage() {
                           key={page}
                           type="button"
                           onClick={() =>
-                            goToPage(page)
+                            goToPage(
+                              page
+                            )
                           }
-                          className={`min-w-10 rounded-lg px-3 py-2 text-sm font-semibold ${
+                          className={`min-w-10 rounded-lg px-3 py-2 text-sm font-semibold transition ${
                             currentPage ===
                             page
                               ? "bg-rose-600 text-white"
@@ -765,7 +1094,8 @@ export default function MembershipDetailsPage() {
                       type="button"
                       onClick={() =>
                         goToPage(
-                          currentPage + 1
+                          currentPage +
+                            1
                         )
                       }
                       disabled={
@@ -787,25 +1117,37 @@ export default function MembershipDetailsPage() {
 
       {/* =====================================================
           MEMBER DETAILS MODAL
-      ===================================================== */}
+      ====================================================== */}
 
       {selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() =>
+            setSelectedMember(null)
+          }
+        >
 
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl">
+          <div
+            className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl bg-white shadow-xl"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
 
             {/* MODAL HEADER */}
 
-            <div className="sticky top-0 flex items-center justify-between border-b bg-white px-6 py-4">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-4">
 
               <div>
-                <h2 className="text-xl font-bold">
+
+                <h2 className="text-xl font-bold text-gray-900">
                   Member Details
                 </h2>
 
-                <p className="text-sm font-semibold text-rose-600">
+                <p className="mt-1 text-sm font-semibold text-rose-600">
                   {selectedMember.member_id}
                 </p>
+
               </div>
 
               <button
@@ -813,7 +1155,7 @@ export default function MembershipDetailsPage() {
                 onClick={() =>
                   setSelectedMember(null)
                 }
-                className="rounded-lg px-3 py-2 text-xl text-gray-500 hover:bg-gray-100"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-xl text-gray-500 hover:bg-gray-100 hover:text-gray-800"
               >
                 ×
               </button>
@@ -828,6 +1170,13 @@ export default function MembershipDetailsPage() {
                 label="Full Name"
                 value={
                   selectedMember.full_name
+                }
+              />
+
+              <Detail
+                label="Member ID"
+                value={
+                  selectedMember.member_id
                 }
               />
 
@@ -870,6 +1219,11 @@ export default function MembershipDetailsPage() {
                 label="District"
                 value={
                   selectedMember.district
+                    ? selectedMember.district.replaceAll(
+                        "_",
+                        " "
+                      )
+                    : "-"
                 }
               />
 
@@ -887,29 +1241,37 @@ export default function MembershipDetailsPage() {
                 }
               />
 
+              {/* MAHASHABA */}
+
+              <div className="sm:col-span-2">
+                <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-rose-600">
+                  Mahashaba Payment
+                </h3>
+              </div>
+
               <Detail
-                label="Mahashaba Payment"
+                label="Payment Status"
                 value={
                   selectedMember.mahashaba_payment_status
                 }
               />
 
               <Detail
-                label="Mahashaba Method"
+                label="Payment Method"
                 value={
                   selectedMember.mahashaba_payment_method
                 }
               />
 
               <Detail
-                label="Mahashaba Receipt"
+                label="Receipt Number"
                 value={
                   selectedMember.mahashaba_receipt_number
                 }
               />
 
               <Detail
-                label="Mahashaba Amount"
+                label="Amount Paid"
                 value={
                   selectedMember.mahashaba_amount_paid !=
                   null
@@ -921,35 +1283,43 @@ export default function MembershipDetailsPage() {
               />
 
               <Detail
-                label="Mahashaba Payment Date"
+                label="Payment Date"
                 value={
                   selectedMember.mahashaba_payment_date
                 }
               />
 
+              {/* SANGHAM */}
+
+              <div className="sm:col-span-2">
+                <h3 className="mb-3 mt-2 text-sm font-bold uppercase tracking-wide text-rose-600">
+                  Sangham Payment
+                </h3>
+              </div>
+
               <Detail
-                label="Sangham Payment"
+                label="Payment Status"
                 value={
                   selectedMember.sangam_payment_status
                 }
               />
 
               <Detail
-                label="Sangham Method"
+                label="Payment Method"
                 value={
                   selectedMember.sangam_payment_method
                 }
               />
 
               <Detail
-                label="Sangham Receipt"
+                label="Receipt Number"
                 value={
                   selectedMember.sangam_receipt_number
                 }
               />
 
               <Detail
-                label="Sangham Amount"
+                label="Amount Paid"
                 value={
                   selectedMember.sangam_amount_paid !=
                   null
@@ -961,11 +1331,19 @@ export default function MembershipDetailsPage() {
               />
 
               <Detail
-                label="Sangham Payment Date"
+                label="Payment Date"
                 value={
                   selectedMember.sangam_payment_date
                 }
               />
+
+              {/* EXECUTIVE */}
+
+              <div className="sm:col-span-2">
+                <h3 className="mb-3 mt-2 text-sm font-bold uppercase tracking-wide text-rose-600">
+                  Executive Details
+                </h3>
+              </div>
 
               <Detail
                 label="Executive Member"
@@ -974,8 +1352,10 @@ export default function MembershipDetailsPage() {
                 }
               />
 
-              {selectedMember.executive_member ===
-                "Yes" && (
+              {String(
+                selectedMember.executive_member
+              ).toLowerCase() ===
+                "yes" && (
                 <>
                   <Detail
                     label="Executive Body"
@@ -1008,6 +1388,23 @@ export default function MembershipDetailsPage() {
               />
 
             </div>
+
+            {/* MODAL FOOTER */}
+
+            <div className="border-t bg-gray-50 px-6 py-4 text-right">
+
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedMember(null)
+                }
+                className="rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700"
+              >
+                Close
+              </button>
+
+            </div>
+
           </div>
         </div>
       )}
@@ -1028,12 +1425,15 @@ function FilterSelect({
 }: {
   label: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (
+    value: string
+  ) => void;
   disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div>
+
       <label className="mb-2 block text-sm font-medium text-gray-700">
         {label}
       </label>
@@ -1041,13 +1441,16 @@ function FilterSelect({
       <select
         value={value}
         disabled={disabled}
-        onChange={(e) =>
-          onChange(e.target.value)
+        onChange={(event) =>
+          onChange(
+            event.target.value
+          )
         }
-        className="h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-rose-400 disabled:bg-gray-100"
+        className="h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-50 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
       >
         {children}
       </select>
+
     </div>
   );
 }
@@ -1065,6 +1468,7 @@ function Detail({
 }) {
   return (
     <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+
       <p className="text-xs font-medium text-gray-500">
         {label}
       </p>
@@ -1072,7 +1476,7 @@ function Detail({
       <p className="mt-1 break-words text-sm font-semibold text-gray-900">
         {value || "-"}
       </p>
+
     </div>
   );
 }
-
