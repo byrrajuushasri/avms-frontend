@@ -1,767 +1,811 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {
-  FaUsers,
-  FaUserCheck,
-  FaCrown,
-  FaRupeeSign,
-  FaEllipsisV,
-  FaSearch,
   FaPlus,
+  FaSearch,
+  FaChevronLeft,
+  FaChevronRight,
+  FaUser,
+  FaEye,
   FaEdit,
   FaTrash,
-  FaTimes,
 } from "react-icons/fa";
-
-/* =========================================================
-   DASHBOARD STATS
-========================================================= */
-
-const stats = [
-  {
-    title: "Total Profiles",
-    value: "12,540",
-    change: "+12.5%",
-    description: "vs last month",
-    icon: FaUsers,
-    iconBg: "bg-gray-100",
-    iconColor: "text-gray-600",
-  },
-  {
-    title: "Verified Profiles",
-    value: "9,850",
-    change: "+8.2%",
-    description: "vs last month",
-    icon: FaUserCheck,
-    iconBg: "bg-gray-100",
-    iconColor: "text-gray-600",
-  },
-  {
-    title: "Premium Members",
-    value: "2,350",
-    change: "+15.8%",
-    description: "vs last month",
-    icon: FaCrown,
-    iconBg: "bg-gray-100",
-    iconColor: "text-gray-600",
-  },
-  {
-    title: "Total Revenue",
-    value: "₹8,45,000",
-    change: "+18.4%",
-    description: "vs last month",
-    icon: FaRupeeSign,
-    iconBg: "bg-gray-100",
-    iconColor: "text-[#8B1E3F]",
-  },
-];
-
-/* =========================================================
-   MEMBER TYPE
-========================================================= */
 
 interface Member {
   id: number;
+  member_id: string;
   full_name: string;
   mobile: string;
   email: string;
+  occupation: string;
   gender: string;
+  date_of_birth: string;
+  photo: string | null;
+
+  district: string | null;
+  mandal: string | null;
+  sangham: string | null;
+
+  state_body?: string | null;
+  executive_body: string;
+  designation: string;
+
+  role: string;
+  status: string;
+
+  mahashaba_payment_status: string;
+  mahashaba_payment_method: string | null;
+  mahashaba_receipt_number: string | null;
+  mahashaba_amount_paid: string | number | null;
+  mahashaba_payment_date: string | null;
+
+  sangam_payment_status: string;
+  sangam_payment_method: string | null;
+  sangam_receipt_number: string | null;
+  sangam_amount_paid: string | number | null;
+  sangam_payment_date: string | null;
+
   created_at: string;
+  updated_at: string;
 }
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "http://localhost:5000";
 
+const ROWS_OPTIONS = [5, 10, 20, 50];
 
-/* =========================================================
-   PAGE
-========================================================= */
+export default function MembershipPage() {
+  const router = useRouter();
 
-export default function AdminDashboard() {
   const [members, setMembers] = useState<Member[]>([]);
-
-  const [loading, setLoading] = useState(true);
-
-  const [error, setError] = useState("");
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const [search, setSearch] = useState("");
-
-  /* Mobile/Desktop action menu */
   const [openActionId, setOpenActionId] = useState<number | null>(null);
 
-  /* Dropdown fixed position */
-  const [menuPosition, setMenuPosition] = useState({
-    top: 0,
-    right: 20,
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const rowsPerPage = 5;
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  /* =========================================================
-     FETCH MEMBERS FROM BACKEND
-  ========================================================= */
+  const [deleteLoading, setDeleteLoading] =
+    useState<number | null>(null);
+
+  // =========================================================
+  // PHOTO URL
+  // =========================================================
+
+  const getPhotoUrl = (photo: string | null) => {
+    if (!photo) return "";
+
+    if (
+      photo.startsWith("http://") ||
+      photo.startsWith("https://")
+    ) {
+      return photo;
+    }
+
+    return `${BACKEND_URL}${
+      photo.startsWith("/") ? "" : "/"
+    }${photo}`;
+  };
+
+  // =========================================================
+  // LOGGED-IN USER
+  // =========================================================
+
+  const getLoggedInUser = () => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      const userData = localStorage.getItem("user");
+
+      if (!userData) {
+        return null;
+      }
+
+      return JSON.parse(userData);
+    } catch (error) {
+      console.error(
+        "Unable to parse logged-in user:",
+        error
+      );
+
+      return null;
+    }
+  };
+
+  // =========================================================
+  // FETCH MEMBERS
+  // =========================================================
+
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token")
+          : null;
+
+      const loggedInUser = getLoggedInUser();
+
+      console.log(
+        "Logged-in User:",
+        loggedInUser
+      );
+
+      const role = loggedInUser?.role || "";
+      const sangham = loggedInUser?.sangham || "";
+
+      const params = new URLSearchParams();
+
+      if (role) {
+        params.append("role", role);
+      }
+
+      if (sangham) {
+        params.append("sangham", sangham);
+      }
+
+      const queryString = params.toString();
+
+      const url =
+        `${BACKEND_URL}/membership-register` +
+        (queryString
+          ? `?${queryString}`
+          : "");
+
+      console.log(
+        "MEMBERS API URL:",
+        url
+      );
+
+      const response = await fetch(url, {
+        method: "GET",
+
+        headers: {
+          ...(token
+            ? {
+                Authorization:
+                  `Bearer ${token}`,
+              }
+            : {}),
+        },
+
+        cache: "no-store",
+      });
+
+      console.log(
+        "GET MEMBERS STATUS:",
+        response.status
+      );
+
+      if (!response.ok) {
+        let message =
+          "Failed to load members";
+
+        try {
+          const result =
+            await response.json();
+
+          message =
+            result?.message ||
+            message;
+        } catch {
+          // ignore
+        }
+
+        throw new Error(message);
+      }
+
+      const result =
+        await response.json();
+
+      console.log(
+        "Members API Response:",
+        result
+      );
+
+      let memberList: Member[] = [];
+
+      if (Array.isArray(result)) {
+        memberList = result;
+      } else if (
+        Array.isArray(result?.data)
+      ) {
+        memberList = result.data;
+      } else if (
+        Array.isArray(result?.members)
+      ) {
+        memberList = result.members;
+      }
+
+      setMembers(memberList);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error(
+        "Fetch members error:",
+        error
+      );
+
+      setMembers([]);
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load members."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================================================
+  // INITIAL LOAD
+  // =========================================================
 
   useEffect(() => {
     fetchMembers();
   }, []);
 
+  // =========================================================
+  // CLOSE ACTION MENU WHEN CLICKING OUTSIDE
+  // =========================================================
 
-const fetchMembers = async () => {
-  try {
-    setLoading(true);
-    setError("");
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setOpenActionId(null);
+    };
 
-    // Get logged-in user
-    const userData =
-      typeof window !== "undefined"
-        ? localStorage.getItem("user")
-        : null;
-
-    const loggedInUser = userData
-      ? JSON.parse(userData)
-      : null;
-
-    console.log("Logged-in User:", loggedInUser);
-
-    // Get token if available
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("token")
-        : null;
-
-    const response = await fetch(BACKEND_URL + "/membership-register" , {
-      method: "GET",
-      cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-
-        ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {}),
-      },
-    });
-
-    // API error
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch members. Status: ${response.status}`,
+    if (openActionId !== null) {
+      document.addEventListener(
+        "click",
+        handleClickOutside
       );
     }
 
-    const data = await response.json();
+    return () => {
+      document.removeEventListener(
+        "click",
+        handleClickOutside
+      );
+    };
+  }, [openActionId]);
 
-    console.log("Members API Response:", data);
+  // =========================================================
+  // SEARCH
+  // =========================================================
 
-    // Support all possible API response formats
-    const memberArray = Array.isArray(data)
-      ? data
-      : Array.isArray(data?.data)
-      ? data.data
-      : Array.isArray(data?.members)
-      ? data.members
-      : [];
+  const filteredMembers = useMemo(() => {
+    const keyword =
+      search.trim().toLowerCase();
 
-    // Always set array
-    setMembers(memberArray);
-
-    // Empty result is NOT an API error
-    if (memberArray.length === 0) {
-      setError("");
+    if (!keyword) {
+      return members;
     }
-  } catch (err) {
-    console.error(
-      "Dashboard Members API Error:",
-      err,
-    );
 
-    setMembers([]);
+    return members.filter((member) => {
+      return (
+        String(member.member_id || "")
+          .toLowerCase()
+          .includes(keyword) ||
 
-    setError(
-      "Members data load కాలేదు. Backend server running ఉందో check చేయండి.",
-    );
-  } finally {
-    setLoading(false);
-  }
-};
-  /* =========================================================
-     SEARCH
-  ========================================================= */
+        String(member.full_name || "")
+          .toLowerCase()
+          .includes(keyword) ||
 
-  const filteredUsers = members.filter((user) => {
-    const searchValue = search.toLowerCase().trim();
+        String(member.mobile || "")
+          .toLowerCase()
+          .includes(keyword) ||
 
-    return (
-      user.full_name
-        ?.toLowerCase()
-        .includes(searchValue) ||
-      user.email
-        ?.toLowerCase()
-        .includes(searchValue) ||
-      user.mobile
-        ?.toLowerCase()
-        .includes(searchValue) ||
-      user.gender
-        ?.toLowerCase()
-        .includes(searchValue) ||
-      String(user.id)
-        .toLowerCase()
-        .includes(searchValue) ||
-      new Date(user.created_at)
-        .toLocaleDateString("en-IN")
-        .toLowerCase()
-        .includes(searchValue)
-    );
-  });
+        String(member.email || "")
+          .toLowerCase()
+          .includes(keyword) ||
 
-  /* =========================================================
-     PAGINATION
-  ========================================================= */
+        String(member.occupation || "")
+          .toLowerCase()
+          .includes(keyword) ||
 
-  const totalPages = Math.ceil(
-    filteredUsers.length / rowsPerPage
+        String(member.executive_body || "")
+          .toLowerCase()
+          .includes(keyword) ||
+
+        String(member.designation || "")
+          .toLowerCase()
+          .includes(keyword) ||
+
+        String(member.district || "")
+          .toLowerCase()
+          .includes(keyword) ||
+
+        String(member.mandal || "")
+          .toLowerCase()
+          .includes(keyword) ||
+
+        String(member.sangham || "")
+          .toLowerCase()
+          .includes(keyword)
+      );
+    });
+  }, [members, search]);
+
+  // =========================================================
+  // PAGINATION
+  // =========================================================
+
+  const totalItems =
+    filteredMembers.length;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      totalItems / rowsPerPage
+    )
   );
 
-  const indexOfLastRow =
-    currentPage * rowsPerPage;
-
-  const indexOfFirstRow =
-    indexOfLastRow - rowsPerPage;
-
-  const currentUsers = filteredUsers.slice(
-    indexOfFirstRow,
-    indexOfLastRow
+  const safeCurrentPage = Math.min(
+    currentPage,
+    totalPages
   );
 
-  /* =========================================================
-     RESET SEARCH
-  ========================================================= */
+  const startIndex =
+    (safeCurrentPage - 1) *
+    rowsPerPage;
 
-  const resetSearch = () => {
-    setSearch("");
+  const endIndex = Math.min(
+    startIndex + rowsPerPage,
+    totalItems
+  );
+
+  const paginatedMembers =
+    filteredMembers.slice(
+      startIndex,
+      endIndex
+    );
+
+  // =========================================================
+  // SEARCH CHANGE
+  // =========================================================
+
+  const handleSearch = (
+    value: string
+  ) => {
+    setSearch(value);
     setCurrentPage(1);
   };
 
-  /* =========================================================
-     ACTION MENU
-  ========================================================= */
+  // =========================================================
+  // ROWS CHANGE
+  // =========================================================
 
-  const handleActionClick = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    userId: number
+  const handleRowsChange = (
+    value: number
   ) => {
-    event.stopPropagation();
+    setRowsPerPage(value);
+    setCurrentPage(1);
+  };
 
-    if (openActionId === userId) {
-      setOpenActionId(null);
+  // =========================================================
+  // DELETE MEMBER
+  // =========================================================
+
+  const handleDelete = async (
+    id: number,
+    name: string
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Are you sure you want to delete "${name}"?`
+      );
+
+    if (!confirmed) {
       return;
     }
 
-    const buttonRect =
-      event.currentTarget.getBoundingClientRect();
+    try {
+      setDeleteLoading(id);
+      setError("");
 
-    const menuWidth = 150;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("token")
+          : null;
 
-    let rightPosition =
-      window.innerWidth - buttonRect.right;
+      const response =
+        await fetch(
+          `${BACKEND_URL}/membership-register/${id}`,
+          {
+            method: "DELETE",
 
-    if (rightPosition < 10) {
-      rightPosition = 10;
+            headers: {
+              ...(token
+                ? {
+                    Authorization:
+                      `Bearer ${token}`,
+                  }
+                : {}),
+            },
+          }
+        );
+
+      const result =
+        await response
+          .json()
+          .catch(() => ({}));
+
+      console.log(
+        "DELETE STATUS:",
+        response.status
+      );
+
+      console.log(
+        "DELETE RESPONSE:",
+        result
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ||
+          "Failed to delete member"
+        );
+      }
+
+      setMembers((prev) =>
+        prev.filter(
+          (member) =>
+            member.id !== id
+        )
+      );
+
+      setOpenActionId(null);
+
+      alert(
+        "Member deleted successfully."
+      );
+    } catch (error) {
+      console.error(
+        "Delete member error:",
+        error
+      );
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete member."
+      );
+    } finally {
+      setDeleteLoading(null);
     }
+  };
+
+  // =========================================================
+  // FORMAT DATE
+  // =========================================================
+
+  const formatDate = (
+    date: string | null | undefined
+  ) => {
+    if (!date) return "-";
+
+    try {
+      return new Date(
+        date
+      ).toLocaleDateString(
+        "en-GB",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }
+      );
+    } catch {
+      return date;
+    }
+  };
+
+  // =========================================================
+  // PAGE NUMBERS
+  // =========================================================
+
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+
+    const maxVisible = 5;
+
+    let start = Math.max(
+      1,
+      safeCurrentPage -
+        Math.floor(
+          maxVisible / 2
+        )
+    );
+
+    let end = Math.min(
+      totalPages,
+      start + maxVisible - 1
+    );
 
     if (
-      buttonRect.left + buttonRect.width - menuWidth <
-      10
+      end - start + 1 <
+      maxVisible
     ) {
-      rightPosition =
-        window.innerWidth - buttonRect.left;
+      start = Math.max(
+        1,
+        end - maxVisible + 1
+      );
     }
 
-    setMenuPosition({
-      top: buttonRect.bottom + 8,
-      right: rightPosition,
-    });
+    for (
+      let i = start;
+      i <= end;
+      i++
+    ) {
+      pages.push(i);
+    }
 
-    setOpenActionId(userId);
+    return pages;
   };
 
-  /* =========================================================
-     CLOSE ACTION MENU
-  ========================================================= */
+  // =========================================================
+  // LOADING
+  // =========================================================
 
-  const closeActionMenu = () => {
-    setOpenActionId(null);
-  };
-
-  /* =========================================================
-     DELETE
-  ========================================================= */
-
-  const handleDelete = async (userId: number) => {
-    const user = members.find(
-      (item) => item.id === userId
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-sm text-gray-500">
+          Loading members...
+        </div>
+      </div>
     );
+  }
 
-    if (!user) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${user.full_name}?`
-    );
-
-    if (!confirmed) return;
-
-    /*
-      DELETE API not created yet.
-      For now only remove from UI.
-    */
-
-    setMembers((prev) =>
-      prev.filter((item) => item.id !== userId)
-    );
-
-    setOpenActionId(null);
-
-    alert(
-      `${user.full_name} removed from the table.`
-    );
-  };
+  // =========================================================
+  // PAGE
+  // =========================================================
 
   return (
-    <div
-      className="min-h-screen bg-gray-50/80"
-      onClick={closeActionMenu}
-    >
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
+    <div className="min-h-screen bg-gray-50/80">
 
-      <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1600px] mx-auto">
+      <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
-        {/* ===================================================
-            PAGE HEADER
-        =================================================== */}
+        {/* HEADER */}
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
           <div>
-            <h2 className="text-2xl text-gray-900">
-              Membership Management
-            </h2>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Membership
+            </h1>
 
             <p className="text-sm text-gray-500 mt-1">
-              Manage and monitor all registered matrimonial members.
+              Manage all registered members.
             </p>
           </div>
 
-          {/* ADD MEMBER */}
-
           <Link
             href="/admin/membership/add"
-            onClick={(e) => e.stopPropagation()}
             className="
               inline-flex
               items-center
               justify-center
               gap-2
-              bg-[#f8eef2]
-              hover:bg-[#f3e5eb]
-              text-black
-              px-5
-              py-3
-              rounded-xl
+              px-4
+              py-2.5
+              rounded-lg
+              bg-[#8B1E3F]
+              text-white
+              text-sm
               font-semibold
-              shadow-sm
+              hover:bg-[#741934]
               transition
             "
           >
-            <FaPlus className="text-sm" />
+            <FaPlus className="text-xs" />
             Add Member
           </Link>
+
         </div>
 
-        {/* ===================================================
-            MEMBER TABLE CARD
-        =================================================== */}
+        {/* ERROR */}
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {error && (
+          <div
+            className="
+              mb-5
+              rounded-lg
+              border
+              border-red-200
+              bg-red-50
+              px-4
+              py-3
+              text-sm
+              text-red-600
+            "
+          >
+            {error}
+          </div>
+        )}
 
-          {/* =================================================
-              SEARCH BAR
-          ================================================= */}
+        {/* MAIN CARD */}
 
-          <div className="px-5 sm:px-6 py-5 border-b border-gray-100">
+        <div
+          className="
+            bg-white
+            border
+            border-gray-200
+            rounded-xl
+            shadow-sm
+            overflow-hidden
+          "
+        >
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          {/* TOOLBAR */}
 
-              {/* SEARCH */}
+          <div
+            className="
+              px-5
+              py-4
+              border-b
+              border-gray-200
+              flex
+              flex-col
+              md:flex-row
+              md:items-center
+              md:justify-between
+              gap-4
+            "
+          >
 
-              <div className="relative flex-1">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">
+                Members List
+              </h2>
 
-                <FaSearch
-                  className="
-                    absolute
-                    left-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-gray-400
-                    text-sm
-                  "
-                />
+              <p className="text-xs text-gray-500 mt-1">
+                {totalItems} member
+                {totalItems !== 1
+                  ? "s"
+                  : ""}
+              </p>
+            </div>
 
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setCurrentPage(1);
-                    setOpenActionId(null);
-                  }}
-                  placeholder="Search by member name, email or phone..."
-                  className="
-                    w-full
-                    h-11
-                    pl-11
-                    pr-11
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50/80
-                    text-sm
-                    text-gray-700
-                    placeholder:text-gray-400
-                    outline-none
-                    transition-all
-                    focus:bg-white
-                    focus:border-gray-300
-                    focus:ring-4
-                    focus:ring-gray-100
-                  "
-                />
+            {/* SEARCH */}
 
-                {/* CLEAR SEARCH */}
+            <div className="relative w-full md:w-80">
 
-                {search && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      resetSearch();
-                    }}
-                    title="Clear search"
-                    className="
-                      absolute
-                      right-3
-                      top-1/2
-                      -translate-y-1/2
-                      w-7
-                      h-7
-                      rounded-lg
-                      flex
-                      items-center
-                      justify-center
-                      text-gray-400
-                      hover:bg-gray-100
-                      hover:text-gray-700
-                      transition
-                    "
-                  >
-                    <FaTimes className="text-xs" />
-                  </button>
-                )}
-              </div>
+              <FaSearch
+                className="
+                  absolute
+                  left-3
+                  top-1/2
+                  -translate-y-1/2
+                  text-gray-400
+                  text-sm
+                "
+              />
 
-              {/* RESULT COUNT */}
-
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-
-                <span className="text-xs text-gray-400 whitespace-nowrap">
-                  {filteredUsers.length} members
-                </span>
-
-                {search && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      resetSearch();
-                    }}
-                    className="
-                      text-xs
-                      font-semibold
-                      text-gray-500
-                      hover:text-[#8B1E3F]
-                    "
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) =>
+                  handleSearch(
+                    e.target.value
+                  )
+                }
+                placeholder="Search name, email or phone..."
+                className="
+                  w-full
+                  h-10
+                  pl-9
+                  pr-4
+                  rounded-lg
+                  border
+                  border-gray-200
+                  text-sm
+                  text-gray-700
+                  outline-none
+                  focus:border-[#8B1E3F]
+                  focus:ring-2
+                  focus:ring-[#8B1E3F]/10
+                "
+              />
 
             </div>
+
           </div>
 
-          {/* =================================================
-              TABLE
-          ================================================= */}
+          {/* TABLE */}
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[1050px]">
+            <table className="w-full min-w-[1150px]">
 
               <thead>
-                <tr className="bg-gray-50/80 text-xs uppercase tracking-wider text-gray-400">
 
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Member Name
+                <tr
+                  className="
+                    bg-gray-50
+                    border-b
+                    border-gray-200
+                  "
+                >
+
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    #
                   </th>
 
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Member ID
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    Member
                   </th>
 
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Email ID
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    Contact
                   </th>
 
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Phone Number
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    Occupation
                   </th>
 
-                  <th className="px-6 py-4 text-left font-semibold">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    Executive Body
+                  </th>
+
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    Designation
+                  </th>
+
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
                     Gender
                   </th>
 
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Create Date
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    Status
                   </th>
 
-                  <th className="px-6 py-4 text-right font-semibold">
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 whitespace-nowrap">
                     Actions
                   </th>
 
                 </tr>
+
               </thead>
 
               <tbody className="divide-y divide-gray-100">
 
-                {/* LOADING */}
-
-                {loading ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-16 text-center"
-                    >
-                      <div className="text-sm text-gray-500">
-                        Loading members...
-                      </div>
-                    </td>
-                  </tr>
-                ) : error ? (
-
-                  /* ERROR */
-
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-16 text-center"
-                    >
-                      <p className="text-sm text-red-500">
-                        {error}
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={fetchMembers}
-                        className="
-                          mt-4
-                          px-4
-                          py-2
-                          rounded-lg
-                          bg-[#8B1E3F]
-                          text-white
-                          text-sm
-                        "
-                      >
-                        Retry
-                      </button>
-                    </td>
-                  </tr>
-
-                ) : currentUsers.length > 0 ? (
-
-                  currentUsers.map((user) => (
-
-                    <tr
-                      key={user.id}
-                      className="
-                        hover:bg-gray-50/70
-                        transition-colors
-                      "
-                    >
-
-                      {/* MEMBER NAME */}
-
-                      <td className="px-6 py-4">
-
-                        <div className="flex items-center gap-3">
-
-                          <img
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                              user.full_name
-                            )}&background=f5f5f5&color=555555&bold=true`}
-                            className="
-                              w-10
-                              h-10
-                              rounded-xl
-                              object-cover
-                            "
-                            alt={user.full_name}
-                          />
-
-                          <div className="min-w-0">
-
-                            <p className="font-semibold text-gray-800 truncate">
-                              {user.full_name}
-                            </p>
-
-                            
-                          </div>
-
-                        </div>
-
-                      </td>
-
-                      {/* MEMBER ID */}
-
-                      <td className="px-6 py-4">
-
-                        <span className="text-sm font-semibold text-[#8B1E3F]">
-                          AVM{String(user.id).padStart(4, "0")}
-                        </span>
-
-                      </td>
-
-                      {/* EMAIL */}
-
-                      <td className="px-6 py-4">
-
-                        <span className="text-sm text-gray-600">
-                          {user.email}
-                        </span>
-
-                      </td>
-
-                      {/* PHONE */}
-
-                      <td className="px-6 py-4">
-
-                        <span className="text-sm text-gray-600">
-                          {user.mobile}
-                        </span>
-
-                      </td>
-
-                      {/* GENDER */}
-
-                      <td className="px-6 py-4">
-
-                        <span className="text-sm text-gray-600">
-                          {user.gender}
-                        </span>
-
-                      </td>
-
-                      {/* CREATE DATE */}
-
-                      <td className="px-6 py-4">
-
-                        <span className="text-sm text-gray-600">
-                          {new Date(
-                            user.created_at
-                          ).toLocaleDateString("en-IN")}
-                        </span>
-
-                      </td>
-
-                      {/* ACTIONS */}
-
-                      <td className="px-6 py-4">
-
-                        <div className="flex justify-end">
-
-                          <button
-                            type="button"
-                            title="More actions"
-                            onClick={(event) =>
-                              handleActionClick(
-                                event,
-                                user.id
-                              )
-                            }
-                            className="
-                              w-9
-                              h-9
-                              flex
-                              items-center
-                              justify-center
-                              rounded-lg
-                              border
-                              border-gray-200
-                              bg-white
-                              text-gray-500
-                              hover:text-gray-800
-                              hover:bg-gray-50
-                              hover:border-gray-300
-                              active:bg-gray-100
-                              transition-all
-                              touch-manipulation
-                            "
-                          >
-                            <FaEllipsisV className="text-sm" />
-                          </button>
-
-                        </div>
-
-                      </td>
-
-                    </tr>
-
-                  ))
-
-                ) : (
-
-                  /* NO RESULTS */
+                {paginatedMembers.length === 0 ? (
 
                   <tr>
 
                     <td
-                      colSpan={7}
+                      colSpan={9}
                       className="px-6 py-16 text-center"
                     >
 
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center justify-center">
 
                         <div
                           className="
-                            w-12
-                            h-12
-                            rounded-xl
-                            bg-gray-50
+                            w-14
+                            h-14
+                            rounded-full
+                            bg-gray-100
                             flex
                             items-center
                             justify-center
                             mb-3
                           "
                         >
-                          <FaUsers className="text-gray-300" />
+                          <FaUser className="text-gray-400" />
                         </div>
 
                         <p className="text-sm font-semibold text-gray-700">
@@ -769,34 +813,373 @@ const fetchMembers = async () => {
                         </p>
 
                         <p className="text-xs text-gray-400 mt-1">
-                          Try searching with a different name,
-                          email or phone number.
+                          Try searching with a
+                          different name, email
+                          or phone number.
                         </p>
-
-                        {search && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              resetSearch();
-                            }}
-                            className="
-                              mt-4
-                              text-xs
-                              font-semibold
-                              text-[#8B1E3F]
-                              hover:underline
-                            "
-                          >
-                            Clear search
-                          </button>
-                        )}
 
                       </div>
 
                     </td>
 
                   </tr>
+
+                ) : (
+
+                  paginatedMembers.map(
+                    (
+                      member,
+                      index
+                    ) => {
+
+                      const serial =
+                        startIndex +
+                        index +
+                        1;
+
+                      return (
+                        <tr
+                          key={member.id}
+                          className="
+                            hover:bg-gray-50/70
+                            transition
+                          "
+                        >
+
+                          {/* SERIAL */}
+
+                          <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                            {serial}
+                          </td>
+
+                          {/* MEMBER */}
+
+                          <td className="px-4 py-3">
+
+                            <div className="flex items-center gap-3">
+
+                              <div
+                                className="
+                                  w-11
+                                  h-11
+                                  rounded-full
+                                  overflow-hidden
+                                  border
+                                  border-gray-200
+                                  bg-gray-100
+                                  flex
+                                  items-center
+                                  justify-center
+                                  shrink-0
+                                "
+                              >
+
+                                {member.photo ? (
+
+                                  <img
+                                    src={getPhotoUrl(
+                                      member.photo
+                                    )}
+                                    alt={
+                                      member.full_name
+                                    }
+                                    className="
+                                      w-full
+                                      h-full
+                                      object-cover
+                                    "
+                                    onError={(e) => {
+                                      e.currentTarget.style.display =
+                                        "none";
+                                    }}
+                                  />
+
+                                ) : (
+
+                                  <FaUser className="text-gray-400" />
+
+                                )}
+
+                              </div>
+
+                              <div className="min-w-0">
+
+                                <p
+                                  className="
+                                    text-sm
+                                    font-semibold
+                                    text-gray-800
+                                    truncate
+                                    max-w-[190px]
+                                  "
+                                >
+                                  {member.full_name || "-"}
+                                </p>
+
+                                <p
+                                  className="
+                                    text-xs
+                                    text-[#8B1E3F]
+                                    mt-0.5
+                                  "
+                                >
+                                  {member.member_id || "-"}
+                                </p>
+
+                              </div>
+
+                            </div>
+
+                          </td>
+
+                          {/* CONTACT */}
+
+                          <td className="px-4 py-3">
+
+                            <div>
+
+                              <p className="text-sm text-gray-700 whitespace-nowrap">
+                                {member.mobile || "-"}
+                              </p>
+
+                              <p
+                                className="
+                                  text-xs
+                                  text-gray-400
+                                  mt-0.5
+                                  max-w-[210px]
+                                  truncate
+                                "
+                              >
+                                {member.email || "-"}
+                              </p>
+
+                            </div>
+
+                          </td>
+
+                          {/* OCCUPATION */}
+
+                          <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                            {member.occupation || "-"}
+                          </td>
+
+                          {/* EXECUTIVE BODY */}
+
+                          <td className="px-4 py-3">
+
+                            <span
+                              className="
+                                inline-flex
+                                px-2.5
+                                py-1
+                                rounded-md
+                                bg-gray-100
+                                text-xs
+                                font-medium
+                                text-gray-600
+                                whitespace-nowrap
+                              "
+                            >
+                              {member.executive_body || "-"}
+                            </span>
+
+                          </td>
+
+                          {/* DESIGNATION */}
+
+                          <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                            {member.designation || "-"}
+                          </td>
+
+                          {/* GENDER */}
+
+                          <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
+                            {member.gender || "-"}
+                          </td>
+
+                          {/* STATUS */}
+
+                          <td className="px-4 py-3">
+
+                            <span
+                              className={`
+                                inline-flex
+                                px-2.5
+                                py-1
+                                rounded-full
+                                text-xs
+                                font-semibold
+                                ${
+                                  String(
+                                    member.status || ""
+                                  ).toLowerCase() ===
+                                  "active"
+                                    ? "bg-green-50 text-green-600"
+                                    : "bg-gray-100 text-gray-500"
+                                }
+                              `}
+                            >
+                              {member.status || "-"}
+                            </span>
+
+                          </td>
+
+                          {/* =================================================
+                              ACTIONS - 3 DOT MENU
+                          ================================================= */}
+
+                          <td className="px-4 py-3 text-center">
+
+                            <div
+                              className="relative inline-block"
+                              onClick={(e) =>
+                                e.stopPropagation()
+                              }
+                            >
+
+                              {/* 3 DOT BUTTON */}
+
+                              <button
+                                type="button"
+                                title="Actions"
+                                aria-label={`Actions for ${member.full_name}`}
+                                onClick={() =>
+                                  setOpenActionId(
+                                    openActionId ===
+                                      member.id
+                                      ? null
+                                      : member.id
+                                  )
+                                }
+                                className="
+                                  w-9
+                                  h-9
+                                  flex
+                                  items-center
+                                  justify-center
+                                  rounded-lg
+                                  text-gray-500
+                                  hover:bg-gray-100
+                                  hover:text-[#8B1E3F]
+                                  transition
+                                "
+                              >
+
+                                <span className="text-xl font-bold leading-none">
+                                  ⋮
+                                </span>
+
+                              </button>
+
+                              {/* DROPDOWN */}
+
+                              {openActionId ===
+                                member.id && (
+
+                                <div
+                                  className="
+                                    absolute
+                                    right-0
+                                    top-10
+                                    z-[100]
+                                    w-40
+                                    bg-white
+                                    border
+                                    border-gray-200
+                                    rounded-xl
+                                    shadow-xl
+                                    py-1
+                                    text-left
+                                  "
+                                >
+ 
+
+                                  {/* EDIT */}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionId(null);
+
+                                      router.push(
+                                        `/admin/membership/edit/${member.id}`
+                                      );
+                                    }}
+                                    className="
+                                      w-full
+                                      flex
+                                      items-center
+                                      gap-3
+                                      px-4
+                                      py-2.5
+                                      text-sm
+                                      text-gray-700
+                                      hover:bg-gray-50
+                                      transition
+                                    "
+                                  >
+                                    <FaEdit className="text-gray-400 text-sm" />
+                                    <span>
+                                      Edit
+                                    </span>
+                                  </button>
+
+                                  {/* DELETE */}
+
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      deleteLoading ===
+                                      member.id
+                                    }
+                                    onClick={() => {
+                                      setOpenActionId(null);
+
+                                      handleDelete(
+                                        member.id,
+                                        member.full_name
+                                      );
+                                    }}
+                                    className="
+                                      w-full
+                                      flex
+                                      items-center
+                                      gap-3
+                                      px-4
+                                      py-2.5
+                                      text-sm
+                                      text-red-600
+                                      hover:bg-red-50
+                                      transition
+                                      disabled:opacity-50
+                                      disabled:cursor-not-allowed
+                                    "
+                                  >
+
+                                    <FaTrash className="text-red-500 text-sm" />
+
+                                    <span>
+                                      {deleteLoading ===
+                                      member.id
+                                        ? "Deleting..."
+                                        : "Delete"}
+                                    </span>
+
+                                  </button>
+
+                                </div>
+
+                              )}
+
+                            </div>
+
+                          </td>
+
+                        </tr>
+                      );
+                    }
+                  )
 
                 )}
 
@@ -807,151 +1190,198 @@ const fetchMembers = async () => {
           </div>
 
           {/* =================================================
-              PAGINATION
+              PAGINATION FOOTER
           ================================================= */}
 
           <div
             className="
+              px-5
+              py-4
+              border-t
+              border-gray-200
               flex
               flex-col
               sm:flex-row
-              items-center
-              justify-between
+              sm:items-center
+              sm:justify-between
               gap-4
-              px-6
-              py-4
-              border-t
-              border-gray-100
             "
           >
 
-            {/* PAGINATION INFO */}
+            {/* LEFT */}
 
-            <p className="text-sm text-gray-500">
+            <div
+              className="
+                flex
+                items-center
+                gap-2
+                text-xs
+                text-gray-500
+              "
+            >
 
-              Showing{" "}
+              <span>
+                Rows per page
+              </span>
 
-              <span className="font-semibold text-gray-700">
-                {filteredUsers.length === 0
-                  ? 0
-                  : indexOfFirstRow + 1}
-              </span>{" "}
-
-              to{" "}
-
-              <span className="font-semibold text-gray-700">
-                {Math.min(
-                  indexOfLastRow,
-                  filteredUsers.length
-                )}
-              </span>{" "}
-
-              of{" "}
-
-              <span className="font-semibold text-gray-700">
-                {filteredUsers.length}
-              </span>{" "}
-
-              members
-
-            </p>
-
-            {/* PAGINATION BUTTONS */}
-
-            <div className="flex items-center gap-2">
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  setCurrentPage((page) =>
-                    Math.max(page - 1, 1)
-                  );
-                }}
-                disabled={currentPage === 1}
-                className="
-                  px-4
-                  py-2
-                  rounded-lg
-                  border
-                  border-gray-200
-                  text-sm
-                  font-medium
-                  hover:bg-gray-50
-                  disabled:opacity-40
-                  disabled:cursor-not-allowed
-                  transition
-                "
-              >
-                Previous
-              </button>
-
-              {Array.from({
-                length: Math.max(totalPages, 1),
-              }).map((_, index) => (
-
-                <button
-                  key={index}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-
-                    setCurrentPage(index + 1);
-
-                    setOpenActionId(null);
-                  }}
-                  className={`
-                    w-9
-                    h-9
-                    rounded-lg
-                    text-sm
-                    font-semibold
-                    transition
-
-                    ${
-                      currentPage === index + 1
-                        ? "bg-gray-50/80 text-black shadow-md"
-                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                    }
-                  `}
-                >
-                  {index + 1}
-                </button>
-
-              ))}
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-
-                  setCurrentPage((page) =>
-                    Math.min(
-                      page + 1,
-                      Math.max(totalPages, 1)
+              <select
+                value={rowsPerPage}
+                onChange={(e) =>
+                  handleRowsChange(
+                    Number(
+                      e.target.value
                     )
-                  );
-                }}
-                disabled={
-                  currentPage === totalPages ||
-                  totalPages === 0
+                  )
                 }
                 className="
-                  px-4
-                  py-2
-                  rounded-lg
+                  h-8
+                  px-2
+                  rounded-md
                   border
                   border-gray-200
-                  text-sm
-                  font-medium
+                  bg-white
+                  text-xs
+                  text-gray-600
+                  outline-none
+                  focus:border-[#8B1E3F]
+                "
+              >
+
+                {ROWS_OPTIONS.map(
+                  (option) => (
+                    <option
+                      key={option}
+                      value={option}
+                    >
+                      {option}
+                    </option>
+                  )
+                )}
+
+              </select>
+
+              <span>
+                {totalItems === 0
+                  ? "0"
+                  : startIndex + 1}
+                -
+                {endIndex} of{" "}
+                {totalItems}
+              </span>
+
+            </div>
+
+            {/* RIGHT */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-1
+              "
+            >
+
+              {/* PREVIOUS */}
+
+              <button
+                type="button"
+                disabled={
+                  safeCurrentPage <= 1
+                }
+                onClick={() =>
+                  setCurrentPage(
+                    (page) =>
+                      Math.max(
+                        1,
+                        page - 1
+                      )
+                  )
+                }
+                className="
+                  w-8
+                  h-8
+                  rounded-md
+                  border
+                  border-gray-200
+                  bg-white
+                  text-gray-500
+                  flex
+                  items-center
+                  justify-center
                   hover:bg-gray-50
                   disabled:opacity-40
                   disabled:cursor-not-allowed
-                  transition
                 "
               >
-                Next
+                <FaChevronLeft className="text-xs" />
+              </button>
+
+              {/* PAGE NUMBERS */}
+
+              {getPageNumbers().map(
+                (page) => (
+                  <button
+                    type="button"
+                    key={page}
+                    onClick={() =>
+                      setCurrentPage(
+                        page
+                      )
+                    }
+                    className={`
+                      w-8
+                      h-8
+                      rounded-md
+                      text-xs
+                      font-medium
+                      transition
+                      ${
+                        safeCurrentPage ===
+                        page
+                          ? "bg-[#8B1E3F] text-white"
+                          : "border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                      }
+                    `}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+
+              {/* NEXT */}
+
+              <button
+                type="button"
+                disabled={
+                  safeCurrentPage >=
+                  totalPages
+                }
+                onClick={() =>
+                  setCurrentPage(
+                    (page) =>
+                      Math.min(
+                        totalPages,
+                        page + 1
+                      )
+                  )
+                }
+                className="
+                  w-8
+                  h-8
+                  rounded-md
+                  border
+                  border-gray-200
+                  bg-white
+                  text-gray-500
+                  flex
+                  items-center
+                  justify-center
+                  hover:bg-gray-50
+                  disabled:opacity-40
+                  disabled:cursor-not-allowed
+                "
+              >
+                <FaChevronRight className="text-xs" />
               </button>
 
             </div>
@@ -962,91 +1392,7 @@ const fetchMembers = async () => {
 
       </main>
 
-      {/* =====================================================
-          FIXED ACTION DROPDOWN
-      ===================================================== */}
-
-      {openActionId !== null && (
-
-        <div
-          className="
-            fixed
-            z-[9999]
-            w-[150px]
-            bg-white
-            border
-            border-gray-100
-            rounded-xl
-            shadow-2xl
-            py-1.5
-          "
-          style={{
-            top: menuPosition.top,
-            right: menuPosition.right,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-
-          {/* EDIT */}
-
-          <Link
-            href={`/admin/membership/edit/${openActionId}`}
-            onClick={() => setOpenActionId(null)}
-            className="
-              w-full
-              flex
-              items-center
-              gap-3
-              px-4
-              py-2.5
-              text-sm
-              text-gray-600
-              hover:bg-gray-50
-              hover:text-gray-900
-              transition
-            "
-          >
-
-            <FaEdit className="text-gray-400 text-xs" />
-
-            Edit
-
-          </Link>
-
-          <div className="my-1 border-t border-gray-100" />
-
-          {/* DELETE */}
-
-          <button
-            type="button"
-            onClick={() =>
-              handleDelete(openActionId)
-            }
-            className="
-              w-full
-              flex
-              items-center
-              gap-3
-              px-4
-              py-2.5
-              text-sm
-              text-gray-500
-              hover:bg-red-50
-              hover:text-red-600
-              transition
-            "
-          >
-
-            <FaTrash className="text-gray-400 text-xs" />
-
-            Delete
-
-          </button>
-
-        </div>
-
-      )}
-
     </div>
   );
 }
+

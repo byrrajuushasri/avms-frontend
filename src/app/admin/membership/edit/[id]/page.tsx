@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,19 +8,51 @@ import {
   FaArrowLeft,
   FaSave,
   FaUser,
+  FaCamera,
 } from "react-icons/fa";
 
 interface Member {
+  id: number;
+  member_id: string;
+
   full_name: string;
-  email: string;
   mobile: string;
+  email: string;
+  occupation: string;
   gender: string;
-  password: string;
+  date_of_birth: string;
+
+  photo: string;
+
+  district: string;
+  mandal: string;
+  sangham: string;
+
+  executive_body: string;
+  designation: string;
+
+  mahashaba_payment_status: string;
+  mahashaba_payment_method: string;
+  mahashaba_receipt_number: string;
+  mahashaba_amount_paid: string;
+  mahashaba_payment_date: string;
+
+  sangam_payment_status: string;
+  sangam_payment_method: string;
+  sangam_receipt_number: string;
+  sangam_amount_paid: string;
+  sangam_payment_date: string;
+
   role: string;
+  status: string;
+
+  password: string;
   created_at: string;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000";
 
 export default function EditMemberPage() {
   const params = useParams();
@@ -30,25 +61,110 @@ export default function EditMemberPage() {
   const memberId = params.id as string;
 
   const [member, setMember] = useState<Member>({
+    id: 0,
+    member_id: "",
+
     full_name: "",
-    email: "",
     mobile: "",
+    email: "",
+    occupation: "",
     gender: "",
-    password: "",
+    date_of_birth: "",
+
+    photo: "",
+
+    district: "",
+    mandal: "",
+    sangham: "",
+
+    executive_body: "",
+    designation: "",
+
+    mahashaba_payment_status: "",
+    mahashaba_payment_method: "",
+    mahashaba_receipt_number: "",
+    mahashaba_amount_paid: "",
+    mahashaba_payment_date: "",
+
+    sangam_payment_status: "",
+    sangam_payment_method: "",
+    sangam_receipt_number: "",
+    sangam_amount_paid: "",
+    sangam_payment_date: "",
+
     role: "",
+    status: "Active",
+
+    password: "",
     created_at: "",
   });
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [photoFile, setPhotoFile] =
+    useState<File | null>(null);
 
-  // =========================
-  // GET MEMBER BY ID
-  // =========================
+  const [photoPreview, setPhotoPreview] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
+  // =========================================================
+  // PHOTO URL
+  // =========================================================
+
+  const getPhotoUrl = (photo: string) => {
+    if (!photo) {
+      return "";
+    }
+
+    if (
+      photo.startsWith("http://") ||
+      photo.startsWith("https://")
+    ) {
+      return photo;
+    }
+
+    return `${BACKEND_URL}${
+      photo.startsWith("/") ? "" : "/"
+    }${photo}`;
+  };
+
+  // =========================================================
+  // FORMAT DATE
+  // =========================================================
+
+  const formatDateForInput = (
+    value: unknown
+  ): string => {
+    if (!value) {
+      return "";
+    }
+
+    const stringValue = String(value);
+
+    if (
+      stringValue.length >= 10
+    ) {
+      return stringValue.substring(0, 10);
+    }
+
+    return "";
+  };
+
+  // =========================================================
+  // GET MEMBER
+  // =========================================================
 
   useEffect(() => {
-    if (!memberId) return;
+    if (!memberId) {
+      return;
+    }
 
     const fetchMember = async () => {
       try {
@@ -64,6 +180,7 @@ export default function EditMemberPage() {
           `${BACKEND_URL}/membership-register/${memberId}`,
           {
             method: "GET",
+
             headers: {
               ...(token
                 ? {
@@ -71,54 +188,186 @@ export default function EditMemberPage() {
                   }
                 : {}),
             },
+
             cache: "no-store",
           }
         );
 
-        if (!response.ok) {
+        const contentType =
+          response.headers.get("content-type") || "";
+
+        let data: any = null;
+
+        if (
+          contentType.includes(
+            "application/json"
+          )
+        ) {
+          data = await response.json();
+        } else {
+          const text =
+            await response.text();
+
           throw new Error(
-            "Failed to load member"
+            text ||
+              "Failed to load member"
           );
         }
 
-        const data = await response.json();
+        console.log(
+          "GET MEMBER STATUS:",
+          response.status
+        );
 
         console.log(
-          "Member Details:",
+          "GET MEMBER RESPONSE:",
           data
         );
 
-        setMember({
-          full_name:
-            data.full_name || "",
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              "Failed to load member"
+          );
+        }
 
-          email:
-            data.email || "",
+        const photo =
+          data?.photo || "";
+
+        setMember({
+          id:
+            Number(data?.id) || 0,
+
+          member_id:
+            data?.member_id || "",
+
+          full_name:
+            data?.full_name || "",
 
           mobile:
-            data.mobile || "",
+            data?.mobile || "",
+
+          email:
+            data?.email || "",
+
+          occupation:
+            data?.occupation || "",
 
           gender:
-            data.gender || "",
+            data?.gender || "",
 
-          // Never load existing password
+          date_of_birth:
+            formatDateForInput(
+              data?.date_of_birth
+            ),
+
+          photo,
+
+          district:
+            data?.district || "",
+
+          mandal:
+            data?.mandal || "",
+
+          sangham:
+            data?.sangham || "",
+
+          executive_body:
+            data?.executive_body || "",
+
+          designation:
+            data?.designation || "",
+
+          // ===================================================
+          // MAHASHABA
+          // ===================================================
+
+          mahashaba_payment_status:
+            data?.mahashaba_payment_status ||
+            "",
+
+          mahashaba_payment_method:
+            data?.mahashaba_payment_method ||
+            "",
+
+          mahashaba_receipt_number:
+            data?.mahashaba_receipt_number ||
+            "",
+
+          mahashaba_amount_paid:
+            data?.mahashaba_amount_paid !==
+              null &&
+            data?.mahashaba_amount_paid !==
+              undefined
+              ? String(
+                  data.mahashaba_amount_paid
+                )
+              : "",
+
+          mahashaba_payment_date:
+            formatDateForInput(
+              data?.mahashaba_payment_date
+            ),
+
+          // ===================================================
+          // SANGAM
+          // ===================================================
+
+          sangam_payment_status:
+            data?.sangam_payment_status ||
+            "",
+
+          sangam_payment_method:
+            data?.sangam_payment_method ||
+            "",
+
+          sangam_receipt_number:
+            data?.sangam_receipt_number ||
+            "",
+
+          sangam_amount_paid:
+            data?.sangam_amount_paid !==
+              null &&
+            data?.sangam_amount_paid !==
+              undefined
+              ? String(
+                  data.sangam_amount_paid
+                )
+              : "",
+
+          sangam_payment_date:
+            formatDateForInput(
+              data?.sangam_payment_date
+            ),
+
+          role:
+            data?.role || "user",
+
+          status:
+            data?.status || "Active",
+
+          // Never load old password
           password: "",
 
-          // Load existing role
-          role:
-            data.role || "",
-
           created_at:
-            data.created_at || "",
+            data?.created_at || "",
         });
-      } catch (error) {
+
+        if (photo) {
+          setPhotoPreview(
+            getPhotoUrl(photo)
+          );
+        }
+      } catch (err) {
         console.error(
-          "Fetch member error:",
-          error
+          "GET MEMBER ERROR:",
+          err
         );
 
         setError(
-          "Unable to load member details."
+          err instanceof Error
+            ? err.message
+            : "Unable to load member details."
         );
       } finally {
         setLoading(false);
@@ -128,16 +377,19 @@ export default function EditMemberPage() {
     fetchMember();
   }, [memberId]);
 
-  // =========================
+  // =========================================================
   // HANDLE CHANGE
-  // =========================
+  // =========================================================
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
     setMember((prev) => ({
       ...prev,
@@ -145,104 +397,385 @@ export default function EditMemberPage() {
     }));
   };
 
-  // =========================
+  // =========================================================
+  // PHOTO CHANGE
+  // =========================================================
+
+  const handlePhotoChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file =
+      e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      setError(
+        "Photo size must be less than 5 MB."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
+      setError(
+        "Only JPG, JPEG, PNG or WEBP images are allowed."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    setError("");
+
+    setPhotoFile(file);
+
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    setPhotoPreview(previewUrl);
+  };
+
+  // =========================================================
   // UPDATE MEMBER
-  // =========================
+  // =========================================================
 
   const handleSubmit = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
+    if (saving) {
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");
 
-      // GET LOGIN TOKEN
       const token =
         typeof window !== "undefined"
           ? localStorage.getItem("token")
           : null;
 
-      console.log(
-        "Token exists:",
-        !!token
-      );
-
       if (!token) {
         setError(
           "Login session expired. Please login again."
         );
+
         return;
       }
 
-      // =========================
-      // UPDATE API
-      // =========================
-
-      const response = await fetch(
-        `http://localhost:5000/membership-register/${memberId}`,
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              `Bearer ${token}`,
-          },
-
-          body: JSON.stringify({
-            full_name:
-              member.full_name,
-
-            mobile:
-              member.mobile,
-
-            email:
-              member.email,
-
-            gender:
-              member.gender,
-
-            role:
-              member.role,
-
-            // Only send password when
-            // admin entered a new password
-            ...(member.password.trim()
-              ? {
-                  password:
-                    member.password.trim(),
-                }
-              : {}),
-          }),
-        }
+      console.log(
+        "UPDATING MEMBER ID:",
+        memberId
       );
 
-      const result =
-        await response.json();
+      // =====================================================
+      // FORM DATA
+      // =====================================================
+
+      const formData =
+        new FormData();
+
+      // =====================================================
+      // BASIC DETAILS
+      // =====================================================
+
+      formData.append(
+        "full_name",
+        member.full_name.trim()
+      );
+
+      formData.append(
+        "mobile",
+        member.mobile.trim()
+      );
+
+      formData.append(
+        "email",
+        member.email
+          .trim()
+          .toLowerCase()
+      );
+
+      formData.append(
+        "occupation",
+        member.occupation.trim()
+      );
+
+      formData.append(
+        "gender",
+        member.gender.trim()
+      );
+
+      formData.append(
+        "date_of_birth",
+        member.date_of_birth
+      );
+
+      // =====================================================
+      // LOCATION
+      // =====================================================
+
+      formData.append(
+        "district",
+        member.district.trim()
+      );
+
+      formData.append(
+        "mandal",
+        member.mandal.trim()
+      );
+
+      formData.append(
+        "sangham",
+        member.sangham.trim()
+      );
+
+      // =====================================================
+      // EXECUTIVE
+      // =====================================================
+
+      formData.append(
+        "executive_body",
+        member.executive_body.trim()
+      );
+
+      formData.append(
+        "designation",
+        member.designation.trim()
+      );
+
+      // =====================================================
+      // MAHASHABA
+      // =====================================================
+
+      formData.append(
+        "mahashaba_payment_status",
+        member.mahashaba_payment_status
+      );
+
+      formData.append(
+        "mahashaba_payment_method",
+        member.mahashaba_payment_method
+      );
+
+      formData.append(
+        "mahashaba_receipt_number",
+        member.mahashaba_receipt_number
+      );
+
+      formData.append(
+        "mahashaba_amount_paid",
+        member.mahashaba_amount_paid
+      );
+
+      formData.append(
+        "mahashaba_payment_date",
+        member.mahashaba_payment_date
+      );
+
+      // =====================================================
+      // SANGAM
+      // =====================================================
+
+      formData.append(
+        "sangam_payment_status",
+        member.sangam_payment_status
+      );
+
+      formData.append(
+        "sangam_payment_method",
+        member.sangam_payment_method
+      );
+
+      formData.append(
+        "sangam_receipt_number",
+        member.sangam_receipt_number
+      );
+
+      formData.append(
+        "sangam_amount_paid",
+        member.sangam_amount_paid
+      );
+
+      formData.append(
+        "sangam_payment_date",
+        member.sangam_payment_date
+      );
+
+      // =====================================================
+      // ROLE
+      // =====================================================
+
+      formData.append(
+        "role",
+        member.role
+      );
+
+      // =====================================================
+      // STATUS
+      // =====================================================
+
+      formData.append(
+        "status",
+        member.status
+      );
+
+      // =====================================================
+      // PASSWORD
+      // Only send if user entered a new password
+      // =====================================================
+
+      if (
+        member.password.trim()
+      ) {
+        formData.append(
+          "password",
+          member.password.trim()
+        );
+      }
+
+      // =====================================================
+      // PHOTO
+      // =====================================================
+
+      if (photoFile) {
+        formData.append(
+          "photo",
+          photoFile
+        );
+      }
+
+      // =====================================================
+      // DEBUG FORM DATA
+      // =====================================================
 
       console.log(
-        "Update API Status:",
+        "FORM DATA:"
+      );
+
+      for (
+        const [
+          key,
+          value,
+        ] of formData.entries()
+      ) {
+        if (
+          value instanceof File
+        ) {
+          console.log(
+            key,
+            value.name
+          );
+        } else {
+          console.log(
+            key,
+            value
+          );
+        }
+      }
+
+      // =====================================================
+      // API
+      // =====================================================
+
+      const response =
+        await fetch(
+          `${BACKEND_URL}/membership-register/${memberId}`,
+          {
+            method: "PUT",
+
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body: formData,
+          }
+        );
+
+      // =====================================================
+      // SAFE RESPONSE PARSING
+      // =====================================================
+
+      const contentType =
+        response.headers.get(
+          "content-type"
+        ) || "";
+
+      let result: any = null;
+
+      if (
+        contentType.includes(
+          "application/json"
+        )
+      ) {
+        result =
+          await response.json();
+      } else {
+        const text =
+          await response.text();
+
+        result = {
+          message:
+            text ||
+            "Server returned an invalid response.",
+        };
+      }
+
+      console.log(
+        "UPDATE API STATUS:",
         response.status
       );
 
       console.log(
-        "Update API Response:",
+        "UPDATE API RESPONSE:",
         result
       );
 
+      // =====================================================
+      // ERROR
+      // =====================================================
+
       if (!response.ok) {
         throw new Error(
-          result?.message ||
-            "Failed to update member"
+          Array.isArray(
+            result?.message
+          )
+            ? result.message.join(
+                ", "
+              )
+            : result?.message ||
+                "Failed to update member"
         );
       }
 
+      // =====================================================
+      // SUCCESS
+      // =====================================================
+
       alert(
-        "Member updated successfully!"
+        result?.message ||
+          "Member updated successfully!"
       );
 
       router.push(
@@ -250,16 +783,15 @@ export default function EditMemberPage() {
       );
 
       router.refresh();
-
-    } catch (error) {
+    } catch (err) {
       console.error(
-        "Update member error:",
-        error
+        "UPDATE MEMBER ERROR:",
+        err
       );
 
       setError(
-        error instanceof Error
-          ? error.message
+        err instanceof Error
+          ? err.message
           : "Failed to update member."
       );
     } finally {
@@ -267,13 +799,13 @@ export default function EditMemberPage() {
     }
   };
 
-  // =========================
+  // =========================================================
   // LOADING
-  // =========================
+  // =========================================================
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50/80 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-sm text-gray-500">
           Loading member details...
         </div>
@@ -281,9 +813,9 @@ export default function EditMemberPage() {
     );
   }
 
-  // =========================
+  // =========================================================
   // PAGE
-  // =========================
+  // =========================================================
 
   return (
     <div className="min-h-screen bg-gray-50/80">
@@ -300,21 +832,7 @@ export default function EditMemberPage() {
 
               <Link
                 href="/admin/membership"
-                className="
-                  w-9
-                  h-9
-                  rounded-lg
-                  border
-                  border-gray-200
-                  bg-white
-                  flex
-                  items-center
-                  justify-center
-                  text-gray-500
-                  hover:bg-gray-50
-                  hover:text-gray-800
-                  transition
-                "
+                className="w-9 h-9 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition"
               >
                 <FaArrowLeft className="text-sm" />
               </Link>
@@ -336,19 +854,7 @@ export default function EditMemberPage() {
         {/* ERROR */}
 
         {error && (
-          <div
-            className="
-              mb-5
-              px-4
-              py-3
-              rounded-xl
-              border
-              border-red-200
-              bg-red-50
-              text-sm
-              text-red-600
-            "
-          >
+          <div className="mb-5 px-4 py-3 rounded-xl border border-red-200 bg-red-50 text-sm text-red-600">
             {error}
           </div>
         )}
@@ -357,14 +863,7 @@ export default function EditMemberPage() {
 
         <form
           onSubmit={handleSubmit}
-          className="
-            bg-white
-            rounded-2xl
-            border
-            border-gray-100
-            shadow-sm
-            overflow-hidden
-          "
+          className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
         >
 
           {/* FORM HEADER */}
@@ -373,18 +872,7 @@ export default function EditMemberPage() {
 
             <div className="flex items-center gap-3">
 
-              <div
-                className="
-                  w-11
-                  h-11
-                  rounded-xl
-                  bg-[#f8eef2]
-                  flex
-                  items-center
-                  justify-center
-                  text-[#8B1E3F]
-                "
-              >
+              <div className="w-11 h-11 rounded-xl bg-[#f8eef2] flex items-center justify-center text-[#8B1E3F]">
                 <FaUser />
               </div>
 
@@ -395,7 +883,9 @@ export default function EditMemberPage() {
                 </h2>
 
                 <p className="text-xs text-gray-400 mt-1">
-                  Member ID: {memberId}
+                  Member ID:{" "}
+                  {member.member_id ||
+                    memberId}
                 </p>
 
               </div>
@@ -404,8 +894,6 @@ export default function EditMemberPage() {
 
           </div>
 
-          {/* FORM BODY */}
-
           <div className="p-6">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -413,37 +901,26 @@ export default function EditMemberPage() {
               {/* MEMBER ID */}
 
               <div>
-
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Member ID
                 </label>
 
                 <input
                   type="text"
-                  value={memberId}
+                  value={
+                    member.member_id ||
+                    memberId
+                  }
                   disabled
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50
-                    text-sm
-                    text-gray-500
-                    outline-none
-                  "
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 outline-none"
                 />
-
               </div>
 
-              {/* NAME */}
+              {/* FULL NAME */}
 
               <div>
-
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Member Name
+                  Full Name *
                 </label>
 
                 <input
@@ -451,63 +928,16 @@ export default function EditMemberPage() {
                   name="full_name"
                   value={member.full_name}
                   onChange={handleChange}
-                  placeholder="Enter member name"
                   required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    text-sm
-                    outline-none
-                    focus:border-[#8B1E3F]
-                    focus:ring-2
-                    focus:ring-[#8B1E3F]/10
-                  "
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
                 />
-
               </div>
 
-              {/* EMAIL */}
+              {/* MOBILE */}
 
               <div>
-
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email ID
-                </label>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={member.email}
-                  onChange={handleChange}
-                  placeholder="Enter email"
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    text-sm
-                    outline-none
-                    focus:border-[#8B1E3F]
-                    focus:ring-2
-                    focus:ring-[#8B1E3F]/10
-                  "
-                />
-
-              </div>
-
-              {/* PHONE */}
-
-              <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
+                  Mobile Number *
                 </label>
 
                 <input
@@ -515,31 +945,50 @@ export default function EditMemberPage() {
                   name="mobile"
                   value={member.mobile}
                   onChange={handleChange}
-                  placeholder="Enter phone number"
                   required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    text-sm
-                    outline-none
-                    focus:border-[#8B1E3F]
-                    focus:ring-2
-                    focus:ring-[#8B1E3F]/10
-                  "
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
                 />
+              </div>
 
+              {/* EMAIL */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address *
+                </label>
+
+                <input
+                  type="email"
+                  name="email"
+                  value={member.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                />
+              </div>
+
+              {/* OCCUPATION */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Occupation *
+                </label>
+
+                <input
+                  type="text"
+                  name="occupation"
+                  value={member.occupation}
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                />
               </div>
 
               {/* GENDER */}
 
               <div>
-
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Gender
+                  Gender *
                 </label>
 
                 <select
@@ -547,192 +996,650 @@ export default function EditMemberPage() {
                   value={member.gender}
                   onChange={handleChange}
                   required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-white
-                    text-sm
-                    outline-none
-                    focus:border-[#8B1E3F]
-                    focus:ring-2
-                    focus:ring-[#8B1E3F]/10
-                  "
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
                 >
-
                   <option value="">
                     Select Gender
-                  </option>
-
-                  <option value="Female">
-                    Female
                   </option>
 
                   <option value="Male">
                     Male
                   </option>
 
+                  <option value="Female">
+                    Female
+                  </option>
                 </select>
-
               </div>
 
-              {/* ROLE */}
+              {/* DOB */}
 
               <div>
-
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Role
-                </label>
-
-                <select
-                  name="role"
-                  value={member.role}
-                  onChange={handleChange}
-                  required
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-white
-                    text-sm
-                    outline-none
-                    focus:border-[#8B1E3F]
-                    focus:ring-2
-                    focus:ring-[#8B1E3F]/10
-                  "
-                >
-
-                  <option value="">
-                    Select Role
-                  </option>
-
-                  <option value="sangam_admin">
-                    Sangham Admin
-                  </option>
-
-                  <option value="user">
-                    Member
-                  </option>
-
-
-                </select>
-
-              </div>
-
-              {/* PASSWORD */}
-
-              <div>
-
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
+                  Date of Birth *
                 </label>
 
                 <input
-                  type="password"
-                  name="password"
-                  value={member.password}
+                  type="date"
+                  name="date_of_birth"
+                  value={member.date_of_birth}
                   onChange={handleChange}
-                  placeholder="Leave blank to keep current password"
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    text-sm
-                    outline-none
-                    focus:border-[#8B1E3F]
-                    focus:ring-2
-                    focus:ring-[#8B1E3F]/10
-                  "
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
                 />
-
               </div>
 
-              {/* CREATED DATE */}
+              {/* PHOTO */}
 
               <div>
-
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Created Date
+                  Member Photo
+                </label>
+
+                <div className="flex items-center gap-4">
+
+                  <div className="w-20 h-20 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
+
+                    {photoPreview ? (
+                      <img
+                        src={photoPreview}
+                        alt="Member"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <FaCamera className="text-gray-400 text-xl" />
+                    )}
+
+                  </div>
+
+                  <div>
+
+                    <label
+                      htmlFor="member-photo"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50"
+                    >
+                      <FaCamera />
+                      Change Photo
+                    </label>
+
+                    <input
+                      id="member-photo"
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                      onChange={
+                        handlePhotoChange
+                      }
+                      className="hidden"
+                    />
+
+                    <p className="text-xs text-gray-400 mt-2">
+                      JPG, JPEG, PNG or WEBP only.
+                      Maximum size: 5 MB.
+                    </p>
+
+                  </div>
+
+                </div>
+              </div>
+
+              {/* DISTRICT */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  District
                 </label>
 
                 <input
                   type="text"
-                  value={
-                    member.created_at
-                      ? new Date(
-                          member.created_at
-                        ).toLocaleDateString(
-                          "en-GB",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )
-                      : ""
-                  }
-                  disabled
-                  className="
-                    w-full
-                    h-11
-                    px-4
-                    rounded-xl
-                    border
-                    border-gray-200
-                    bg-gray-50
-                    text-sm
-                    text-gray-500
-                    outline-none
-                  "
+                  name="district"
+                  value={member.district}
+                  onChange={handleChange}
+                  placeholder="Enter district"
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
                 />
+              </div>
+
+              {/* MANDAL */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mandal
+                </label>
+
+                <input
+                  type="text"
+                  name="mandal"
+                  value={member.mandal}
+                  onChange={handleChange}
+                  placeholder="Enter mandal"
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                />
+              </div>
+
+              {/* SANGHAM */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sangham
+                </label>
+
+                <input
+                  type="text"
+                  name="sangham"
+                  value={member.sangham}
+                  onChange={handleChange}
+                  placeholder="Enter sangham"
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                />
+              </div>
+
+              {/* EXECUTIVE BODY */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Executive Body *
+                </label>
+
+                <select
+                  name="executive_body"
+                  value={
+                    member.executive_body
+                  }
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                >
+                  <option value="">
+                    Select Executive Body
+                  </option>
+
+                  <option value="State Body">
+                    State Body
+                  </option>
+
+                  <option value="District Body">
+                    District Body
+                  </option>
+
+                  <option value="Mandal Body">
+                    Mandal Body
+                  </option>
+
+                  <option value="Sangham Body">
+                    Sangham Body
+                  </option>
+                </select>
+              </div>
+
+              {/* DESIGNATION */}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Designation *
+                </label>
+
+                <select
+                  name="designation"
+                  value={
+                    member.designation
+                  }
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                >
+                  <option value="">
+                    Select Designation
+                  </option>
+
+                  <option value="Member">
+                    Member
+                  </option>
+
+                  <option value="General Secretary">
+                    General Secretary
+                  </option>
+
+                  <option value="President">
+                    President
+                  </option>
+
+                  <option value="Vice President">
+                    Vice President
+                  </option>
+
+                  <option value="Treasurer">
+                    Treasurer
+                  </option>
+
+                  <option value="Media">
+                    Media
+                  </option>
+                </select>
+              </div>
+
+            </div>
+
+            {/* =================================================
+                MAHASHABA
+            ================================================= */}
+
+            <div className="mt-10">
+
+              <div className="mb-5">
+
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Payment Details Of Mahashaba
+                </h3>
+
+                <p className="text-sm text-gray-400 mt-1">
+                  Enter payment details if payment has been made.
+                </p>
 
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* STATUS */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Status *
+                  </label>
+
+                  <select
+                    name="mahashaba_payment_status"
+                    value={
+                      member.mahashaba_payment_status
+                    }
+                    onChange={handleChange}
+                    required
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    <option value="">
+                      Select Payment Status
+                    </option>
+
+                    <option value="Paid">
+                      Paid
+                    </option>
+
+                    <option value="Free">
+                      Free
+                    </option>
+                  </select>
+                </div>
+
+                {/* METHOD */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Method
+                  </label>
+
+                  <select
+                    name="mahashaba_payment_method"
+                    value={
+                      member.mahashaba_payment_method
+                    }
+                    onChange={handleChange}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    <option value="">
+                      Select Payment Method
+                    </option>
+
+                    <option value="Cash">
+                      Cash
+                    </option>
+
+                    <option value="UPI">
+                      UPI
+                    </option>
+
+                    <option value="Credit/Debit Card">
+                      Credit/Debit Card
+                    </option>
+
+                    <option value="Bank Transfer">
+                      Bank Transfer
+                    </option>
+                  </select>
+                </div>
+
+                {/* RECEIPT */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Receipt Number
+                  </label>
+
+                  <input
+                    type="text"
+                    name="mahashaba_receipt_number"
+                    value={
+                      member.mahashaba_receipt_number
+                    }
+                    onChange={handleChange}
+                    placeholder="Enter receipt number"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+                {/* AMOUNT */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Amount
+                  </label>
+
+                  <input
+                    type="number"
+                    name="mahashaba_amount_paid"
+                    value={
+                      member.mahashaba_amount_paid
+                    }
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter amount"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+                {/* DATE */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Date
+                  </label>
+
+                  <input
+                    type="date"
+                    name="mahashaba_payment_date"
+                    value={
+                      member.mahashaba_payment_date
+                    }
+                    onChange={handleChange}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+              </div>
+            </div>
+
+            {/* =================================================
+                SANGAM
+            ================================================= */}
+
+            <div className="mt-10">
+
+              <div className="mb-5">
+
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Payment Details Of Sangam
+                </h3>
+
+                <p className="text-sm text-gray-400 mt-1">
+                  Enter payment details if payment has been made.
+                </p>
+
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* STATUS */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Status *
+                  </label>
+
+                  <select
+                    name="sangam_payment_status"
+                    value={
+                      member.sangam_payment_status
+                    }
+                    onChange={handleChange}
+                    required
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    <option value="">
+                      Select Payment Status
+                    </option>
+
+                    <option value="Paid">
+                      Paid
+                    </option>
+
+                    <option value="Free">
+                      Free
+                    </option>
+                  </select>
+                </div>
+
+                {/* METHOD */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Method
+                  </label>
+
+                  <select
+                    name="sangam_payment_method"
+                    value={
+                      member.sangam_payment_method
+                    }
+                    onChange={handleChange}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    <option value="">
+                      Select Payment Method
+                    </option>
+
+                    <option value="Cash">
+                      Cash
+                    </option>
+
+                    <option value="UPI">
+                      UPI
+                    </option>
+
+                    <option value="Credit/Debit Card">
+                      Credit/Debit Card
+                    </option>
+
+                    <option value="Bank Transfer">
+                      Bank Transfer
+                    </option>
+                  </select>
+                </div>
+
+                {/* RECEIPT */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Receipt Number
+                  </label>
+
+                  <input
+                    type="text"
+                    name="sangam_receipt_number"
+                    value={
+                      member.sangam_receipt_number
+                    }
+                    onChange={handleChange}
+                    placeholder="Enter receipt number"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+                {/* AMOUNT */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Amount
+                  </label>
+
+                  <input
+                    type="number"
+                    name="sangam_amount_paid"
+                    value={
+                      member.sangam_amount_paid
+                    }
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    placeholder="Enter amount"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+                {/* DATE */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Payment Date
+                  </label>
+
+                  <input
+                    type="date"
+                    name="sangam_payment_date"
+                    value={
+                      member.sangam_payment_date
+                    }
+                    onChange={handleChange}
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+              </div>
+            </div>
+
+            {/* =================================================
+                ACCOUNT
+            ================================================= */}
+
+            <div className="mt-10">
+
+              <div className="mb-5">
+
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Account Details
+                </h3>
+
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                {/* ROLE */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Role
+                  </label>
+
+                  <select
+                    name="role"
+                    value={member.role}
+                    onChange={handleChange}
+                    required
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    <option value="">
+                      Select Role
+                    </option>
+
+                    <option value="sangam_admin">
+                      Sangham Admin
+                    </option>
+
+                    <option value="user">
+                      Member
+                    </option>
+                  </select>
+                </div>
+
+                {/* STATUS */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+
+                  <select
+                    name="status"
+                    value={member.status}
+                    onChange={handleChange}
+                    required
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    <option value="Active">
+                      Active
+                    </option>
+
+                    <option value="Inactive">
+                      Inactive
+                    </option>
+                  </select>
+                </div>
+
+                {/* PASSWORD */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+
+                  <input
+                    type="password"
+                    name="password"
+                    value={member.password}
+                    onChange={handleChange}
+                    placeholder="Leave blank to keep current password"
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+
+                {/* CREATED DATE */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Created Date
+                  </label>
+
+                  <input
+                    type="text"
+                    value={
+                      member.created_at
+                        ? new Date(
+                            member.created_at
+                          ).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )
+                        : ""
+                    }
+                    disabled
+                    className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500 outline-none"
+                  />
+                </div>
+
+              </div>
             </div>
 
           </div>
 
           {/* FOOTER */}
 
-          <div
-            className="
-              px-6
-              py-5
-              border-t
-              border-gray-100
-              flex
-              flex-col-reverse
-              sm:flex-row
-              sm:justify-end
-              gap-3
-            "
-          >
+          <div className="px-6 py-5 border-t border-gray-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
 
             <Link
               href="/admin/membership"
-              className="
-                px-5
-                py-2.5
-                rounded-xl
-                border
-                border-gray-200
-                bg-white
-                text-gray-600
-                text-sm
-                font-semibold
-                text-center
-                hover:bg-gray-50
-                transition
-              "
+              className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-600 text-sm font-semibold text-center hover:bg-gray-50 transition"
             >
               Cancel
             </Link>
@@ -740,31 +1647,13 @@ export default function EditMemberPage() {
             <button
               type="submit"
               disabled={saving}
-              className="
-                inline-flex
-                items-center
-                justify-center
-                gap-2
-                px-5
-                py-2.5
-                rounded-xl
-                bg-gray-200
-                text-gray-600
-                text-sm
-                font-semibold
-                hover:bg-gray-300
-                disabled:opacity-50
-                disabled:cursor-not-allowed
-                transition
-              "
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#741832] disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-
               <FaSave />
 
               {saving
                 ? "Updating..."
                 : "Save Changes"}
-
             </button>
 
           </div>
@@ -772,8 +1661,6 @@ export default function EditMemberPage() {
         </form>
 
       </main>
-
     </div>
   );
 }
-
