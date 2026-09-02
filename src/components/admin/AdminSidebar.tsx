@@ -29,9 +29,6 @@ const menu = [
     icon: FaHome,
     roles: [
       "super_admin",
-      "state_admin",
-      "district_admin",
-      "mandal_admin",
       "sangam_admin",
     ],
   },
@@ -44,7 +41,7 @@ const menu = [
     icon: FaCrown,
     roles: [
       "super_admin",
-      "state_admin",
+     
     ],
   },
 
@@ -54,9 +51,6 @@ const menu = [
     icon: FaHeart,
     roles: [
       "super_admin",
-      "state_admin",
-      "district_admin",
-      "mandal_admin",
       "sangam_admin",
     ],
   },
@@ -67,9 +61,6 @@ const menu = [
     icon: FaBuilding,
     roles: [
       "super_admin",
-      "state_admin",
-      "district_admin",
-      "mandal_admin",
       "sangam_admin",
     ],
   },
@@ -80,9 +71,6 @@ const menu = [
     icon: FaPhotoVideo,
     roles: [
       "super_admin",
-      "state_admin",
-      "district_admin",
-      "mandal_admin",
       "sangam_admin",
     ],
   },
@@ -93,7 +81,7 @@ const menu = [
     icon: FaPhotoVideo,
     roles: [
       "super_admin",
-      "state_admin",
+     
     ],
   },
 
@@ -103,7 +91,7 @@ const menu = [
     icon: FaPhotoVideo,
     roles: [
       "super_admin",
-      "state_admin",
+     
     ],
   },
 
@@ -113,7 +101,7 @@ const menu = [
     icon: FaPhotoVideo,
     roles: [
       "super_admin",
-      "state_admin",
+     
     ],
   },
 
@@ -123,6 +111,7 @@ const menu = [
     icon: FaCog,
     roles: [
       "super_admin",
+      "sangam_admin",
     ],
   },
 ];

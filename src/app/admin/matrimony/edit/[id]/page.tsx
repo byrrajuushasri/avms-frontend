@@ -7,101 +7,381 @@ import { useEffect, useState } from "react";
 import {
   FaArrowLeft,
   FaSave,
-  FaUser,
-  FaPhone,
-  FaGraduationCap,
-  FaUsers,
-  FaHome,
-  FaHeart,
-  FaCamera,
-  FaImage,
-  FaBriefcase,
+  FaUpload,
   FaCheckCircle,
+  FaTimes,
+  FaUser,
+  FaHeart,
+  FaGraduationCap,
+  FaHome,
+  FaUsers,
+  FaCamera,
 } from "react-icons/fa";
 
+/* =========================================================
+   BACKEND
+========================================================= */
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+/* =========================================================
+   GOTRAM
+========================================================= */
+
+const gotramList = [
+  "Aathreya",
+  "Aswalayana",
+  "Agasthya",
+  "Bruhadashwah",
+  "Bodayanah",
+  "Baradwaja",
+  "Bargava",
+  "Chakrapani",
+  "Chamarsanah",
+  "Daalbyah",
+  "Durvasah",
+  "Devarathah",
+  "Devavalkyah",
+  "Gargyah",
+  "Gruthsna Madah",
+  "Gopakah",
+  "Gowthama",
+  "Harivalkya",
+  "JadaBharatha",
+  "Jatukarnah",
+  "Jambasudhana",
+  "Jarathaarkha",
+  "Jaabilih",
+  "Jabrih",
+  "Jeevanthi",
+  "Kanvah",
+  "Kandarpa",
+  "Kapila",
+  "Kapeetha",
+  "Kasyapa",
+  "Kuthsah",
+  "Koundinya",
+  "Koushika",
+  "Krishna",
+  "Mandapala",
+  "Manava",
+  "Mareechi",
+  "Markandeya",
+  "Muniraja",
+  "Mythreyah",
+  "Mounala",
+  "Mounjayanah",
+  "Moudgalya",
+  "Nanaka",
+  "Naradah",
+  "Netrapadah",
+  "Ouchithya",
+  "Parasparayanah",
+  "Pallavah",
+  "PavithraPranih",
+  "Parasharya",
+  "Pingala",
+  "Pundareeka",
+  "Poothimava",
+  "Poundraka",
+  "Poulasthya",
+  "Pracheena",
+  "Prabhatha",
+  "RushyaSrunga",
+  "Sharabangah",
+  "Sharjgaravah",
+  "Sandilya",
+  "Sreevathsah",
+  "Sreedharah",
+  "Suklarushi",
+  "Sowcheyah",
+  "Sownaka",
+  "Sathyah",
+  "Sanathkumara",
+  "Sanadanath",
+  "Samvarthaka",
+  "Sukanchana",
+  "Sutheekshah",
+  "Sundarah",
+  "Suvarna",
+  "Subramanyah",
+  "Sowbarna",
+  "Sowmyah",
+  "Sowvarna",
+  "Tharanih",
+  "Thittirih",
+  "Thrijatah",
+  "Thaithrevah",
+  "Uthkrushta",
+  "Uttamouja",
+  "Ugrasena",
+  "Vatuka",
+  "Vaarathanthu",
+  "Varuna",
+  "Vasista",
+  "Vamadeva",
+  "Vasudeva",
+  "Vaayuvya",
+  "Valmika",
+  "Vishwaksenah",
+  "Viswamithra",
+  "Vishnuvrudha",
+  "Virohithyah",
+  "Vyana",
+  "Yaskah",
+  "Yagnavalkya",
+];
+
+/* =========================================================
+   NAKSHATRAM
+========================================================= */
+
+const nakshatramList = [
+  "Ashwini",
+  "Bharani",
+  "Krittika",
+  "Rohini",
+  "Mrigashira",
+  "Ardra",
+  "Punarvasu",
+  "Pushya",
+  "Ashlesha",
+  "Magha",
+  "Purva Phalguni",
+  "Uttara Phalguni",
+  "Hasta",
+  "Chitra",
+  "Swati",
+  "Vishakha",
+  "Anuradha",
+  "Jyeshtha",
+  "Moola",
+  "Purva Ashadha",
+  "Uttara Ashadha",
+  "Shravana",
+  "Dhanishta",
+  "Shatabhisha",
+  "Purva Bhadrapada",
+  "Uttara Bhadrapada",
+  "Revathi",
+];
+
+/* =========================================================
+   RASI
+========================================================= */
+
+const rasiList = [
+  { value: "Mesha", label: "Mesha (Aries)" },
+  { value: "Vrishabha", label: "Vrishabha (Taurus)" },
+  { value: "Mithuna", label: "Mithuna (Gemini)" },
+  { value: "Karka", label: "Karka (Cancer)" },
+  { value: "Simha", label: "Simha (Leo)" },
+  { value: "Kanya", label: "Kanya (Virgo)" },
+  { value: "Tula", label: "Tula (Libra)" },
+  { value: "Vrischika", label: "Vrischika (Scorpio)" },
+  { value: "Dhanu", label: "Dhanu (Sagittarius)" },
+  { value: "Makara", label: "Makara (Capricorn)" },
+  { value: "Kumbha", label: "Kumbha (Aquarius)" },
+  { value: "Meena", label: "Meena (Pisces)" },
+];
+
+/* =========================================================
+   EDUCATION
+========================================================= */
+
+const educationList = [
+  "10th",
+  "Intermediate",
+  "ITI",
+  "Diploma",
+  "B.A",
+  "B.Com",
+  "B.Sc",
+  "B.Tech",
+  "B.E",
+  "BBA",
+  "BCA",
+  "M.A",
+  "M.Com",
+  "M.Sc",
+  "M.Tech",
+  "MBA",
+  "MCA",
+  "Ph.D",
+  "Other",
+];
+
+/* =========================================================
+   COLOR
+========================================================= */
+
+const colorList = [
+  "Very Fair",
+  "Fair",
+  "Wheatish",
+  "Wheatish Brown",
+  "Brown",
+  "Dark",
+];
+
+/* =========================================================
+   OCCUPATION
+========================================================= */
+
+const parentOccupationList = [
+  "Business",
+  "Government Employee",
+  "Private Employee",
+  "Farmer",
+  "Retired",
+  "Self Employed",
+  "Late",
+  "Other",
+];
+
+/* =========================================================
+   PROFILE CATEGORY
+========================================================= */
+
+const profileCategoryList = [
+  {
+    value: "Professional",
+    label: "Professional",
+  },
+  {
+    value: "Non-Technical",
+    label: "Non-Technical",
+  },
+  {
+    value: "Business",
+    label: "Business",
+  },
+  {
+    value: "Divorced",
+    label: "Divorced",
+  },
+  {
+    value: "Handicapped",
+    label: "Physically Handicapped",
+  },
+  {
+    value: "Dearth",
+    label: "Dearth",
+  },
+  {
+    value: "Uncle",
+    label: "Uncle",
+  },
+  {
+    value: "General",
+    label: "Others",
+  },
+];
+
+/* =========================================================
+   TYPE
+========================================================= */
 
 type Profile = {
   memberId: string;
+
   profileCategory: string;
 
-  surname: string;
-  name: string;
   fatherName: string;
   motherName: string;
 
-  gotram: string;
+  fatherGotram: string;
+  motherGotram: string;
+  grandmotherGotram: string;
+
   nakshatram: string;
   padham: string;
   rasi: string;
-
-  dateOfBirth: string;
   color: string;
   height: string;
 
-  email: string;
-  mobile: string;
-
   education: string;
-  occupation: string;
-  salary: string;
+  annualIncome: string;
 
   address: string;
 
-  familyDetails: string;
+  fatherOccupation: string;
+  motherOccupation: string;
+
   brotherDetails: string;
   sisterDetails: string;
+
   propertyDetails: string;
 
   preferredRequirements: string;
 
-  status: string;
-  membership: string;
+  mobile: string;
+  email: string;
 
   photo: string;
 };
 
+/* =========================================================
+   EMPTY PROFILE
+========================================================= */
+
 const emptyProfile: Profile = {
   memberId: "",
-  profileCategory: "",
 
-  surname: "",
-  name: "",
+  profileCategory: "Professional",
+
   fatherName: "",
   motherName: "",
 
-  gotram: "",
+  fatherGotram: "",
+  motherGotram: "",
+  grandmotherGotram: "",
+
   nakshatram: "",
   padham: "",
   rasi: "",
-
-  dateOfBirth: "",
   color: "",
   height: "",
 
-  email: "",
-  mobile: "",
-
   education: "",
-  occupation: "",
-  salary: "",
+  annualIncome: "",
 
   address: "",
 
-  familyDetails: "",
+  fatherOccupation: "",
+  motherOccupation: "",
+
   brotherDetails: "",
   sisterDetails: "",
+
   propertyDetails: "",
 
   preferredRequirements: "",
 
-  status: "",
-  membership: "",
+  mobile: "",
+  email: "",
 
   photo: "",
 };
+
+/* =========================================================
+   CLASSES
+========================================================= */
+
+const inputClass =
+  "mt-2 w-full h-12 border rounded-xl px-4 border-pink-200 outline-none focus:ring-2 focus:ring-pink-300 bg-white";
+
+const textareaClass =
+  "mt-2 w-full border rounded-xl p-4 border-pink-200 outline-none focus:ring-2 focus:ring-pink-300";
+
+const labelClass =
+  "text-sm font-medium text-gray-700";
+
+/* =========================================================
+   PAGE
+========================================================= */
 
 export default function EditMatrimonialMemberPage() {
   const params = useParams();
@@ -112,20 +392,47 @@ export default function EditMatrimonialMemberPage() {
   const [profile, setProfile] =
     useState<Profile>(emptyProfile);
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] =
+    useState(true);
 
-  // PHOTO
+  const [saving, setSaving] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
+
   const [selectedPhoto, setSelectedPhoto] =
     useState<File | null>(null);
 
   const [photoPreview, setPhotoPreview] =
     useState("");
 
-  // =====================================================
-  // PHOTO URL
-  // =====================================================
+  /* =======================================================
+     TOAST
+  ======================================================= */
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+  });
+
+  const showToast = (message: string) => {
+    setToast({
+      show: true,
+      message,
+    });
+
+    setTimeout(() => {
+      setToast({
+        show: false,
+        message: "",
+      });
+    }, 3500);
+  };
+
+  /* =======================================================
+     PHOTO URL
+  ======================================================= */
 
   const getPhotoUrl = (photo: string) => {
     if (!photo) {
@@ -139,12 +446,16 @@ export default function EditMatrimonialMemberPage() {
       return photo;
     }
 
+    if (photo.startsWith("/")) {
+      return `${BACKEND_URL}${photo}`;
+    }
+
     return `${BACKEND_URL}/uploads/matrimonial/${photo}`;
   };
 
-  // =====================================================
-  // GET MEMBER
-  // =====================================================
+  /* =======================================================
+     GET MEMBER
+  ======================================================= */
 
   useEffect(() => {
     if (!id) return;
@@ -159,136 +470,143 @@ export default function EditMatrimonialMemberPage() {
           {
             method: "GET",
             cache: "no-store",
-          },
+          }
         );
 
         const result = await response.json();
 
-        console.log("Member API response:", result);
+        console.log(
+          "EDIT MEMBER API RESPONSE:",
+          result
+        );
 
         if (!response.ok) {
           throw new Error(
-            result?.message ||
-              "Failed to fetch member",
+            Array.isArray(result?.message)
+              ? result.message.join(", ")
+              : result?.message ||
+                  "Failed to fetch member"
           );
         }
 
-        if (!result) {
+        /*
+         * Some APIs return:
+         * { data: {...} }
+         * and some directly return {...}
+         */
+        const member =
+          result?.data ?? result;
+
+        if (!member) {
           throw new Error(
-            "Member data not found",
+            "Member data not found"
           );
         }
 
         const photo =
-          result.photo ?? "";
+          member.photo ?? "";
 
         setProfile({
           memberId: String(
-            result.member_id ??
-              result.id ??
-              "",
+            member.member_id ??
+              member.id ??
+              ""
           ),
 
           profileCategory:
-            result.profile_category ?? "",
-
-          surname:
-            result.surname ?? "",
-
-          name:
-            result.name ?? "",
+            member.profile_category ??
+            "Professional",
 
           fatherName:
-            result.father_name ?? "",
+            member.father_name ?? "",
 
           motherName:
-            result.mother_name ?? "",
+            member.mother_name ?? "",
 
-          gotram:
-            result.gotram ?? "",
+          fatherGotram:
+            member.father_gotram ??
+            member.gotram ??
+            "",
+
+          motherGotram:
+            member.mother_gotram ?? "",
+
+          grandmotherGotram:
+            member.grandmother_gotram ?? "",
 
           nakshatram:
-            result.nakshatram ?? "",
+            member.nakshatram ?? "",
 
           padham:
-            result.padham != null
-              ? String(result.padham)
+            member.padham != null
+              ? String(member.padham)
               : "",
 
           rasi:
-            result.rasi ?? "",
-
-          dateOfBirth:
-            result.date_of_birth
-              ? String(
-                  result.date_of_birth,
-                ).substring(0, 10)
-              : "",
+            member.rasi ?? "",
 
           color:
-            result.color ?? "",
+            member.color ?? "",
 
           height:
-            result.height ?? "",
-
-          email:
-            result.email ?? "",
-
-          mobile:
-            result.mobile ?? "",
+            member.height != null
+              ? String(member.height)
+              : "",
 
           education:
-            result.education ?? "",
+            member.education ?? "",
 
-          occupation:
-            result.occupation ?? "",
-
-          salary:
-            result.annual_income ?? "",
+          annualIncome:
+            member.annual_income != null
+              ? String(member.annual_income)
+              : "",
 
           address:
-            result.address ?? "",
+            member.address ?? "",
 
-          familyDetails:
-            result.family_details ?? "",
+          fatherOccupation:
+            member.father_occupation ?? "",
+
+          motherOccupation:
+            member.mother_occupation ?? "",
 
           brotherDetails:
-            result.brother_details ?? "",
+            member.brother_details ?? "",
 
           sisterDetails:
-            result.sister_details ?? "",
+            member.sister_details ?? "",
 
           propertyDetails:
-            result.property_details ?? "",
+            member.property_details ?? "",
 
           preferredRequirements:
-            result.preferred_requirements ?? "",
+            member.preferred_requirements ??
+            "",
 
-          status:
-            result.status ?? "Pending",
+          mobile:
+            member.mobile ?? "",
 
-          membership:
-            result.membership ?? "Free",
+          email:
+            member.email ?? "",
 
           photo,
         });
 
-        // Existing photo preview
         if (photo) {
           setPhotoPreview(
-            getPhotoUrl(photo),
+            getPhotoUrl(photo)
           );
         }
       } catch (error) {
         console.error(
-          "Fetch member error:",
-          error,
+          "Fetch matrimonial member error:",
+          error
         );
 
         setError(
           error instanceof Error
             ? error.message
-            : "Failed to load member",
+            : "Failed to load member"
         );
       } finally {
         setLoading(false);
@@ -298,16 +616,16 @@ export default function EditMatrimonialMemberPage() {
     fetchMember();
   }, [id]);
 
-  // =====================================================
-  // INPUT CHANGE
-  // =====================================================
+  /* =======================================================
+     CHANGE
+  ======================================================= */
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement |
-        HTMLTextAreaElement |
-        HTMLSelectElement
-    >,
+        HTMLSelectElement |
+        HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
 
@@ -317,31 +635,30 @@ export default function EditMatrimonialMemberPage() {
     }));
   };
 
-  // =====================================================
-  // PHOTO CHANGE
-  // =====================================================
+  /* =======================================================
+     PHOTO CHANGE
+  ======================================================= */
 
   const handlePhotoChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = e.target.files?.[0];
+    const file =
+      e.target.files?.[0] || null;
 
     if (!file) return;
 
-    // File size check - 5MB
     if (file.size > 5 * 1024 * 1024) {
       alert(
-        "Please select an image smaller than 5MB.",
+        "Please select an image smaller than 5MB."
       );
 
       e.target.value = "";
       return;
     }
 
-    // Image type check
     if (!file.type.startsWith("image/")) {
       alert(
-        "Please select a valid image file.",
+        "Please select a valid image file."
       );
 
       e.target.value = "";
@@ -350,174 +667,212 @@ export default function EditMatrimonialMemberPage() {
 
     setSelectedPhoto(file);
 
-    // Preview
     const previewUrl =
       URL.createObjectURL(file);
 
     setPhotoPreview(previewUrl);
   };
 
-  // =====================================================
-  // SAVE
-  // =====================================================
+  /* =======================================================
+     SAVE
+  ======================================================= */
 
   const handleSave = async () => {
+    if (saving) return;
+
+    /* =====================================================
+       VALIDATION
+    ===================================================== */
+
+    if (!profile.profileCategory) {
+      alert(
+        "Please select Profile Category."
+      );
+      return;
+    }
+
+    if (!profile.fatherName.trim()) {
+      alert(
+        "Please enter Father's Name."
+      );
+      return;
+    }
+
+    if (!profile.motherName.trim()) {
+      alert(
+        "Please enter Mother's Name."
+      );
+      return;
+    }
+
+    if (!profile.mobile.trim()) {
+      alert(
+        "Mobile number is missing."
+      );
+      return;
+    }
+
+    setSaving(true);
+
     try {
-      if (!profile.name.trim()) {
-        alert("Please enter name.");
-        return;
-      }
-
-      if (!profile.mobile.trim()) {
-        alert("Please enter mobile number.");
-        return;
-      }
-
-      setSaving(true);
-
-      /*
-       * IMPORTANT:
-       * Do NOT use JSON.stringify here.
-       * We are sending multipart/form-data.
-       */
-
       const formData = new FormData();
 
-      formData.append(
-        "profile_category",
-        profile.profileCategory,
-      );
+      /* ===================================================
+         MEMBERSHIP / CONTACT
+      =================================================== */
 
       formData.append(
-        "surname",
-        profile.surname,
-      );
-
-      formData.append(
-        "name",
-        profile.name,
-      );
-
-      formData.append(
-        "father_name",
-        profile.fatherName,
-      );
-
-      formData.append(
-        "mother_name",
-        profile.motherName,
-      );
-
-      formData.append(
-        "gotram",
-        profile.gotram,
-      );
-
-      formData.append(
-        "nakshatram",
-        profile.nakshatram,
-      );
-
-      formData.append(
-        "padham",
-        profile.padham || "",
-      );
-
-      formData.append(
-        "rasi",
-        profile.rasi,
-      );
-
-      formData.append(
-        "date_of_birth",
-        profile.dateOfBirth || "",
-      );
-
-      formData.append(
-        "color",
-        profile.color,
-      );
-
-      formData.append(
-        "height",
-        profile.height,
-      );
-
-      formData.append(
-        "email",
-        profile.email,
+        "member_id",
+        profile.memberId
       );
 
       formData.append(
         "mobile",
-        profile.mobile,
+        profile.mobile.trim()
       );
+
+      formData.append(
+        "email",
+        profile.email.trim()
+      );
+
+      /* ===================================================
+         PERSONAL INFORMATION
+      =================================================== */
+
+      formData.append(
+        "profile_category",
+        profile.profileCategory
+      );
+
+      formData.append(
+        "father_name",
+        profile.fatherName
+      );
+
+      formData.append(
+        "mother_name",
+        profile.motherName
+      );
+
+      formData.append(
+        "father_gotram",
+        profile.fatherGotram
+      );
+
+      formData.append(
+        "mother_gotram",
+        profile.motherGotram
+      );
+
+      formData.append(
+        "grandmother_gotram",
+        profile.grandmotherGotram
+      );
+
+      formData.append(
+        "nakshatram",
+        profile.nakshatram
+      );
+
+      formData.append(
+        "padham",
+        profile.padham
+      );
+
+      formData.append(
+        "rasi",
+        profile.rasi
+      );
+
+      formData.append(
+        "color",
+        profile.color
+      );
+
+      formData.append(
+        "height",
+        profile.height
+      );
+
+      /* ===================================================
+         EDUCATION
+      =================================================== */
 
       formData.append(
         "education",
-        profile.education,
-      );
-
-      formData.append(
-        "occupation",
-        profile.occupation,
+        profile.education
       );
 
       formData.append(
         "annual_income",
-        profile.salary,
+        profile.annualIncome
       );
+
+      /* ===================================================
+         ADDRESS
+      =================================================== */
 
       formData.append(
         "address",
-        profile.address,
+        profile.address
+      );
+
+      /* ===================================================
+         FAMILY
+      =================================================== */
+
+      formData.append(
+        "father_occupation",
+        profile.fatherOccupation
       );
 
       formData.append(
-        "family_details",
-        profile.familyDetails,
+        "mother_occupation",
+        profile.motherOccupation
       );
 
       formData.append(
         "brother_details",
-        profile.brotherDetails,
+        profile.brotherDetails
       );
 
       formData.append(
         "sister_details",
-        profile.sisterDetails,
+        profile.sisterDetails
       );
 
       formData.append(
         "property_details",
-        profile.propertyDetails,
+        profile.propertyDetails
       );
+
+      /* ===================================================
+         PREFERRED
+      =================================================== */
 
       formData.append(
         "preferred_requirements",
-        profile.preferredRequirements,
+        profile.preferredRequirements
       );
 
-      formData.append(
-        "status",
-        profile.status || "Pending",
-      );
+      /* ===================================================
+         PHOTO
+      =================================================== */
 
-      formData.append(
-        "membership",
-        profile.membership || "Free",
-      );
-
-      // NEW PHOTO
       if (selectedPhoto) {
         formData.append(
           "photo",
-          selectedPhoto,
+          selectedPhoto
         );
       }
 
       console.log(
-        "Updating matrimonial member...",
+        "UPDATING MATRIMONIAL MEMBER:",
+        {
+          id,
+          memberId: profile.memberId,
+        }
       );
 
       const response = await fetch(
@@ -525,58 +880,62 @@ export default function EditMatrimonialMemberPage() {
         {
           method: "PUT",
           body: formData,
-        },
+        }
       );
 
       const result =
         await response.json();
 
       console.log(
-        "Update response:",
-        result,
+        "UPDATE MEMBER RESPONSE:",
+        result
       );
 
       if (!response.ok) {
         throw new Error(
-          result?.message ||
-            "Failed to update member",
+          Array.isArray(result?.message)
+            ? result.message.join(", ")
+            : result?.message ||
+                "Failed to update member"
         );
       }
 
-      alert(
-        "Matrimonial member updated successfully!",
+      showToast(
+        "Matrimonial profile updated successfully."
       );
 
-      router.push(
-        "/admin/matrimony",
-      );
+      setTimeout(() => {
+        router.push(
+          "/admin/matrimony"
+        );
 
-      router.refresh();
+        router.refresh();
+      }, 1200);
     } catch (error) {
       console.error(
-        "Update error:",
-        error,
+        "Update matrimonial member error:",
+        error
       );
 
       alert(
         error instanceof Error
           ? error.message
-          : "Something went wrong",
+          : "Something went wrong"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  // =====================================================
-  // LOADING
-  // =====================================================
+  /* =======================================================
+     LOADING
+  ======================================================= */
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef] flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-pink-200 border-t-[#8B1E3F] rounded-full animate-spin mx-auto" />
+          <div className="w-12 h-12 border-4 border-pink-200 border-t-[#8B1E3F] rounded-full animate-spin mx-auto" />
 
           <p className="mt-4 text-sm text-gray-500">
             Loading member data...
@@ -586,15 +945,20 @@ export default function EditMatrimonialMemberPage() {
     );
   }
 
-  // =====================================================
-  // ERROR
-  // =====================================================
+  /* =======================================================
+     ERROR
+  ======================================================= */
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-red-200 p-6 md:p-8 text-center">
-          <h2 className="text-xl font-bold text-red-600">
+      <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+        <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-red-200 p-8 text-center shadow-lg">
+
+          <div className="mx-auto w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
+            <FaTimes className="text-2xl" />
+          </div>
+
+          <h2 className="text-xl font-bold text-red-600 mt-4">
             Failed to load member
           </h2>
 
@@ -609,604 +973,689 @@ export default function EditMatrimonialMemberPage() {
 
           <Link
             href="/admin/matrimony"
-            className="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold"
+            className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#721832]"
           >
             <FaArrowLeft />
             Back to Members
           </Link>
+
         </div>
       </div>
     );
   }
 
-  // =====================================================
-  // PAGE
-  // =====================================================
+  /* =======================================================
+     PAGE
+  ======================================================= */
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
+
+      {/* ===================================================
+          TOAST
+      =================================================== */}
+
+      {toast.show && (
+        <div className="fixed right-5 top-5 z-[9999] w-[calc(100%-40px)] max-w-md">
+
+          <div className="rounded-2xl border border-green-200 bg-white p-4 shadow-2xl">
+
+            <div className="flex items-start gap-3">
+
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <FaCheckCircle className="text-xl" />
+              </div>
+
+              <div className="flex-1">
+
+                <p className="font-bold text-green-700">
+                  Success
+                </p>
+
+                <p className="mt-1 text-sm text-gray-700">
+                  {toast.message}
+                </p>
+
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setToast({
+                    show: false,
+                    message: "",
+                  })
+                }
+                className="text-gray-400 hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* ===================================================
+          MAIN
+      =================================================== */}
+
+      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
 
         {/* =================================================
             HEADER
         ================================================= */}
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
           <div className="flex items-center gap-3">
 
             <Link
               href="/admin/matrimony"
-              className="w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-gray-500 hover:bg-gray-100"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 shadow-sm hover:bg-gray-50"
             >
               <FaArrowLeft />
             </Link>
 
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+
+              <h1 className="text-2xl font-bold text-gray-900">
                 Edit Matrimonial Member
               </h1>
 
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                Member ID:{" "}
-                <span className="font-semibold text-[#8B1E3F]">
-                  {profile.memberId || id}
-                </span>
+              <p className="mt-1 text-sm text-gray-500">
+                Update matrimonial biodata and profile details.
               </p>
+
             </div>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-
-            {profile.status && (
-              <span className="px-4 py-2 rounded-full bg-green-50 text-green-700 text-xs font-semibold">
-                {profile.status}
-              </span>
-            )}
-
-            {profile.membership && (
-              <span className="px-4 py-2 rounded-full bg-pink-50 text-[#8B1E3F] text-xs font-semibold">
-                {profile.membership}
-              </span>
-            )}
 
           </div>
+
+          <div className="rounded-full bg-pink-50 px-4 py-2 text-sm font-bold text-[#8B1E3F]">
+            Member ID: {profile.memberId || id}
+          </div>
+
         </div>
 
         {/* =================================================
-            PHOTO SECTION
+            CARD
         ================================================= */}
 
-        <Section
-          icon={<FaCamera />}
-          title="Profile Photo"
-        >
+        <div className="overflow-hidden rounded-3xl border border-pink-100 bg-white shadow-xl">
 
-          <div className="flex flex-col md:flex-row gap-8 items-start">
+          {/* =================================================
+              PERSONAL INFORMATION
+          ================================================= */}
 
-            {/* PHOTO PREVIEW */}
+          <SectionTitle
+            title="Personal Information"
+            description="Update matrimonial biodata and basic details."
+          />
 
-            <div className="w-full md:w-64">
+          <div className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
 
-              <div className="relative w-full h-80 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200">
-
-                <img
-                  src={
-                    photoPreview ||
-                    "/images/default-profile.jpg"
-                  }
-                  alt={
-                    profile.name ||
-                    "Profile"
-                  }
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.src =
-                      "/images/default-profile.jpg";
-                  }}
-                />
-
-                {/* PHOTO LABEL */}
-
-                <div className="absolute left-3 top-3">
-
-                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur text-xs font-semibold text-green-600 shadow">
-                    <FaCheckCircle />
-                    Profile Photo
-                  </span>
-
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* PHOTO CONTROLS */}
-
-            <div className="flex-1 w-full">
-
-              <div className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-5 sm:p-6">
-
-                <div className="flex items-center gap-3 mb-4">
-
-                  <div className="w-11 h-11 rounded-xl bg-pink-50 text-[#8B1E3F] flex items-center justify-center">
-                    <FaImage />
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-800">
-                      Change Profile Photo
-                    </h3>
-
-                    <p className="text-xs text-gray-500 mt-1">
-                      JPG, JPEG or PNG up to 5MB
-                    </p>
-                  </div>
-
-                </div>
-
-                <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#721832] transition">
-
-                  <FaCamera />
-
-                  Choose New Photo
-
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    onChange={
-                      handlePhotoChange
-                    }
-                    className="hidden"
-                  />
-
-                </label>
-
-                {selectedPhoto && (
-                  <div className="mt-4 p-3 rounded-xl bg-green-50 border border-green-200">
-
-                    <p className="text-xs font-semibold text-green-700">
-                      New photo selected
-                    </p>
-
-                    <p className="text-xs text-green-600 mt-1 break-all">
-                      {selectedPhoto.name}
-                    </p>
-
-                  </div>
-                )}
-
-                {profile.photo &&
-                  !selectedPhoto && (
-                    <p className="mt-4 text-xs text-gray-500 break-all">
-                      Current photo:{" "}
-                      <span className="font-medium">
-                        {profile.photo}
-                      </span>
-                    </p>
-                  )}
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </Section>
-
-        {/* =================================================
-            PERSONAL INFORMATION
-        ================================================= */}
-
-        <Section
-          icon={<FaUser />}
-          title="Personal Information"
-        >
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-            <InputField
+            <FormSelect
               label="Profile Category"
               name="profileCategory"
-              value={
-                profile.profileCategory
-              }
+              value={profile.profileCategory}
               onChange={handleChange}
+              options={profileCategoryList}
             />
 
-            <InputField
-              label="Surname"
-              name="surname"
-              value={profile.surname}
-              onChange={handleChange}
-            />
-
-            <InputField
-              label="Name"
-              name="name"
-              value={profile.name}
-              onChange={handleChange}
-            />
-
-            <InputField
-              label="Father Name"
+            <FormInput
+              label="Father's Name"
               name="fatherName"
-              value={
-                profile.fatherName
-              }
+              value={profile.fatherName}
               onChange={handleChange}
+              required
             />
 
-            <InputField
-              label="Mother Name"
+            <FormInput
+              label="Mother's Name"
               name="motherName"
-              value={
-                profile.motherName
-              }
+              value={profile.motherName}
               onChange={handleChange}
+              required
             />
 
-            <InputField
-              label="Date of Birth"
-              name="dateOfBirth"
-              value={
-                profile.dateOfBirth
-              }
-              type="date"
+            <FormSelect
+              label="Father Gotram"
+              name="fatherGotram"
+              value={profile.fatherGotram}
               onChange={handleChange}
+              options={gotramList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
             />
 
-            <InputField
-              label="Color"
-              name="color"
-              value={profile.color}
+            <FormSelect
+              label="Mother Gotram"
+              name="motherGotram"
+              value={profile.motherGotram}
               onChange={handleChange}
+              options={gotramList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
             />
 
-            <InputField
-              label="Height"
-              name="height"
-              value={profile.height}
+            <FormSelect
+              label="Grand Mother Gotram"
+              name="grandmotherGotram"
+              value={profile.grandmotherGotram}
               onChange={handleChange}
+              options={gotramList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
             />
 
-          </div>
-
-        </Section>
-
-        {/* =================================================
-            HOROSCOPE
-        ================================================= */}
-
-        <Section
-          icon={<FaHeart />}
-          title="Horoscope Details"
-        >
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-
-            <InputField
-              label="Gotram"
-              name="gotram"
-              value={profile.gotram}
-              onChange={handleChange}
-            />
-
-            <InputField
+            <FormSelect
               label="Nakshatram"
               name="nakshatram"
-              value={
-                profile.nakshatram
-              }
+              value={profile.nakshatram}
               onChange={handleChange}
+              options={nakshatramList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
             />
 
-            <InputField
-              label="Padham"
+            <FormSelect
+              label="Nakshatram Padham"
               name="padham"
               value={profile.padham}
-              type="number"
               onChange={handleChange}
+              options={[
+                {
+                  value: "1",
+                  label: "1",
+                },
+                {
+                  value: "2",
+                  label: "2",
+                },
+                {
+                  value: "3",
+                  label: "3",
+                },
+                {
+                  value: "4",
+                  label: "4",
+                },
+              ]}
             />
 
-            <InputField
+            <FormSelect
               label="Rasi"
               name="rasi"
               value={profile.rasi}
               onChange={handleChange}
+              options={rasiList}
+            />
+
+            <FormSelect
+              label="Color"
+              name="color"
+              value={profile.color}
+              onChange={handleChange}
+              options={colorList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
+            />
+
+            <FormInput
+              label="Height"
+              name="height"
+              value={profile.height}
+              onChange={handleChange}
+              placeholder="Example: 5.6"
             />
 
           </div>
 
-        </Section>
+          {/* =================================================
+              EDUCATION
+          ================================================= */}
 
-        {/* =================================================
-            CONTACT
-        ================================================= */}
+          <SectionTitle
+            title="Education & Career"
+            description="Update education and annual income details."
+          />
 
-        <Section
-          icon={<FaPhone />}
-          title="Contact Information"
-        >
+          <div className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            <InputField
-              label="Email ID"
-              name="email"
-              value={profile.email}
-              type="email"
+            <FormSelect
+              label="Education"
+              name="education"
+              value={profile.education}
               onChange={handleChange}
+              options={educationList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
             />
 
-            <InputField
-              label="Mobile Number"
-              name="mobile"
-              value={profile.mobile}
+            <FormInput
+              label="Salary / Annual Income"
+              name="annualIncome"
+              value={profile.annualIncome}
               onChange={handleChange}
+              placeholder="Example: ₹6,00,000"
+            />
+
+          </div>
+
+          {/* =================================================
+              ADDRESS
+          ================================================= */}
+
+          <SectionTitle
+            title="Address"
+            description="Update current residential address."
+          />
+
+          <div className="p-6">
+
+            <FormTextarea
+              label="Address"
+              name="address"
+              value={profile.address}
+              onChange={handleChange}
+              rows={4}
+            />
+
+          </div>
+
+          {/* =================================================
+              FAMILY
+          ================================================= */}
+
+          <SectionTitle
+            title="Family Information"
+            description="Update parents, siblings and property details."
+          />
+
+          <div className="grid gap-6 p-6 md:grid-cols-2">
+
+            <FormSelect
+              label="Father Details"
+              name="fatherOccupation"
+              value={profile.fatherOccupation}
+              onChange={handleChange}
+              options={parentOccupationList.map(
+                (item) => ({
+                  value: item,
+                  label: item,
+                })
+              )}
+            />
+
+            <FormSelect
+              label="Mother Details"
+              name="motherOccupation"
+              value={profile.motherOccupation}
+              onChange={handleChange}
+              options={[
+                {
+                  value: "Homemaker",
+                  label: "Homemaker",
+                },
+                ...parentOccupationList.map(
+                  (item) => ({
+                    value: item,
+                    label: item,
+                  })
+                ),
+              ]}
+            />
+
+            <FormSelect
+              label="Brother Details"
+              name="brotherDetails"
+              value={profile.brotherDetails}
+              onChange={handleChange}
+              options={[
+                {
+                  value: "No Brothers",
+                  label: "No Brothers",
+                },
+                {
+                  value: "1 Brother",
+                  label: "1 Brother",
+                },
+                {
+                  value: "2 Brothers",
+                  label: "2 Brothers",
+                },
+                {
+                  value: "3 Brothers",
+                  label: "3 Brothers",
+                },
+              ]}
+            />
+
+            <FormSelect
+              label="Sister Details"
+              name="sisterDetails"
+              value={profile.sisterDetails}
+              onChange={handleChange}
+              options={[
+                {
+                  value: "No Sisters",
+                  label: "No Sisters",
+                },
+                {
+                  value: "1 Sister",
+                  label: "1 Sister",
+                },
+                {
+                  value: "2 Sisters",
+                  label: "2 Sisters",
+                },
+                {
+                  value: "3 Sisters",
+                  label: "3 Sisters",
+                },
+              ]}
             />
 
             <div className="md:col-span-2">
 
-              <TextAreaField
-                label="Address"
-                name="address"
-                value={profile.address}
+              <FormTextarea
+                label="Property Details"
+                name="propertyDetails"
+                value={profile.propertyDetails}
                 onChange={handleChange}
+                rows={4}
               />
 
             </div>
 
           </div>
 
-        </Section>
+          {/* =================================================
+              PREFERRED
+          ================================================= */}
 
-        {/* =================================================
-            EDUCATION
-        ================================================= */}
-
-        <Section
-          icon={<FaGraduationCap />}
-          title="Education & Career"
-        >
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-            <InputField
-              label="Education"
-              name="education"
-              value={
-                profile.education
-              }
-              onChange={handleChange}
-            />
-
-            <InputField
-              label="Occupation"
-              name="occupation"
-              value={
-                profile.occupation
-              }
-              onChange={handleChange}
-            />
-
-            <InputField
-              label="Salary / Income"
-              name="salary"
-              value={profile.salary}
-              onChange={handleChange}
-            />
-
-          </div>
-
-        </Section>
-
-        {/* =================================================
-            FAMILY
-        ================================================= */}
-
-        <Section
-          icon={<FaUsers />}
-          title="Family Information"
-        >
-
-          <div className="space-y-5">
-
-            <TextAreaField
-              label="Family Details"
-              name="familyDetails"
-              value={
-                profile.familyDetails
-              }
-              onChange={handleChange}
-            />
-
-            <TextAreaField
-              label="Brother Details"
-              name="brotherDetails"
-              value={
-                profile.brotherDetails
-              }
-              onChange={handleChange}
-            />
-
-            <TextAreaField
-              label="Sister Details"
-              name="sisterDetails"
-              value={
-                profile.sisterDetails
-              }
-              onChange={handleChange}
-            />
-
-            <TextAreaField
-              label="Property Details"
-              name="propertyDetails"
-              value={
-                profile.propertyDetails
-              }
-              onChange={handleChange}
-            />
-
-          </div>
-
-        </Section>
-
-        {/* =================================================
-            PREFERRED
-        ================================================= */}
-
-        <Section
-          icon={<FaHome />}
-          title="Preferred Requirements"
-        >
-
-          <TextAreaField
-            label="Preferred Requirements"
-            name="preferredRequirements"
-            value={
-              profile.preferredRequirements
-            }
-            onChange={handleChange}
+          <SectionTitle
+            title="Preferred Requirements"
+            description="Update preferred partner requirements."
           />
 
-        </Section>
+          <div className="p-6">
 
-        {/* =================================================
-            STATUS / MEMBERSHIP
-        ================================================= */}
-
-        <Section
-          icon={<FaBriefcase />}
-          title="Account Status"
-        >
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-            <SelectField
-              label="Profile Status"
-              name="status"
-              value={profile.status}
+            <FormTextarea
+              label="Preferred Requirements"
+              name="preferredRequirements"
+              value={profile.preferredRequirements}
               onChange={handleChange}
-              options={[
-                "Pending",
-                "Approved",
-                "Rejected",
-              ]}
-            />
-
-            <SelectField
-              label="Membership"
-              name="membership"
-              value={
-                profile.membership
-              }
-              onChange={handleChange}
-              options={[
-                "Free",
-                "Silver",
-                "Gold",
-                "Platinum",
-              ]}
+              rows={5}
             />
 
           </div>
 
-        </Section>
+          {/* =================================================
+              CONTACT
+          ================================================= */}
 
-        {/* =================================================
-            ACTIONS
-        ================================================= */}
+          <SectionTitle
+            title="Contact Information"
+            description="Registered membership contact details."
+          />
 
-        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 mb-10">
+          <div className="grid gap-6 p-6 md:grid-cols-2">
 
-          <Link
-            href="/admin/matrimony"
-            className="px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-600 text-sm font-semibold text-center hover:bg-gray-50"
-          >
-            Back to Members
-          </Link>
+            <FormInput
+              label="Registered Mobile"
+              name="mobile"
+              value={profile.mobile}
+              onChange={handleChange}
+              required
+            />
 
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold hover:bg-[#721832] disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            <FormInput
+              label="Registered Email"
+              name="email"
+              value={profile.email}
+              type="email"
+              onChange={handleChange}
+            />
 
-            <FaSave />
+          </div>
 
-            {saving
-              ? "Saving..."
-              : "Save Changes"}
+          {/* =================================================
+              PHOTO
+          ================================================= */}
 
-          </button>
+          <SectionTitle
+            title="Profile Photo"
+            description="Change the matrimonial profile photograph."
+          />
+
+          <div className="p-6">
+
+            <div className="grid gap-6 md:grid-cols-[280px_1fr]">
+
+              {/* PHOTO PREVIEW */}
+
+              <div>
+
+                <div className="relative h-[340px] overflow-hidden rounded-2xl border border-pink-200 bg-gray-100">
+
+                  <img
+                    src={
+                      photoPreview ||
+                      "/images/default-profile.jpg"
+                    }
+                    alt={
+                      profile.memberId ||
+                      "Matrimonial Profile"
+                    }
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "/images/default-profile.jpg";
+                    }}
+                  />
+
+                  <div className="absolute left-3 top-3">
+
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-green-600 shadow">
+
+                      <FaCheckCircle />
+
+                      Profile Photo
+
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* PHOTO UPLOAD */}
+
+              <div className="flex items-center">
+
+                <div className="w-full rounded-2xl border-2 border-dashed border-pink-200 bg-pink-50/40 p-8 text-center">
+
+                  <FaCamera className="mx-auto mb-4 text-4xl text-[#8B1E3F]" />
+
+                  <h3 className="text-lg font-bold text-gray-800">
+                    Change Profile Photo
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-500">
+                    JPG, JPEG or PNG up to 5MB
+                  </p>
+
+                  <label className="mt-6 inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8B1E3F] to-[#d81b60] px-6 py-3 text-sm font-semibold text-white shadow-md hover:shadow-xl">
+
+                    <FaUpload />
+
+                    Choose New Photo
+
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png"
+                      onChange={
+                        handlePhotoChange
+                      }
+                      className="hidden"
+                    />
+
+                  </label>
+
+                  {selectedPhoto && (
+                    <div className="mx-auto mt-5 max-w-md rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-left">
+
+                      <p className="text-xs font-semibold text-green-700">
+                        New photo selected
+                      </p>
+
+                      <p className="mt-1 break-all text-xs text-green-600">
+                        {selectedPhoto.name}
+                      </p>
+
+                    </div>
+                  )}
+
+                  {profile.photo &&
+                    !selectedPhoto && (
+                      <p className="mx-auto mt-5 max-w-lg break-all text-xs text-gray-500">
+                        Current photo:{" "}
+                        <span className="font-medium">
+                          {profile.photo}
+                        </span>
+                      </p>
+                    )}
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              ACTIONS
+          ================================================= */}
+
+          <div className="flex flex-col-reverse gap-3 border-t border-gray-100 px-6 py-6 sm:flex-row sm:justify-end">
+
+            <Link
+              href="/admin/matrimony"
+              className="flex h-12 items-center justify-center rounded-xl border border-gray-200 px-7 text-sm font-semibold text-gray-600 hover:bg-gray-50"
+            >
+              Cancel
+            </Link>
+
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className="flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8B1E3F] to-[#d81b60] px-8 text-sm font-semibold text-white shadow-md hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+            >
+
+              <FaSave />
+
+              {saving
+                ? "Saving Changes..."
+                : "Save Changes"}
+
+            </button>
+
+          </div>
 
         </div>
 
-      </div>
+      </main>
+
     </div>
   );
 }
 
-/* =====================================================
-   SECTION
-===================================================== */
+/* =========================================================
+   SECTION TITLE
+========================================================= */
 
-function Section({
+function SectionTitle({
   title,
-  icon,
-  children,
+  description,
 }: {
   title: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  description: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 mb-6">
+    <div className="border-b border-t border-pink-100 bg-pink-50/30 px-6 py-5">
 
-      <div className="flex items-center gap-3 mb-6">
+      <h2 className="text-lg font-bold text-[#8B1E3F]">
+        {title}
+      </h2>
 
-        <div className="w-10 h-10 shrink-0 rounded-xl bg-pink-50 text-[#8B1E3F] flex items-center justify-center">
-          {icon}
-        </div>
-
-        <h2 className="text-base sm:text-lg font-bold text-gray-800">
-          {title}
-        </h2>
-
-      </div>
-
-      {children}
+      <p className="mt-1 text-sm text-gray-400">
+        {description}
+      </p>
 
     </div>
   );
 }
 
-/* =====================================================
+/* =========================================================
    INPUT
-===================================================== */
+========================================================= */
 
-function InputField({
+function FormInput({
   label,
   name,
   value,
-  type = "text",
   onChange,
+  type = "text",
+  placeholder,
+  required = false,
 }: {
   label: string;
   name: string;
   value: string;
-  type?: string;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement>
   ) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
 }) {
   return (
     <div>
 
-      <label className="block text-xs font-semibold text-gray-500 mb-2">
+      <label className={labelClass}>
+
         {label}
+
+        {required && (
+          <span className="ml-1 text-red-500">
+            *
+          </span>
+        )}
+
       </label>
 
       <input
@@ -1214,36 +1663,41 @@ function InputField({
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-pink-100"
+        placeholder={placeholder}
+        required={required}
+        className={inputClass}
       />
 
     </div>
   );
 }
 
-/* =====================================================
+/* =========================================================
    SELECT
-===================================================== */
+========================================================= */
 
-function SelectField({
+function FormSelect({
   label,
   name,
   value,
-  options,
   onChange,
+  options,
 }: {
   label: string;
   name: string;
   value: string;
-  options: string[];
   onChange: (
-    e: React.ChangeEvent<HTMLSelectElement>,
+    e: React.ChangeEvent<HTMLSelectElement>
   ) => void;
+  options: {
+    value: string;
+    label: string;
+  }[];
 }) {
   return (
     <div>
 
-      <label className="block text-xs font-semibold text-gray-500 mb-2">
+      <label className={labelClass}>
         {label}
       </label>
 
@@ -1251,17 +1705,23 @@ function SelectField({
         name={name}
         value={value}
         onChange={onChange}
-        className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-pink-100"
+        className={inputClass}
       >
 
-        {options.map((option) => (
-          <option
-            key={option}
-            value={option}
-          >
-            {option}
-          </option>
-        ))}
+        <option value="">
+          Select {label}
+        </option>
+
+        {options.map(
+          (option) => (
+            <option
+              key={option.value}
+              value={option.value}
+            >
+              {option.label}
+            </option>
+          )
+        )}
 
       </select>
 
@@ -1269,27 +1729,29 @@ function SelectField({
   );
 }
 
-/* =====================================================
+/* =========================================================
    TEXTAREA
-===================================================== */
+========================================================= */
 
-function TextAreaField({
+function FormTextarea({
   label,
   name,
   value,
   onChange,
+  rows = 4,
 }: {
   label: string;
   name: string;
   value: string;
   onChange: (
-    e: React.ChangeEvent<HTMLTextAreaElement>,
+    e: React.ChangeEvent<HTMLTextAreaElement>
   ) => void;
+  rows?: number;
 }) {
   return (
     <div>
 
-      <label className="block text-xs font-semibold text-gray-500 mb-2">
+      <label className={labelClass}>
         {label}
       </label>
 
@@ -1297,10 +1759,11 @@ function TextAreaField({
         name={name}
         value={value}
         onChange={onChange}
-        rows={4}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 outline-none resize-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-pink-100"
+        rows={rows}
+        className={textareaClass}
       />
 
     </div>
   );
 }
+

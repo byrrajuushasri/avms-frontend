@@ -9,76 +9,111 @@ import {
   FaUser,
   FaEnvelope,
   FaPhone,
-  FaCalendarAlt,
   FaGraduationCap,
   FaMapMarkerAlt,
   FaUsers,
   FaHeart,
   FaPrayingHands,
+  FaBriefcase,
+  FaRupeeSign,
+  FaRulerVertical,
+  FaIdCard,
+  FaVenusMars,
 } from "react-icons/fa";
 
+/* =========================================================
+   BACKEND URL
+========================================================= */
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
-  ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/matrimonial-users`
-  : "http://localhost:5000/matrimonial-users";
+const API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000";
+
+/* =========================================================
+   MEMBER INTERFACE
+   SAME FIELDS AS MATRIMONIAL REGISTER FORM
+========================================================= */
 
 interface Member {
   id: number;
+
+  /* MEMBERSHIP */
   member_id?: string | null;
 
-  profile_category?: string;
-  surname?: string;
-  name?: string;
+  mobile?: string | null;
+  email?: string | null;
 
-  father_name?: string;
-  mother_name?: string;
+  /* BASIC */
+  profile_category?: string | null;
 
-  gotram?: string;
-  nakshatram?: string;
-  padham?: number | null;
-  rasi?: string;
+  father_name?: string | null;
+  mother_name?: string | null;
 
-  date_of_birth?: string | null;
-  color?: string;
-  height?: string;
+  /* GOTRAM */
+  father_gotram?: string | null;
+  mother_gotram?: string | null;
+  grandmother_gotram?: string | null;
 
-  email?: string;
-  mobile?: string;
+  /* HOROSCOPE */
+  nakshatram?: string | null;
+  padham?: string | number | null;
+  rasi?: string | null;
 
-  education?: string;
-  occupation?: string;
-  annual_income?: string;
+  /* PERSONAL */
+  color?: string | null;
+  height?: string | null;
 
-  address?: string;
+  /* EDUCATION */
+  education?: string | null;
+  annual_income?: string | null;
 
-  family_details?: string;
-  brother_details?: string;
-  sister_details?: string;
-  property_details?: string;
+  /* ADDRESS */
+  address?: string | null;
 
-  preferred_requirements?: string;
+  /* FAMILY */
+  father_occupation?: string | null;
+  mother_occupation?: string | null;
 
+  brother_details?: string | null;
+  sister_details?: string | null;
+
+  property_details?: string | null;
+
+  /* PREFERENCE */
+  preferred_requirements?: string | null;
+
+  /* PHOTO */
   photo?: string | null;
 
-  status?: string;
-  membership?: string;
+  /* STATUS */
+  status?: string | null;
+  membership?: string | null;
 
-  created_at?: string;
-  updated_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
+
+/* =========================================================
+   VIEW PROFILE PAGE
+========================================================= */
 
 export default function ViewProfilePage() {
   const params = useParams();
 
   const id = params?.id;
 
-  const [member, setMember] = useState<Member | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [member, setMember] =
+    useState<Member | null>(null);
 
-  // =========================================================
-  // FETCH MEMBER
-  // =========================================================
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  /* =========================================================
+     FETCH MEMBER
+  ========================================================= */
 
   useEffect(() => {
     if (!id) return;
@@ -88,8 +123,16 @@ export default function ViewProfilePage() {
         setLoading(true);
         setError("");
 
+        /*
+         * IMPORTANT:
+         * API_URL = http://localhost:5000
+         *
+         * API:
+         * GET /matrimonial-users/:id
+         */
+
         const response = await fetch(
-          `${BACKEND_URL}/matrimonial-users/${id}`,
+          `${API_URL}/matrimonial-users/${id}`,
           {
             method: "GET",
             cache: "no-store",
@@ -98,17 +141,35 @@ export default function ViewProfilePage() {
 
         const result = await response.json();
 
-        console.log("View member API response:", result);
+        console.log(
+          "View member API response:",
+          result
+        );
 
         if (!response.ok) {
           throw new Error(
-            result?.message || "Failed to fetch member"
+            result?.message ||
+              "Failed to fetch member"
           );
         }
 
-        setMember(result);
+        /*
+         * Some APIs return:
+         * { data: {...} }
+         *
+         * Others return:
+         * {...}
+         */
+
+        const memberData =
+          result?.data || result;
+
+        setMember(memberData);
       } catch (error) {
-        console.error("Fetch member error:", error);
+        console.error(
+          "Fetch member error:",
+          error
+        );
 
         setError(
           error instanceof Error
@@ -123,9 +184,9 @@ export default function ViewProfilePage() {
     fetchMember();
   }, [id]);
 
-  // =========================================================
-  // LOADING
-  // =========================================================
+  /* =========================================================
+     LOADING
+  ========================================================= */
 
   if (loading) {
     return (
@@ -141,9 +202,9 @@ export default function ViewProfilePage() {
     );
   }
 
-  // =========================================================
-  // ERROR
-  // =========================================================
+  /* =========================================================
+     ERROR
+  ========================================================= */
 
   if (error || !member) {
     return (
@@ -159,48 +220,50 @@ export default function ViewProfilePage() {
           </Link>
 
           <div className="bg-white rounded-2xl border border-red-100 p-8 mt-6 text-center">
+
             <h1 className="text-xl font-semibold text-gray-800">
               Member Not Found
             </h1>
 
             <p className="text-sm text-red-500 mt-2">
-              {error || "Unable to load member information."}
+              {error ||
+                "Unable to load member information."}
             </p>
-          </div>
 
+          </div>
         </div>
       </div>
     );
   }
 
-  // =========================================================
-  // PHOTO URL
-  // =========================================================
+  /* =========================================================
+     PHOTO URL
+  ========================================================= */
 
   const photoUrl = member.photo
     ? member.photo.startsWith("http")
       ? member.photo
-      : `${BACKEND_URL}/uploads/matrimonial/${member.photo}`
+      : `${API_URL}${
+          member.photo.startsWith("/")
+            ? member.photo
+            : `/uploads/matrimonial/${member.photo}`
+        }`
     : null;
 
-  // =========================================================
-  // DATE FORMAT
-  // =========================================================
+  /* =========================================================
+     PADHAM
+  ========================================================= */
 
-  const formattedDate = member.date_of_birth
-    ? new Date(member.date_of_birth).toLocaleDateString(
-        "en-IN",
-        {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }
-      )
-    : "—";
+  const formattedPadham =
+    member.padham !== null &&
+    member.padham !== undefined &&
+    member.padham !== ""
+      ? String(member.padham)
+      : "—";
 
-  // =========================================================
-  // PAGE
-  // =========================================================
+  /* =========================================================
+     PAGE
+  ========================================================= */
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -226,7 +289,7 @@ export default function ViewProfilePage() {
             <div>
 
               <h1 className="text-2xl md:text-3xl font-bold text-black">
-                View Member Profile
+                View Matrimonial Profile
               </h1>
 
               <p className="text-sm text-gray-500 mt-1">
@@ -235,7 +298,7 @@ export default function ViewProfilePage() {
 
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
 
               <span
                 className={`px-4 py-2 rounded-full text-xs font-semibold ${
@@ -260,28 +323,26 @@ export default function ViewProfilePage() {
         </div>
 
         {/* =====================================================
-            PROFILE CARD
+            PROFILE HEADER CARD
         ===================================================== */}
 
         <div className="bg-white rounded-2xl border border-pink-100 shadow-sm p-6 md:p-8">
 
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
 
-            {/* =================================================
-                PROFILE IMAGE
-            ================================================= */}
+            {/* PROFILE IMAGE */}
 
-            <div className="w-28 h-28 rounded-2xl bg-pink-50 overflow-hidden flex items-center justify-center text-[#8B1E3F] text-3xl font-bold flex-shrink-0">
+            <div className="w-32 h-32 rounded-2xl bg-pink-50 overflow-hidden flex items-center justify-center text-[#8B1E3F] text-4xl font-bold flex-shrink-0 border border-pink-100">
 
               {photoUrl ? (
                 <img
                   src={photoUrl}
-                  alt={`${member.surname || ""} ${member.name || ""}`}
+                  alt="Profile"
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span>
-                  {(member.name || "U")
+                  {(member.father_name || "M")
                     .charAt(0)
                     .toUpperCase()}
                 </span>
@@ -289,50 +350,59 @@ export default function ViewProfilePage() {
 
             </div>
 
-            {/* =================================================
-                BASIC DETAILS
-            ================================================= */}
+            {/* BASIC DETAILS */}
 
             <div className="flex-1 text-center md:text-left">
 
               <h2 className="text-2xl font-bold text-gray-800">
-                {member.surname || ""}{" "}
-                {member.name || "Unknown"}
+                Matrimonial Profile
               </h2>
 
               <p className="text-sm font-semibold text-[#8B1E3F] mt-1">
-                Member ID:{" "}
-                {member.member_id || member.id}
+                Membership ID:{" "}
+                {member.member_id ||
+                  member.id}
               </p>
 
               <p className="text-sm text-gray-500 mt-2">
-                {member.profile_category || "—"}
+                {member.profile_category ||
+                  "—"}
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
 
                 <MiniInfo
-                  icon={<FaEnvelope />}
-                  title="Email"
-                  value={member.email || "—"}
+                  icon={<FaIdCard />}
+                  title="Membership ID"
+                  value={
+                    member.member_id ||
+                    String(member.id)
+                  }
                 />
 
                 <MiniInfo
                   icon={<FaPhone />}
                   title="Mobile"
-                  value={member.mobile || "—"}
+                  value={
+                    member.mobile || "—"
+                  }
                 />
 
                 <MiniInfo
-                  icon={<FaCalendarAlt />}
-                  title="Date of Birth"
-                  value={formattedDate}
+                  icon={<FaEnvelope />}
+                  title="Email"
+                  value={
+                    member.email || "—"
+                  }
                 />
 
                 <MiniInfo
-                  icon={<FaMapMarkerAlt />}
-                  title="Location"
-                  value={member.address || "—"}
+                  icon={<FaUser />}
+                  title="Category"
+                  value={
+                    member.profile_category ||
+                    "—"
+                  }
                 />
 
               </div>
@@ -355,28 +425,24 @@ export default function ViewProfilePage() {
           <InfoGrid>
 
             <Info
-              label="Surname"
-              value={member.surname}
+              label="Profile Category"
+              value={
+                member.profile_category
+              }
             />
 
             <Info
-              label="Name"
-              value={member.name}
+              label="Father's Name"
+              value={
+                member.father_name
+              }
             />
 
             <Info
-              label="Father Name"
-              value={member.father_name}
-            />
-
-            <Info
-              label="Mother Name"
-              value={member.mother_name}
-            />
-
-            <Info
-              label="Date of Birth"
-              value={formattedDate}
+              label="Mother's Name"
+              value={
+                member.mother_name
+              }
             />
 
             <Info
@@ -390,8 +456,13 @@ export default function ViewProfilePage() {
             />
 
             <Info
-              label="Profile Category"
-              value={member.profile_category}
+              label="Mobile"
+              value={member.mobile}
+            />
+
+            <Info
+              label="Email"
+              value={member.email}
             />
 
           </InfoGrid>
@@ -399,34 +470,47 @@ export default function ViewProfilePage() {
         </Section>
 
         {/* =====================================================
-            HOROSCOPE
+            GOTRAM & HOROSCOPE
         ===================================================== */}
 
         <Section
-          title="Horoscope Information"
+          title="Gotram & Horoscope Information"
           icon={<FaPrayingHands />}
         >
 
           <InfoGrid>
 
             <Info
-              label="Gotram"
-              value={member.gotram}
+              label="Father Gotram"
+              value={
+                member.father_gotram
+              }
+            />
+
+            <Info
+              label="Mother Gotram"
+              value={
+                member.mother_gotram
+              }
+            />
+
+            <Info
+              label="Grand Mother Gotram"
+              value={
+                member.grandmother_gotram
+              }
             />
 
             <Info
               label="Nakshatram"
-              value={member.nakshatram}
+              value={
+                member.nakshatram
+              }
             />
 
             <Info
-              label="Padham"
-              value={
-                member.padham !== null &&
-                member.padham !== undefined
-                  ? String(member.padham)
-                  : "—"
-              }
+              label="Nakshatram Padham"
+              value={formattedPadham}
             />
 
             <Info
@@ -439,11 +523,11 @@ export default function ViewProfilePage() {
         </Section>
 
         {/* =====================================================
-            EDUCATION & CAREER
+            EDUCATION & INCOME
         ===================================================== */}
 
         <Section
-          title="Education & Career"
+          title="Education & Income"
           icon={<FaGraduationCap />}
         >
 
@@ -451,22 +535,23 @@ export default function ViewProfilePage() {
 
             <Info
               label="Education"
-              value={member.education}
+              value={
+                member.education
+              }
             />
 
             <Info
-              label="Occupation"
-              value={member.occupation}
+              label="Annual Income"
+              value={
+                member.annual_income
+              }
             />
 
             <Info
-              label="Salary / Income"
-              value={member.annual_income}
-            />
-
-            <Info
-              label="Mobile Number"
-              value={member.mobile}
+              label="Height"
+              value={
+                member.height
+              }
             />
 
           </InfoGrid>
@@ -474,7 +559,7 @@ export default function ViewProfilePage() {
         </Section>
 
         {/* =====================================================
-            FAMILY
+            FAMILY INFORMATION
         ===================================================== */}
 
         <Section
@@ -485,23 +570,38 @@ export default function ViewProfilePage() {
           <InfoGrid>
 
             <Info
-              label="Family Details"
-              value={member.family_details}
+              label="Father's Details"
+              value={
+                member.father_occupation
+              }
+            />
+
+            <Info
+              label="Mother's Details"
+              value={
+                member.mother_occupation
+              }
             />
 
             <Info
               label="Brother Details"
-              value={member.brother_details}
+              value={
+                member.brother_details
+              }
             />
 
             <Info
               label="Sister Details"
-              value={member.sister_details}
+              value={
+                member.sister_details
+              }
             />
 
             <Info
               label="Property Details"
-              value={member.property_details}
+              value={
+                member.property_details
+              }
             />
 
           </InfoGrid>
@@ -509,7 +609,7 @@ export default function ViewProfilePage() {
         </Section>
 
         {/* =====================================================
-            ADDRESS
+            CONTACT / ADDRESS
         ===================================================== */}
 
         <Section
@@ -517,15 +617,38 @@ export default function ViewProfilePage() {
           icon={<FaMapMarkerAlt />}
         >
 
-          <div className="bg-gray-50 rounded-xl p-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-2">
-              Address
-            </p>
+            <Info
+              label="Mobile Number"
+              value={
+                member.mobile
+              }
+            />
 
-            <p className="text-sm text-gray-700">
-              {member.address || "—"}
-            </p>
+            <Info
+              label="Email Address"
+              value={
+                member.email
+              }
+            />
+
+            <div className="md:col-span-2">
+
+              <p className="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-2">
+                Address
+              </p>
+
+              <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+
+                <p className="text-sm text-gray-700 leading-6 whitespace-pre-wrap">
+                  {member.address ||
+                    "—"}
+                </p>
+
+              </div>
+
+            </div>
 
           </div>
 
@@ -540,10 +663,13 @@ export default function ViewProfilePage() {
           icon={<FaHeart />}
         >
 
-          <div className="bg-pink-50/50 rounded-xl p-5">
+          <div className="bg-pink-50/50 rounded-xl p-5 border border-pink-100">
 
-            <p className="text-sm text-gray-700 leading-6">
-              {member.preferred_requirements || "—"}
+            <p className="text-sm text-gray-700 leading-7 whitespace-pre-wrap">
+
+              {member.preferred_requirements ||
+                "—"}
+
             </p>
 
           </div>
@@ -551,7 +677,29 @@ export default function ViewProfilePage() {
         </Section>
 
         {/* =====================================================
-            PHOTO
+            PROPERTY DETAILS
+        ===================================================== */}
+
+        <Section
+          title="Property Details"
+          icon={<FaBriefcase />}
+        >
+
+          <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
+
+            <p className="text-sm text-gray-700 leading-7 whitespace-pre-wrap">
+
+              {member.property_details ||
+                "—"}
+
+            </p>
+
+          </div>
+
+        </Section>
+
+        {/* =====================================================
+            PROFILE PHOTO
         ===================================================== */}
 
         {photoUrl && (
@@ -564,8 +712,8 @@ export default function ViewProfilePage() {
 
               <img
                 src={photoUrl}
-                alt="Profile"
-                className="max-w-sm w-full max-h-[500px] object-contain rounded-2xl border border-gray-100 shadow-sm"
+                alt="Matrimonial Profile"
+                className="max-w-md w-full max-h-[600px] object-contain rounded-2xl border border-pink-100 shadow-sm"
               />
 
             </div>
@@ -574,7 +722,69 @@ export default function ViewProfilePage() {
         )}
 
         {/* =====================================================
-            BOTTOM
+            REGISTRATION STATUS
+        ===================================================== */}
+
+        <Section
+          title="Registration Information"
+          icon={<FaIdCard />}
+        >
+
+          <InfoGrid>
+
+            <Info
+              label="Membership ID"
+              value={
+                member.member_id
+              }
+            />
+
+            <Info
+              label="Status"
+              value={
+                member.status
+              }
+            />
+
+            <Info
+              label="Membership"
+              value={
+                member.membership
+              }
+            />
+
+            <Info
+              label="Created At"
+              value={
+                member.created_at
+                  ? new Date(
+                      member.created_at
+                    ).toLocaleString(
+                      "en-IN"
+                    )
+                  : undefined
+              }
+            />
+
+            <Info
+              label="Updated At"
+              value={
+                member.updated_at
+                  ? new Date(
+                      member.updated_at
+                    ).toLocaleString(
+                      "en-IN"
+                    )
+                  : undefined
+              }
+            />
+
+          </InfoGrid>
+
+        </Section>
+
+        {/* =====================================================
+            BACK BUTTON
         ===================================================== */}
 
         <div className="flex justify-end mt-6">
@@ -678,7 +888,7 @@ function Info({
         {label}
       </p>
 
-      <p className="text-sm font-medium text-gray-700">
+      <p className="text-sm font-medium text-gray-700 whitespace-pre-wrap break-words">
         {value || "—"}
       </p>
 
@@ -702,7 +912,7 @@ function MiniInfo({
   return (
     <div className="flex items-center gap-3">
 
-      <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
+      <div className="w-9 h-9 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 flex-shrink-0">
         {icon}
       </div>
 

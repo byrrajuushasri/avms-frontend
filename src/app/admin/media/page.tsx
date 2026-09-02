@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 
 import {
   FaPhotoVideo,
@@ -16,29 +22,26 @@ import {
   FaUpload,
   FaMapMarkerAlt,
   FaSyncAlt,
+  FaEllipsisV,
+  FaNewspaper,
+  FaEye,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 
-/* =========================================================
-   API
-========================================================= */
+// =========================================================
+// API
+// =========================================================
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "https://avms-backend-production.up.railway.app";
 
-/*
-  IMPORTANT:
-  Backend controller is:
-
-  @Controller("news")
-
-  Therefore API must be /news
-*/
 const NEWS_API = `${BACKEND_URL}/news`;
 
-/* =========================================================
-   TYPES
-========================================================= */
+// =========================================================
+// TYPES
+// =========================================================
 
 type NewsStatus = "Active" | "Inactive";
 
@@ -48,35 +51,40 @@ type NewsCategory =
   | "Mandal News"
   | "Sangam News";
 
-type MediaItem = {
+interface MediaItem {
   id: number;
   title: string;
-  description: string;
+  description?: string | null;
   category: NewsCategory;
   location?: string | null;
   date: string;
-  mediaType?: string;
-  mediaUrl: string;
+  mediaType?: string | null;
+  mediaUrl?: string | null;
   featured: boolean;
   status: NewsStatus;
   createdAt?: string;
   updatedAt?: string;
-};
+}
 
-type FormDataType = {
+interface FormDataType {
   title: string;
   description: string;
-  category: string;
+  category: NewsCategory;
   location: string;
   date: string;
   mediaUrl: string;
   featured: boolean;
   status: NewsStatus;
-};
+}
 
-/* =========================================================
-   CATEGORIES
-========================================================= */
+interface MenuPosition {
+  top: number;
+  left: number;
+}
+
+// =========================================================
+// CONSTANTS
+// =========================================================
 
 const categories: NewsCategory[] = [
   "State News",
@@ -85,98 +93,40 @@ const categories: NewsCategory[] = [
   "Sangam News",
 ];
 
-/* =========================================================
-   EMPTY FORM
-========================================================= */
-
 const emptyForm: FormDataType = {
   title: "",
   description: "",
-  category: "",
+  category: "State News",
   location: "",
-  date: "",
+  date: new Date().toISOString().split("T")[0],
   mediaUrl: "",
   featured: false,
   status: "Active",
 };
 
-/* =========================================================
-   IMAGE URL
-========================================================= */
-
-const getMediaUrl = (
-  url: string | null | undefined
-): string => {
-  if (!url) return "";
-
-  if (
-    url.startsWith("http://") ||
-    url.startsWith("https://") ||
-    url.startsWith("blob:")
-  ) {
-    return url;
-  }
-
-  return `${BACKEND_URL}${
-    url.startsWith("/") ? "" : "/"
-  }${url}`;
-};
-
-/* =========================================================
-   DATE FORMAT
-========================================================= */
-
-const formatDate = (
-  date: string | undefined
-) => {
-  if (!date) return "";
-
-  const cleanDate = String(date).split("T")[0];
-
-  const parts = cleanDate.split("-");
-
-  if (parts.length !== 3) {
-    return cleanDate;
-  }
-
-  return `${parts[2]}-${parts[1]}-${parts[0]}`;
-};
-
-/* =========================================================
-   PAGE
-========================================================= */
+// =========================================================
+// PAGE
+// =========================================================
 
 export default function MediaPage() {
-  /* =======================================================
-     STATE
-  ======================================================= */
+  // =======================================================
+  // DATA STATES
+  // =======================================================
 
-  const [media, setMedia] =
-    useState<MediaItem[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const [loading, setLoading] =
-    useState(true);
+  // =======================================================
+  // FORM STATES
+  // =======================================================
 
-  const [saving, setSaving] =
-    useState(false);
-
-  const [showForm, setShowForm] =
-    useState(false);
-
+  const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] =
     useState<number | null>(null);
 
   const [deleteId, setDeleteId] =
     useState<number | null>(null);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [statusFilter, setStatusFilter] =
-    useState("All");
-
-  const [categoryFilter, setCategoryFilter] =
-    useState("All");
 
   const [formData, setFormData] =
     useState<FormDataType>(emptyForm);
@@ -187,109 +137,446 @@ export default function MediaPage() {
   const [previewUrl, setPreviewUrl] =
     useState("");
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
 
-  /* =======================================================
-     FETCH NEWS
-  ======================================================= */
+  // =======================================================
+  // FILTER STATES
+  // =======================================================
+
+  const [search, setSearch] = useState("");
+
+  const [statusFilter, setStatusFilter] =
+    useState<"All" | NewsStatus>("All");
+
+  const [categoryFilter, setCategoryFilter] =
+    useState<"All" | NewsCategory>("All");
+
+  // =======================================================
+  // PAGINATION
+  // =======================================================
+
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const [rowsPerPage, setRowsPerPage] =
+    useState(10);
+
+  // =======================================================
+  // ACTION MENU
+  // =======================================================
+
+  const [openMenuId, setOpenMenuId] =
+    useState<number | null>(null);
+
+  const [selectedActionItem, setSelectedActionItem] =
+    useState<MediaItem | null>(null);
+
+  const [menuPosition, setMenuPosition] =
+    useState<MenuPosition>({
+      top: 0,
+      left: 0,
+    });
+
+  const actionButtonRefs =
+    useRef<Record<number, HTMLButtonElement | null>>(
+      {}
+    );
+
+  // =======================================================
+  // GET IMAGE URL
+  // =======================================================
+
+  const getMediaUrl = (
+    url?: string | null
+  ) => {
+    if (!url) return "";
+
+    if (
+      url.startsWith("http://") ||
+      url.startsWith("https://") ||
+      url.startsWith("blob:")
+    ) {
+      return url;
+    }
+
+    return `${BACKEND_URL}${
+      url.startsWith("/") ? "" : "/"
+    }${url}`;
+  };
+
+  // =======================================================
+  // FORMAT DATE
+  // =======================================================
+
+  const formatDate = (date?: string) => {
+    if (!date) return "-";
+
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return date;
+    }
+
+    return parsed.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // =======================================================
+  // FETCH NEWS
+  // =======================================================
 
   const fetchMedia = async () => {
     try {
       setLoading(true);
       setError("");
 
-      console.log("GET NEWS:", NEWS_API);
-
-      const response = await fetch(
-        NEWS_API,
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-
-      const data =
-        await response.json().catch(
-          () => null
-        );
-
-      console.log(
-        "GET NEWS RESPONSE:",
-        response.status
-      );
-
-      console.log(
-        "GET NEWS DATA:",
-        data
-      );
+      const response = await fetch(NEWS_API, {
+        method: "GET",
+        cache: "no-store",
+      });
 
       if (!response.ok) {
         throw new Error(
-          data?.message ||
-            `Failed to load news. Status: ${response.status}`
+          `Failed to fetch news (${response.status})`
         );
       }
 
-      if (Array.isArray(data)) {
-        setMedia(data);
-      } else if (
-        Array.isArray(data?.data)
-      ) {
-        setMedia(data.data);
-      } else {
-        setMedia([]);
-      }
+      const result = await response.json();
+
+      const list = Array.isArray(result)
+        ? result
+        : Array.isArray(result?.data)
+        ? result.data
+        : [];
+
+      setMedia(list);
     } catch (err) {
       console.error(
-        "GET /news error:",
+        "Fetch media error:",
         err
       );
 
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to load news."
+          : "Failed to load news"
       );
     } finally {
       setLoading(false);
     }
   };
 
-  /* =======================================================
-     INITIAL LOAD
-  ======================================================= */
+  // =======================================================
+  // INITIAL LOAD
+  // =======================================================
 
   useEffect(() => {
     fetchMedia();
   }, []);
 
-  /* =======================================================
-     CLEANUP PREVIEW
-  ======================================================= */
+  // =======================================================
+  // CLOSE ACTION MENU ON ESC
+  // =======================================================
 
   useEffect(() => {
-    return () => {
-      if (
-        previewUrl.startsWith("blob:")
-      ) {
-        URL.revokeObjectURL(previewUrl);
+    const handleEscape = (
+      event: KeyboardEvent
+    ) => {
+      if (event.key === "Escape") {
+        setOpenMenuId(null);
+        setSelectedActionItem(null);
       }
     };
-  }, [previewUrl]);
 
-  /* =======================================================
-     FORM CHANGE
-  ======================================================= */
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, []);
+
+  // =======================================================
+  // CLOSE ACTION MENU WHEN SCROLLING
+  // =======================================================
+
+  useEffect(() => {
+    const closeOnScroll = () => {
+      if (openMenuId !== null) {
+        setOpenMenuId(null);
+        setSelectedActionItem(null);
+      }
+    };
+
+    window.addEventListener(
+      "scroll",
+      closeOnScroll,
+      true
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        closeOnScroll,
+        true
+      );
+    };
+  }, [openMenuId]);
+
+  // =======================================================
+  // FILTERED DATA
+  // =======================================================
+
+  const filteredMedia = useMemo(() => {
+    return media.filter((item) => {
+      const searchText =
+        search.trim().toLowerCase();
+
+      const matchesSearch =
+        !searchText ||
+        item.title
+          ?.toLowerCase()
+          .includes(searchText) ||
+        item.description
+          ?.toLowerCase()
+          .includes(searchText) ||
+        item.location
+          ?.toLowerCase()
+          .includes(searchText) ||
+        item.category
+          ?.toLowerCase()
+          .includes(searchText);
+
+      const matchesStatus =
+        statusFilter === "All" ||
+        item.status === statusFilter;
+
+      const matchesCategory =
+        categoryFilter === "All" ||
+        item.category === categoryFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesCategory
+      );
+    });
+  }, [
+    media,
+    search,
+    statusFilter,
+    categoryFilter,
+  ]);
+
+  // =======================================================
+  // RESET PAGE WHEN FILTER CHANGES
+  // =======================================================
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    statusFilter,
+    categoryFilter,
+    rowsPerPage,
+  ]);
+
+  // =======================================================
+  // PAGINATION CALCULATIONS
+  // =======================================================
+
+  const totalItems = filteredMedia.length;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      totalItems / rowsPerPage
+    )
+  );
+
+  const safeCurrentPage = Math.min(
+    currentPage,
+    totalPages
+  );
+
+  const startIndex =
+    (safeCurrentPage - 1) *
+    rowsPerPage;
+
+  const endIndex = Math.min(
+    startIndex + rowsPerPage,
+    totalItems
+  );
+
+  const paginatedMedia =
+    filteredMedia.slice(
+      startIndex,
+      endIndex
+    );
+
+  // =======================================================
+  // STATS
+  // =======================================================
+
+  const totalCount = media.length;
+
+  const activeCount = media.filter(
+    (item) => item.status === "Active"
+  ).length;
+
+  const inactiveCount = media.filter(
+    (item) => item.status === "Inactive"
+  ).length;
+
+  const featuredCount = media.filter(
+    (item) => item.featured
+  ).length;
+
+  // =======================================================
+  // PAGE NUMBERS
+  // =======================================================
+
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = [];
+
+    if (totalPages <= 7) {
+      for (
+        let i = 1;
+        i <= totalPages;
+        i++
+      ) {
+        pages.push(i);
+      }
+
+      return pages;
+    }
+
+    pages.push(1);
+
+    if (safeCurrentPage > 4) {
+      pages.push(-1);
+    }
+
+    const start = Math.max(
+      2,
+      safeCurrentPage - 1
+    );
+
+    const end = Math.min(
+      totalPages - 1,
+      safeCurrentPage + 1
+    );
+
+    for (
+      let i = start;
+      i <= end;
+      i++
+    ) {
+      pages.push(i);
+    }
+
+    if (
+      safeCurrentPage <
+      totalPages - 3
+    ) {
+      pages.push(-1);
+    }
+
+    pages.push(totalPages);
+
+    return pages;
+  }, [
+    totalPages,
+    safeCurrentPage,
+  ]);
+
+  // =======================================================
+  // OPEN ADD FORM
+  // =======================================================
+
+  const handleAdd = () => {
+    setEditingId(null);
+
+    setFormData({
+      ...emptyForm,
+      date: new Date()
+        .toISOString()
+        .split("T")[0],
+    });
+
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setError("");
+    setShowForm(true);
+  };
+
+  // =======================================================
+  // OPEN EDIT FORM
+  // =======================================================
+
+  const handleEdit = (
+    item: MediaItem
+  ) => {
+    setEditingId(item.id);
+
+    setFormData({
+      title: item.title || "",
+      description:
+        item.description || "",
+      category:
+        item.category || "State News",
+      location:
+        item.location || "",
+      date: item.date
+        ? item.date.split("T")[0]
+        : new Date()
+            .toISOString()
+            .split("T")[0],
+      mediaUrl:
+        item.mediaUrl || "",
+      featured:
+        Boolean(item.featured),
+      status:
+        item.status || "Active",
+    });
+
+    setSelectedFile(null);
+
+    setPreviewUrl(
+      item.mediaUrl
+        ? getMediaUrl(
+            item.mediaUrl
+          )
+        : ""
+    );
+
+    setError("");
+    setShowForm(true);
+  };
+
+  // =======================================================
+  // FORM CHANGE
+  // =======================================================
 
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement |
-        HTMLSelectElement |
-        HTMLTextAreaElement
+        HTMLTextAreaElement |
+        HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
     setFormData((prev) => ({
       ...prev,
@@ -297,22 +584,9 @@ export default function MediaPage() {
     }));
   };
 
-  /* =======================================================
-     FEATURED
-  ======================================================= */
-
-  const handleFeaturedChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      featured: e.target.checked,
-    }));
-  };
-
-  /* =======================================================
-     FILE CHANGE
-  ======================================================= */
+  // =======================================================
+  // FILE CHANGE
+  // =======================================================
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -329,63 +603,41 @@ export default function MediaPage() {
       "image/gif",
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
       setError(
-        "Please select JPG, PNG, WEBP or GIF image."
+        "Only JPG, PNG, WEBP and GIF images are allowed."
       );
-
-      e.target.value = "";
       return;
     }
-
-    /*
-      Backend allows 10 MB.
-      Frontend also allows 10 MB.
-    */
 
     if (
       file.size >
       10 * 1024 * 1024
     ) {
       setError(
-        "Image size should be less than 10 MB."
+        "Image size must be less than 10 MB."
       );
-
-      e.target.value = "";
       return;
     }
 
     setError("");
-
-    if (
-      previewUrl.startsWith("blob:")
-    ) {
-      URL.revokeObjectURL(previewUrl);
-    }
+    setSelectedFile(file);
 
     const objectUrl =
       URL.createObjectURL(file);
 
-    setSelectedFile(file);
     setPreviewUrl(objectUrl);
-
-    setFormData((prev) => ({
-      ...prev,
-      mediaUrl: "",
-    }));
   };
 
-  /* =======================================================
-     REMOVE IMAGE
-  ======================================================= */
+  // =======================================================
+  // REMOVE IMAGE
+  // =======================================================
 
   const removeSelectedImage = () => {
-    if (
-      previewUrl.startsWith("blob:")
-    ) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
     setSelectedFile(null);
     setPreviewUrl("");
 
@@ -395,158 +647,27 @@ export default function MediaPage() {
     }));
   };
 
-  /* =======================================================
-     ADD FORM
-  ======================================================= */
-
-  const openAddForm = () => {
-    setEditingId(null);
-
-    setFormData({
-      ...emptyForm,
-      date: new Date()
-        .toISOString()
-        .split("T")[0],
-    });
-
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setError("");
-    setShowForm(true);
-  };
-
-  /* =======================================================
-     CLOSE FORM
-  ======================================================= */
-
-  const closeForm = () => {
-    if (saving) return;
-
-    if (
-      previewUrl.startsWith("blob:")
-    ) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    setShowForm(false);
-    setEditingId(null);
-    setFormData(emptyForm);
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setError("");
-  };
-
-  /* =======================================================
-     EDIT
-  ======================================================= */
-
-  const handleEdit = (
-    item: MediaItem
-  ) => {
-    setEditingId(item.id);
-
-    setFormData({
-      title: item.title || "",
-      description:
-        item.description || "",
-      category: item.category || "",
-      location:
-        item.location || "",
-      date: item.date
-        ? String(item.date).split(
-            "T"
-          )[0]
-        : "",
-      mediaUrl:
-        item.mediaUrl || "",
-      featured:
-        Boolean(item.featured),
-      status:
-        item.status || "Active",
-    });
-
-    setSelectedFile(null);
-
-    if (item.mediaUrl) {
-      setPreviewUrl(
-        getMediaUrl(
-          item.mediaUrl
-        )
-      );
-    } else {
-      setPreviewUrl("");
-    }
-
-    setError("");
-    setShowForm(true);
-  };
-
-  /* =======================================================
-     SUBMIT
-  ======================================================= */
+  // =======================================================
+  // SUBMIT
+  // =======================================================
 
   const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
+    e: React.FormEvent
   ) => {
     e.preventDefault();
 
-    setError("");
-
-    /* =====================================================
-       VALIDATION
-    ===================================================== */
-
-    if (
-      !formData.title.trim()
-    ) {
+    if (!formData.title.trim()) {
       setError(
-        "Please enter Title."
-      );
-      return;
-    }
-
-    if (
-      !formData.description.trim()
-    ) {
-      setError(
-        "Please enter Description."
-      );
-      return;
-    }
-
-    if (!formData.category) {
-      setError(
-        "Please select Category."
-      );
-      return;
-    }
-
-    if (!formData.date) {
-      setError(
-        "Please select Date."
-      );
-      return;
-    }
-
-    if (
-      editingId === null &&
-      !selectedFile
-    ) {
-      setError(
-        "Please select an image."
+        "Please enter news title."
       );
       return;
     }
 
     try {
       setSaving(true);
+      setError("");
 
-      /* ===================================================
-         FORM DATA
-      =================================================== */
-
-      const body =
-        new FormData();
+      const body = new FormData();
 
       body.append(
         "title",
@@ -590,24 +711,13 @@ export default function MediaPage() {
         formData.status
       );
 
-      /* ===================================================
-         IMAGE
-      =================================================== */
-
       if (selectedFile) {
         body.append(
           "media",
           selectedFile
         );
-      }
-
-      /* ===================================================
-         EXISTING IMAGE
-      =================================================== */
-
-      if (
-        editingId !== null &&
-        !selectedFile &&
+      } else if (
+        editingId &&
         formData.mediaUrl
       ) {
         body.append(
@@ -616,95 +726,39 @@ export default function MediaPage() {
         );
       }
 
-      /* ===================================================
-         URL
-      =================================================== */
-
-      const url =
-        editingId !== null
-          ? `${NEWS_API}/${editingId}`
-          : NEWS_API;
-
-      const method =
-        editingId !== null
-          ? "PATCH"
-          : "POST";
-
-      console.log(
-        "NEWS REQUEST"
-      );
-
-      console.log(
-        "URL:",
-        url
-      );
-
-      console.log(
-        "METHOD:",
-        method
-      );
-
-      /* ===================================================
-         REQUEST
-      =================================================== */
+      const url = editingId
+        ? `${NEWS_API}/${editingId}`
+        : NEWS_API;
 
       const response =
         await fetch(url, {
-          method,
+          method: editingId
+            ? "PATCH"
+            : "POST",
           body,
         });
 
-      const data =
-        await response
-          .json()
-          .catch(() => null);
-
-      console.log(
-        "NEWS RESPONSE STATUS:",
-        response.status
-      );
-
-      console.log(
-        "NEWS RESPONSE DATA:",
-        data
-      );
-
-      /* ===================================================
-         ERROR
-      =================================================== */
+      const result =
+        await response.json();
 
       if (!response.ok) {
-        let message =
-          "Failed to save news.";
-
-        if (
-          Array.isArray(
-            data?.message
-          )
-        ) {
-          message =
-            data.message.join(
-              ", "
-            );
-        } else if (
-          data?.message
-        ) {
-          message =
-            data.message;
-        }
-
         throw new Error(
-          message
+          result?.message ||
+            `Failed to ${
+              editingId
+                ? "update"
+                : "create"
+            } news`
         );
       }
 
-      /* ===================================================
-         SUCCESS
-      =================================================== */
+      setShowForm(false);
+      setEditingId(null);
+      setSelectedFile(null);
+      setPreviewUrl("");
+      setFormData(emptyForm);
 
       await fetchMedia();
-
-      closeForm();
     } catch (err) {
       console.error(
         "Save news error:",
@@ -714,56 +768,39 @@ export default function MediaPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to save news."
+          : "Failed to save news"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  /* =======================================================
-     DELETE
-  ======================================================= */
+  // =======================================================
+  // DELETE
+  // =======================================================
 
   const handleDelete = async () => {
-    if (deleteId === null)
-      return;
+    if (!deleteId) return;
 
     try {
+      setSaving(true);
       setError("");
 
-      const url =
-        `${NEWS_API}/${deleteId}`;
-
-      console.log(
-        "DELETE NEWS:",
-        url
-      );
-
       const response =
-        await fetch(url, {
-          method: "DELETE",
-        });
+        await fetch(
+          `${NEWS_API}/${deleteId}`,
+          {
+            method: "DELETE",
+          }
+        );
 
-      const data =
-        await response
-          .json()
-          .catch(() => null);
-
-      console.log(
-        "DELETE STATUS:",
-        response.status
-      );
-
-      console.log(
-        "DELETE DATA:",
-        data
-      );
+      const result =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data?.message ||
-            "Failed to delete news."
+          result?.message ||
+            "Failed to delete news"
         );
       }
 
@@ -779,160 +816,162 @@ export default function MediaPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to delete news."
+          : "Failed to delete news"
       );
-
-      setDeleteId(null);
+    } finally {
+      setSaving(false);
     }
   };
 
-  /* =======================================================
-     FILTER
-  ======================================================= */
+  // =======================================================
+  // OPEN ACTION MENU
+  // =======================================================
 
-  const filteredMedia =
-    useMemo(() => {
-      const searchText =
-        search
-          .toLowerCase()
-          .trim();
+  const handleActionMenu = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    item: MediaItem
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      return media.filter(
-        (item) => {
-          const matchesSearch =
-            !searchText ||
-            item.title
-              ?.toLowerCase()
-              .includes(
-                searchText
-              ) ||
-            item.description
-              ?.toLowerCase()
-              .includes(
-                searchText
-              ) ||
-            item.category
-              ?.toLowerCase()
-              .includes(
-                searchText
-              ) ||
-            item.location
-              ?.toLowerCase()
-              .includes(
-                searchText
-              );
+    const button =
+      e.currentTarget;
 
-          const matchesStatus =
-            statusFilter ===
-              "All" ||
-            item.status ===
-              statusFilter;
+    const rect =
+      button.getBoundingClientRect();
 
-          const matchesCategory =
-            categoryFilter ===
-              "All" ||
-            item.category ===
-              categoryFilter;
+    const menuWidth = 230;
+    const menuHeight = 155;
+    const padding = 12;
 
-          return (
-            matchesSearch &&
-            matchesStatus &&
-            matchesCategory
-          );
-        }
-      );
-    }, [
-      media,
-      search,
-      statusFilter,
-      categoryFilter,
-    ]);
+    let left =
+      rect.right -
+      menuWidth;
 
-  /* =======================================================
-     COUNTS
-  ======================================================= */
+    let top =
+      rect.bottom + 8;
 
-  const featuredCount =
-    media.filter(
-      (item) =>
-        Boolean(
-          item.featured
-        )
-    ).length;
+    // Right boundary
+    if (
+      left + menuWidth >
+      window.innerWidth -
+        padding
+    ) {
+      left =
+        window.innerWidth -
+        menuWidth -
+        padding;
+    }
 
-  const activeCount =
-    media.filter(
-      (item) =>
-        item.status ===
-        "Active"
-    ).length;
+    // Left boundary
+    if (left < padding) {
+      left = padding;
+    }
 
-  const inactiveCount =
-    media.filter(
-      (item) =>
-        item.status ===
-        "Inactive"
-    ).length;
+    // Bottom boundary
+    if (
+      top + menuHeight >
+      window.innerHeight -
+        padding
+    ) {
+      top =
+        rect.top -
+        menuHeight -
+        8;
+    }
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
+    // Top boundary
+    if (top < padding) {
+      top = padding;
+    }
+
+    setMenuPosition({
+      top,
+      left,
+    });
+
+    setSelectedActionItem(item);
+
+    setOpenMenuId(
+      openMenuId === item.id
+        ? null
+        : item.id
+    );
+  };
+
+  // =======================================================
+  // CLOSE ACTION MENU
+  // =======================================================
+
+  const closeActionMenu = () => {
+    setOpenMenuId(null);
+    setSelectedActionItem(null);
+  };
+
+  // =======================================================
+  // LOADING
+  // =======================================================
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+
+          <div className="w-12 h-12 border-4 border-[#8B1E3F]/20 border-t-[#8B1E3F] rounded-full animate-spin" />
+
+          <p className="text-sm font-semibold text-gray-500">
+            Loading Media & News...
+          </p>
+
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-[#fafafa] p-4 sm:p-6 lg:p-8">
 
-      {/* =================================================
+      {/* ===================================================
           HEADER
-      ================================================= */}
+      =================================================== */}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-7">
 
         <div className="flex items-center gap-3">
 
-          <div className="w-11 h-11 rounded-xl bg-[#f8eef2] text-[#8B1E3F] flex items-center justify-center">
-            <FaPhotoVideo />
+          <div className="w-12 h-12 rounded-2xl bg-[#8B1E3F] text-white flex items-center justify-center shadow-lg shadow-[#8B1E3F]/20">
+            <FaPhotoVideo className="text-xl" />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
               Media & News
             </h1>
 
             <p className="text-sm text-gray-500 mt-1">
-              Manage State, District, Mandal and Sangam news
+              Manage news, media and announcements
             </p>
           </div>
 
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-3">
 
           <button
             type="button"
             onClick={fetchMedia}
-            disabled={loading}
-            className="h-11 px-4 rounded-xl border border-gray-200 bg-white text-gray-600 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-50 disabled:opacity-50"
+            className="h-11 px-4 rounded-xl border border-gray-200 bg-white text-gray-600 hover:text-[#8B1E3F] hover:border-[#8B1E3F]/30 flex items-center gap-2 font-semibold text-sm transition shadow-sm"
           >
-            <FaSyncAlt
-              className={
-                loading
-                  ? "animate-spin"
-                  : ""
-              }
-            />
-
+            <FaSyncAlt />
             Refresh
           </button>
 
           <button
             type="button"
-            onClick={
-              openAddForm
-            }
-            className="h-11 px-5 rounded-xl bg-[#8B1E3F] text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#741832] transition"
+            onClick={handleAdd}
+            className="h-11 px-5 rounded-xl bg-[#8B1E3F] hover:bg-[#721732] text-white flex items-center gap-2 font-semibold text-sm transition shadow-lg shadow-[#8B1E3F]/20"
           >
             <FaPlus />
-
             Add News
           </button>
 
@@ -940,111 +979,129 @@ export default function MediaPage() {
 
       </div>
 
-      {/* =================================================
+      {/* ===================================================
           ERROR
-      ================================================= */}
+      =================================================== */}
 
       {error && !showForm && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center justify-between gap-4">
-
-          <span>
-            {error}
-          </span>
-
-          <button
-            type="button"
-            onClick={() =>
-              setError("")
-            }
-            className="text-red-500 hover:text-red-700"
-          >
-            <FaTimes />
-          </button>
-
+        <div className="mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+          {error}
         </div>
       )}
 
-      {/* =================================================
+      {/* ===================================================
           STATS
-      ================================================= */}
+      =================================================== */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
 
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-
-          <p className="text-sm text-gray-500">
-            Total News
-          </p>
-
-          <h2 className="text-2xl font-bold mt-2 text-gray-900">
-            {media.length}
-          </h2>
-
-        </div>
+        {/* TOTAL */}
 
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
 
-            <FaImage className="text-blue-600" />
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Total News
+              </p>
 
-            <p className="text-sm text-gray-500">
-              Images
-            </p>
+              <p className="text-2xl font-bold text-gray-800 mt-2">
+                {totalCount}
+              </p>
+            </div>
+
+            <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+              <FaNewspaper />
+            </div>
 
           </div>
 
-          <h2 className="text-2xl font-bold text-blue-600 mt-2">
-            {media.length}
-          </h2>
-
         </div>
+
+        {/* ACTIVE */}
 
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
 
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Active
+              </p>
 
-            <p className="text-sm text-gray-500">
-              Active
-            </p>
+              <p className="text-2xl font-bold text-green-600 mt-2">
+                {activeCount}
+              </p>
+            </div>
+
+            <div className="w-11 h-11 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
+              <FaEye />
+            </div>
 
           </div>
-
-          <h2 className="text-2xl font-bold text-green-600 mt-2">
-            {activeCount}
-          </h2>
 
         </div>
 
+        {/* INACTIVE */}
+
         <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between">
 
-            <FaStar className="text-yellow-500" />
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Inactive
+              </p>
 
-            <p className="text-sm text-gray-500">
-              Featured
-            </p>
+              <p className="text-2xl font-bold text-red-600 mt-2">
+                {inactiveCount}
+              </p>
+            </div>
+
+            <div className="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+              <FaTimes />
+            </div>
 
           </div>
 
-          <h2 className="text-2xl font-bold text-yellow-600 mt-2">
-            {featuredCount}
-          </h2>
+        </div>
+
+        {/* FEATURED */}
+
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                Featured
+              </p>
+
+              <p className="text-2xl font-bold text-amber-500 mt-2">
+                {featuredCount}
+              </p>
+            </div>
+
+            <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+              <FaStar />
+            </div>
+
+          </div>
 
         </div>
 
       </div>
 
-      {/* =================================================
-          SEARCH / FILTER
-      ================================================= */}
+      {/* ===================================================
+          FILTERS
+      =================================================== */}
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+          {/* SEARCH */}
 
           <div className="relative">
 
@@ -1059,21 +1116,23 @@ export default function MediaPage() {
                 )
               }
               placeholder="Search news..."
-              className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 outline-none text-sm focus:border-[#8B1E3F]"
+              className="w-full h-11 pl-11 pr-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8B1E3F]/10 focus:border-[#8B1E3F] text-sm"
             />
 
           </div>
 
+          {/* CATEGORY */}
+
           <select
-            value={
-              categoryFilter
-            }
+            value={categoryFilter}
             onChange={(e) =>
               setCategoryFilter(
-                e.target.value
+                e.target.value as
+                  | "All"
+                  | NewsCategory
               )
             }
-            className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+            className="h-11 px-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-[#8B1E3F] text-sm text-gray-600"
           >
 
             <option value="All">
@@ -1093,16 +1152,18 @@ export default function MediaPage() {
 
           </select>
 
+          {/* STATUS */}
+
           <select
-            value={
-              statusFilter
-            }
+            value={statusFilter}
             onChange={(e) =>
               setStatusFilter(
-                e.target.value
+                e.target.value as
+                  | "All"
+                  | NewsStatus
               )
             }
-            className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
+            className="h-11 px-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-[#8B1E3F] text-sm text-gray-600"
           >
 
             <option value="All">
@@ -1123,259 +1184,619 @@ export default function MediaPage() {
 
       </div>
 
-      {/* =================================================
-          LOADING
-      ================================================= */}
+      {/* ===================================================
+          TABLE
+      =================================================== */}
 
-      {loading && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-          <div className="w-10 h-10 mx-auto border-4 border-gray-200 border-t-[#8B1E3F] rounded-full animate-spin" />
+        {/* TABLE HEADER */}
 
-          <p className="text-sm text-gray-500 mt-4">
-            Loading news...
-          </p>
+        <div className="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+          <div>
+            <h2 className="font-bold text-gray-800">
+              News List
+            </h2>
+
+            <p className="text-xs text-gray-400 mt-1">
+              {totalItems} result
+              {totalItems !== 1
+                ? "s"
+                : ""}{" "}
+              found
+            </p>
+          </div>
+
+          {/* ROWS PER PAGE */}
+
+          <div className="flex items-center gap-2">
+
+            <span className="text-xs text-gray-400">
+              Rows:
+            </span>
+
+            <select
+              value={rowsPerPage}
+              onChange={(e) =>
+                setRowsPerPage(
+                  Number(
+                    e.target.value
+                  )
+                )
+              }
+              className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-600 focus:outline-none focus:border-[#8B1E3F]"
+            >
+              <option value={5}>
+                5
+              </option>
+
+              <option value={10}>
+                10
+              </option>
+
+              <option value={20}>
+                20
+              </option>
+
+              <option value={50}>
+                50
+              </option>
+            </select>
+
+          </div>
 
         </div>
-      )}
 
-      {/* =================================================
-          GRID
-      ================================================= */}
+        {/* TABLE */}
 
-      {!loading &&
-        filteredMedia.length >
-          0 && (
+        <div className="overflow-x-auto">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+          <table className="w-full min-w-[1100px]">
 
-            {filteredMedia.map(
-              (item) => (
+            <thead>
 
-                <div
-                  key={item.id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition"
-                >
+              <tr className="bg-gray-50 border-b border-gray-100">
 
-                  {/* IMAGE */}
+                <th className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  News Details
+                </th>
 
-                  <div className="h-48 bg-gray-100 relative overflow-hidden">
+                <th className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Category
+                </th>
 
-                    {item.mediaUrl ? (
+                <th className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Location
+                </th>
 
-                      <img
-                        src={getMediaUrl(
-                          item.mediaUrl
-                        )}
-                        alt={
-                          item.title
-                        }
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.style.display =
-                            "none";
-                        }}
-                      />
+                <th className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Published Date
+                </th>
 
-                    ) : (
+                <th className="px-5 py-4 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Featured
+                </th>
 
-                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                <th className="px-5 py-4 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
 
-                        <FaImage className="text-5xl" />
+                <th className="px-5 py-4 text-right text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                  Action
+                </th>
 
+              </tr>
+
+            </thead>
+
+            <tbody className="divide-y divide-gray-100">
+
+              {paginatedMedia.length === 0 ? (
+
+                <tr>
+
+                  <td
+                    colSpan={7}
+                    className="px-5 py-16 text-center"
+                  >
+
+                    <div className="flex flex-col items-center">
+
+                      <div className="w-16 h-16 rounded-2xl bg-gray-50 text-gray-300 flex items-center justify-center mb-4">
+                        <FaNewspaper className="text-2xl" />
                       </div>
 
-                    )}
-
-                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/95 backdrop-blur text-xs font-semibold text-[#8B1E3F] shadow-sm">
-                      {item.category}
-                    </span>
-
-                    <span
-                      className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
-                        item.status ===
-                        "Active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-
-                    {item.featured && (
-                      <span className="absolute bottom-3 left-3 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold flex items-center gap-1">
-                        <FaStar />
-                        Featured
-                      </span>
-                    )}
-
-                  </div>
-
-                  {/* CONTENT */}
-
-                  <div className="p-5">
-
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 mb-2">
-
-                      <span className="flex items-center gap-1">
-                        <FaImage />
-
-                        Image
-                      </span>
-
-                      {item.date && (
-                        <span className="flex items-center gap-1">
-                          <FaCalendarAlt />
-
-                          {formatDate(
-                            item.date
-                          )}
-                        </span>
-                      )}
-
-                    </div>
-
-                    <h2 className="font-bold text-gray-900 text-lg line-clamp-2">
-                      {item.title}
-                    </h2>
-
-                    <p className="text-sm text-gray-500 mt-2 line-clamp-3 leading-6">
-                      {item.description}
-                    </p>
-
-                    {item.location && (
-                      <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
-                        <FaMapMarkerAlt />
-
-                        {item.location}
+                      <p className="font-semibold text-gray-500">
+                        No news found
                       </p>
-                    )}
 
-                    {/* ACTIONS */}
-
-                    <div className="flex gap-2 mt-5 pt-4 border-t border-gray-100">
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleEdit(
-                            item
-                          )
-                        }
-                        className="flex-1 h-10 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center gap-2 text-sm font-semibold hover:bg-yellow-50 hover:text-yellow-600"
-                      >
-                        <FaEdit />
-
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDeleteId(
-                            item.id
-                          )
-                        }
-                        className="w-10 h-10 rounded-lg bg-gray-50 text-gray-500 flex items-center justify-center hover:bg-red-50 hover:text-red-600"
-                      >
-                        <FaTrash />
-                      </button>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Try changing your search or filters
+                      </p>
 
                     </div>
 
-                  </div>
+                  </td>
 
-                </div>
+                </tr>
 
-              )
-            )}
+              ) : (
 
-          </div>
-        )}
+                paginatedMedia.map(
+                  (item) => {
 
-      {/* =================================================
-          EMPTY
-      ================================================= */}
+                    const imageUrl =
+                      getMediaUrl(
+                        item.mediaUrl
+                      );
 
-      {!loading &&
-        filteredMedia.length ===
-          0 && (
+                    return (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-[#fffafb] transition"
+                      >
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                        {/* NEWS */}
 
-            <FaPhotoVideo className="mx-auto text-4xl text-gray-300" />
+                        <td className="px-5 py-4">
 
-            <h3 className="font-semibold text-gray-800 mt-4">
-              No news found
-            </h3>
+                          <div className="flex items-center gap-3">
 
-            <p className="text-sm text-gray-500 mt-1">
-              {media.length === 0
-                ? "No news has been added yet."
-                : "Try changing your search or filters."}
-            </p>
+                            <div className="w-16 h-12 rounded-xl overflow-hidden bg-gray-100 border border-gray-100 flex-shrink-0">
 
-            {media.length === 0 && (
+                              {imageUrl ? (
+                                <img
+                                  src={imageUrl}
+                                  alt={
+                                    item.title
+                                  }
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                  <FaImage />
+                                </div>
+                              )}
+
+                            </div>
+
+                            <div className="min-w-0">
+
+                              <p className="font-bold text-gray-800 text-sm truncate max-w-[330px]">
+                                {item.title}
+                              </p>
+
+                              <p className="text-xs text-gray-400 mt-1 truncate max-w-[330px]">
+                                {item.description ||
+                                  "No description"}
+                              </p>
+
+                            </div>
+
+                          </div>
+
+                        </td>
+
+                        {/* CATEGORY */}
+
+                        <td className="px-5 py-4">
+
+                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-[#8B1E3F]/5 text-[#8B1E3F] text-xs font-semibold whitespace-nowrap">
+                            {item.category}
+                          </span>
+
+                        </td>
+
+                        {/* LOCATION */}
+
+                        <td className="px-5 py-4">
+
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+
+                            <FaMapMarkerAlt className="text-gray-400 text-xs" />
+
+                            <span>
+                              {item.location ||
+                                "-"}
+                            </span>
+
+                          </div>
+
+                        </td>
+
+                        {/* DATE */}
+
+                        <td className="px-5 py-4">
+
+                          <div className="flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap">
+
+                            <FaCalendarAlt className="text-gray-400 text-xs" />
+
+                            {formatDate(
+                              item.date
+                            )}
+
+                          </div>
+
+                        </td>
+
+                        {/* FEATURED */}
+
+                        <td className="px-5 py-4 text-center">
+
+                          {item.featured ? (
+
+                            <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-amber-50 text-amber-500">
+                              <FaStar />
+                            </span>
+
+                          ) : (
+
+                            <span className="text-gray-300">
+                              —
+                            </span>
+
+                          )}
+
+                        </td>
+
+                        {/* STATUS */}
+
+                        <td className="px-5 py-4 text-center">
+
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
+                              item.status ===
+                              "Active"
+                                ? "bg-green-50 text-green-600"
+                                : "bg-red-50 text-red-600"
+                            }`}
+                          >
+
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                item.status ===
+                                "Active"
+                                  ? "bg-green-500"
+                                  : "bg-red-500"
+                              }`}
+                            />
+
+                            {item.status}
+
+                          </span>
+
+                        </td>
+
+                        {/* ACTION */}
+
+                        <td className="px-5 py-4 text-right">
+
+                          <button
+                            ref={(element) => {
+                              actionButtonRefs.current[
+                                item.id
+                              ] =
+                                element;
+                            }}
+                            type="button"
+                            onClick={(e) =>
+                              handleActionMenu(
+                                e,
+                                item
+                              )
+                            }
+                            className={`w-10 h-10 rounded-xl border flex items-center justify-center transition ${
+                              openMenuId ===
+                              item.id
+                                ? "bg-[#8B1E3F] text-white border-[#8B1E3F] shadow-md"
+                                : "bg-white text-gray-500 border-gray-200 hover:border-[#8B1E3F]/30 hover:text-[#8B1E3F] hover:bg-[#fff8fa]"
+                            }`}
+                            title="More actions"
+                          >
+                            <FaEllipsisV className="text-sm" />
+                          </button>
+
+                        </td>
+
+                      </tr>
+                    );
+                  }
+                )
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        {/* =================================================
+            PAGINATION
+        ================================================= */}
+
+        {totalItems > 0 && (
+
+          <div className="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+            {/* SHOWING */}
+
+            <div className="text-xs text-gray-500">
+
+              Showing{" "}
+
+              <span className="font-bold text-gray-700">
+                {startIndex + 1}
+              </span>
+
+              {" "}to{" "}
+
+              <span className="font-bold text-gray-700">
+                {endIndex}
+              </span>
+
+              {" "}of{" "}
+
+              <span className="font-bold text-gray-700">
+                {totalItems}
+              </span>
+
+            </div>
+
+            {/* PAGINATION BUTTONS */}
+
+            <div className="flex items-center gap-1">
+
+              {/* PREVIOUS */}
+
               <button
                 type="button"
-                onClick={
-                  openAddForm
+                disabled={
+                  safeCurrentPage ===
+                  1
                 }
-                className="mt-5 h-10 px-5 rounded-xl bg-[#8B1E3F] text-white text-sm font-semibold inline-flex items-center gap-2"
+                onClick={() =>
+                  setCurrentPage(
+                    (prev) =>
+                      Math.max(
+                        1,
+                        prev - 1
+                      )
+                  )
+                }
+                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center hover:border-[#8B1E3F]/30 hover:text-[#8B1E3F] disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
-                <FaPlus />
-
-                Add First News
+                <FaChevronLeft className="text-xs" />
               </button>
-            )}
+
+              {/* PAGE NUMBERS */}
+
+              {pageNumbers.map(
+                (page, index) => {
+
+                  if (page === -1) {
+                    return (
+                      <span
+                        key={`dots-${index}`}
+                        className="w-9 h-9 flex items-center justify-center text-gray-400 text-sm"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage(
+                          page
+                        )
+                      }
+                      className={`w-9 h-9 rounded-lg text-xs font-bold transition ${
+                        safeCurrentPage ===
+                        page
+                          ? "bg-[#8B1E3F] text-white shadow-md"
+                          : "border border-gray-200 bg-white text-gray-600 hover:border-[#8B1E3F]/30 hover:text-[#8B1E3F]"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+              )}
+
+              {/* NEXT */}
+
+              <button
+                type="button"
+                disabled={
+                  safeCurrentPage ===
+                  totalPages
+                }
+                onClick={() =>
+                  setCurrentPage(
+                    (prev) =>
+                      Math.min(
+                        totalPages,
+                        prev + 1
+                      )
+                  )
+                }
+                className="w-9 h-9 rounded-lg border border-gray-200 bg-white text-gray-500 flex items-center justify-center hover:border-[#8B1E3F]/30 hover:text-[#8B1E3F] disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                <FaChevronRight className="text-xs" />
+              </button>
+
+            </div>
 
           </div>
+
         )}
 
-      {/* =================================================
+      </div>
+
+      {/* ===================================================
+          ACTION MENU PORTAL
+          THIS IS OUTSIDE TABLE
+      =================================================== */}
+
+      {openMenuId !== null &&
+        selectedActionItem &&
+        typeof document !==
+          "undefined" &&
+        createPortal(
+
+          <div
+            className="fixed z-[999999] w-[230px] bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden"
+            style={{
+              top:
+                menuPosition.top,
+              left:
+                menuPosition.left,
+            }}
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+            onMouseDown={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            {/* MENU HEADER */}
+
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                News Actions
+              </p>
+
+              <p className="text-xs text-gray-600 truncate mt-1 font-semibold">
+                {
+                  selectedActionItem.title
+                }
+              </p>
+
+            </div>
+
+            {/* EDIT */}
+
+            <button
+              type="button"
+              onMouseDown={(e) =>
+                e.stopPropagation()
+              }
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const item =
+                  selectedActionItem;
+
+                closeActionMenu();
+
+                handleEdit(item);
+              }}
+              className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-blue-50 transition"
+            >
+
+              <span className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                <FaEdit className="text-sm" />
+              </span>
+
+              <span>
+                <span className="block font-semibold text-sm text-gray-700">
+                  Edit News
+                </span>
+
+                <span className="block text-[10px] text-gray-400 mt-0.5">
+                  Update news details
+                </span>
+              </span>
+
+            </button>
+
+            {/* DELETE */}
+
+            <button
+              type="button"
+              onMouseDown={(e) =>
+                e.stopPropagation()
+              }
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const id =
+                  selectedActionItem.id;
+
+                closeActionMenu();
+
+                setDeleteId(id);
+              }}
+              className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-red-50 transition border-t border-gray-50"
+            >
+
+              <span className="w-9 h-9 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                <FaTrash className="text-sm" />
+              </span>
+
+              <span>
+                <span className="block font-semibold text-sm text-red-600">
+                  Delete News
+                </span>
+
+                <span className="block text-[10px] text-red-400 mt-0.5">
+                  Permanently remove
+                </span>
+              </span>
+
+            </button>
+
+          </div>,
+
+          document.body
+        )}
+
+      {/* ===================================================
           ADD / EDIT MODAL
-      ================================================= */}
+      =================================================== */}
 
       {showForm && (
 
-        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
 
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-3xl max-h-[92vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
 
-            {/* HEADER */}
+            {/* MODAL HEADER */}
 
             <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
 
-              <div className="flex items-center gap-3">
+              <div>
 
-                <div className="w-10 h-10 rounded-xl bg-[#f8eef2] text-[#8B1E3F] flex items-center justify-center">
-                  <FaPhotoVideo />
-                </div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  {editingId
+                    ? "Edit News"
+                    : "Add News"}
+                </h2>
 
-                <div>
-
-                  <h2 className="font-bold text-gray-900">
-                    {editingId !==
-                    null
-                      ? "Edit News"
-                      : "Add News"}
-                  </h2>
-
-                  <p className="text-xs text-gray-500 mt-1">
-                    Add news and image details
-                  </p>
-
-                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  {editingId
+                    ? "Update news information"
+                    : "Create a new news item"}
+                </p>
 
               </div>
 
               <button
                 type="button"
-                onClick={
-                  closeForm
+                onClick={() =>
+                  setShowForm(false)
                 }
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-50"
+                className="w-10 h-10 rounded-xl bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition"
               >
                 <FaTimes />
               </button>
@@ -1385,199 +1806,249 @@ export default function MediaPage() {
             {/* FORM */}
 
             <form
-              onSubmit={
-                handleSubmit
-              }
-              className="p-6 space-y-5"
+              onSubmit={handleSubmit}
+              className="overflow-y-auto"
             >
 
-              {/* CATEGORY */}
+              <div className="p-6 space-y-5">
 
-              <div>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+                    {error}
+                  </div>
+                )}
 
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Category *
-                </label>
+                {/* TITLE */}
 
-                <select
-                  name="category"
-                  value={
-                    formData.category
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  required
-                  className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-white outline-none text-sm focus:border-[#8B1E3F]"
-                >
+                <div>
 
-                  <option value="">
-                    Select Category
-                  </option>
-
-                  {categories.map(
-                    (category) => (
-                      <option
-                        key={
-                          category
-                        }
-                        value={
-                          category
-                        }
-                      >
-                        {category}
-                      </option>
-                    )
-                  )}
-
-                </select>
-
-              </div>
-
-              {/* TITLE */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Title *
-                </label>
-
-                <input
-                  type="text"
-                  name="title"
-                  value={
-                    formData.title
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  required
-                  maxLength={255}
-                  placeholder="Enter news title"
-                  className="w-full h-12 px-4 rounded-xl border border-gray-200 outline-none text-sm focus:border-[#8B1E3F]"
-                />
-
-              </div>
-
-              {/* DESCRIPTION */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description *
-                </label>
-
-                <textarea
-                  name="description"
-                  value={
-                    formData.description
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  required
-                  rows={4}
-                  placeholder="Enter news description"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none text-sm resize-none focus:border-[#8B1E3F]"
-                />
-
-              </div>
-
-              {/* LOCATION */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Location
-                </label>
-
-                <input
-                  type="text"
-                  name="location"
-                  value={
-                    formData.location
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  maxLength={150}
-                  placeholder="Example: Hyderabad"
-                  className="w-full h-12 px-4 rounded-xl border border-gray-200 outline-none text-sm focus:border-[#8B1E3F]"
-                />
-
-              </div>
-
-              {/* DATE */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Date *
-                </label>
-
-                <div className="relative">
-
-                  <FaCalendarAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    News Title
+                    <span className="text-red-500">
+                      {" "}*
+                    </span>
+                  </label>
 
                   <input
-                    type="date"
-                    name="date"
+                    type="text"
+                    name="title"
                     value={
-                      formData.date
+                      formData.title
                     }
                     onChange={
                       handleChange
                     }
+                    placeholder="Enter news title"
+                    className="w-full h-12 px-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8B1E3F]/10 focus:border-[#8B1E3F] text-sm"
                     required
-                    className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-200 outline-none text-sm focus:border-[#8B1E3F]"
                   />
 
                 </div>
 
-              </div>
+                {/* DESCRIPTION */}
 
-              {/* IMAGE */}
+                <div>
 
-              <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Description
+                  </label>
 
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Upload Image *
+                  <textarea
+                    name="description"
+                    value={
+                      formData.description
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    rows={4}
+                    placeholder="Enter news description"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8B1E3F]/10 focus:border-[#8B1E3F] text-sm resize-none"
+                  />
+
+                </div>
+
+                {/* CATEGORY + LOCATION */}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div>
+
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Category
+                    </label>
+
+                    <select
+                      name="category"
+                      value={
+                        formData.category
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-[#8B1E3F] text-sm"
+                    >
+
+                      {categories.map(
+                        (category) => (
+                          <option
+                            key={
+                              category
+                            }
+                            value={
+                              category
+                            }
+                          >
+                            {category}
+                          </option>
+                        )
+                      )}
+
+                    </select>
+
+                  </div>
+
+                  <div>
+
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Location
+                    </label>
+
+                    <div className="relative">
+
+                      <FaMapMarkerAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+
+                      <input
+                        type="text"
+                        name="location"
+                        value={
+                          formData.location
+                        }
+                        onChange={
+                          handleChange
+                        }
+                        placeholder="Hyderabad / Telangana"
+                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-200 focus:outline-none focus:border-[#8B1E3F] text-sm"
+                      />
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* DATE + STATUS */}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <div>
+
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Published Date
+                    </label>
+
+                    <div className="relative">
+
+                      <FaCalendarAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+
+                      <input
+                        type="date"
+                        name="date"
+                        value={
+                          formData.date
+                        }
+                        onChange={
+                          handleChange
+                        }
+                        className="w-full h-12 pl-10 pr-4 rounded-xl border border-gray-200 focus:outline-none focus:border-[#8B1E3F] text-sm"
+                      />
+
+                    </div>
+
+                  </div>
+
+                  <div>
+
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Status
+                    </label>
+
+                    <select
+                      name="status"
+                      value={
+                        formData.status
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-[#8B1E3F] text-sm"
+                    >
+
+                      <option value="Active">
+                        Active
+                      </option>
+
+                      <option value="Inactive">
+                        Inactive
+                      </option>
+
+                    </select>
+
+                  </div>
+
+                </div>
+
+                {/* FEATURED */}
+
+                <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-[#fffafb] transition">
+
+                  <input
+                    type="checkbox"
+                    checked={
+                      formData.featured
+                    }
+                    onChange={(e) =>
+                      setFormData(
+                        (prev) => ({
+                          ...prev,
+                          featured:
+                            e.target
+                              .checked,
+                        })
+                      )
+                    }
+                    className="w-4 h-4 accent-[#8B1E3F]"
+                  />
+
+                  <span className="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                    <FaStar />
+                  </span>
+
+                  <span>
+
+                    <span className="block font-semibold text-sm text-gray-700">
+                      Featured News
+                    </span>
+
+                    <span className="block text-xs text-gray-400 mt-0.5">
+                      Highlight this news item
+                    </span>
+
+                  </span>
+
                 </label>
 
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4">
+                {/* IMAGE */}
 
-                  <label className="cursor-pointer block">
+                <div>
 
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      onChange={
-                        handleFileChange
-                      }
-                      className="hidden"
-                    />
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    News Image
+                  </label>
 
-                    {!previewUrl ? (
+                  <div className="border-2 border-dashed border-gray-200 rounded-2xl p-5">
 
-                      <div className="h-40 flex flex-col items-center justify-center text-gray-400 hover:text-[#8B1E3F] transition">
-
-                        <FaUpload className="text-3xl mb-3" />
-
-                        <p className="text-sm font-semibold">
-                          Click to upload image
-                        </p>
-
-                        <p className="text-xs mt-1">
-                          JPG, PNG, WEBP or GIF
-                        </p>
-
-                        <p className="text-xs mt-1">
-                          Maximum 10 MB
-                        </p>
-
-                      </div>
-
-                    ) : (
+                    {previewUrl ? (
 
                       <div className="relative">
 
@@ -1589,159 +2060,90 @@ export default function MediaPage() {
                           className="w-full h-56 object-cover rounded-xl"
                         />
 
-                        <div className="absolute bottom-3 left-3 right-3 bg-black/60 text-white rounded-lg px-3 py-2 text-xs">
-                          {selectedFile
-                            ? selectedFile.name
-                            : "Current image"}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={
+                            removeSelectedImage
+                          }
+                          className="absolute top-3 right-3 w-9 h-9 rounded-xl bg-white/95 text-red-500 shadow-lg flex items-center justify-center hover:bg-red-50 transition"
+                          title="Remove image"
+                        >
+                          <FaTrash className="text-xs" />
+                        </button>
 
                       </div>
 
+                    ) : (
+
+                      <label className="cursor-pointer block">
+
+                        <div className="flex flex-col items-center justify-center py-8">
+
+                          <div className="w-14 h-14 rounded-2xl bg-[#8B1E3F]/5 text-[#8B1E3F] flex items-center justify-center mb-3">
+                            <FaUpload />
+                          </div>
+
+                          <p className="font-semibold text-sm text-gray-700">
+                            Upload News Image
+                          </p>
+
+                          <p className="text-xs text-gray-400 mt-1">
+                            JPG, PNG, WEBP or GIF · Max 10MB
+                          </p>
+
+                        </div>
+
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp,image/gif"
+                          onChange={
+                            handleFileChange
+                          }
+                          className="hidden"
+                        />
+
+                      </label>
+
                     )}
 
-                  </label>
-
-                  {previewUrl && (
-                    <button
-                      type="button"
-                      onClick={
-                        removeSelectedImage
-                      }
-                      className="mt-3 w-full h-10 rounded-lg bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100"
-                    >
-                      Remove Image
-                    </button>
-                  )}
+                  </div>
 
                 </div>
 
-                <p className="text-xs text-gray-400 mt-2">
-                  {editingId !==
-                  null
-                    ? "Select a new image only if you want to replace the current image."
-                    : "Select the image you want to upload."}
-                </p>
-
               </div>
 
-              {/* FEATURED */}
+              {/* MODAL FOOTER */}
 
-              <div className="flex items-center justify-between rounded-xl border border-gray-200 p-4">
-
-                <div>
-
-                  <p className="text-sm font-semibold text-gray-700">
-                    Featured News
-                  </p>
-
-                  <p className="text-xs text-gray-400 mt-1">
-                    Show this news as featured
-                  </p>
-
-                </div>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-
-                  <input
-                    type="checkbox"
-                    checked={
-                      formData.featured
-                    }
-                    onChange={
-                      handleFeaturedChange
-                    }
-                    className="sr-only peer"
-                  />
-
-                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#8B1E3F] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
-
-                </label>
-
-              </div>
-
-              {/* STATUS */}
-
-              <div>
-
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Status
-                </label>
-
-                <select
-                  name="status"
-                  value={
-                    formData.status
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-white outline-none text-sm"
-                >
-
-                  <option value="Active">
-                    Active
-                  </option>
-
-                  <option value="Inactive">
-                    Inactive
-                  </option>
-
-                </select>
-
-              </div>
-
-              {/* FORM ERROR */}
-
-              {error && (
-                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
-
-              {/* BUTTONS */}
-
-              <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
 
                 <button
                   type="button"
-                  onClick={
-                    closeForm
+                  onClick={() =>
+                    setShowForm(false)
                   }
-                  disabled={
-                    saving
-                  }
-                  className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50 disabled:opacity-50"
+                  className="h-11 px-5 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-100 font-semibold text-sm transition"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  disabled={
-                    saving
-                  }
-                  className="flex-1 h-11 rounded-xl bg-[#8B1E3F] text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#741832] disabled:opacity-60"
+                  disabled={saving}
+                  className="h-11 px-6 rounded-xl bg-[#8B1E3F] hover:bg-[#721732] disabled:opacity-60 text-white font-semibold text-sm flex items-center gap-2 transition"
                 >
 
                   {saving ? (
-
                     <>
                       <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-
                       Saving...
                     </>
-
                   ) : (
-
                     <>
                       <FaSave />
-
-                      {editingId !==
-                      null
+                      {editingId
                         ? "Update News"
                         : "Save News"}
                     </>
-
                   )}
 
                 </button>
@@ -1753,41 +2155,50 @@ export default function MediaPage() {
           </div>
 
         </div>
+
       )}
 
-      {/* =================================================
+      {/* ===================================================
           DELETE MODAL
-      ================================================= */}
+      =================================================== */}
 
       {deleteId !== null && (
 
-        <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[11000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
 
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6">
 
-            <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-4">
-              <FaTrash />
+            <div className="flex items-start gap-4">
+
+              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                <FaTrash />
+              </div>
+
+              <div>
+
+                <h3 className="text-lg font-bold text-gray-800">
+                  Delete News?
+                </h3>
+
+                <p className="text-sm text-gray-500 mt-1 leading-6">
+                  Are you sure you want to permanently
+                  delete this news item? This action
+                  cannot be undone.
+                </p>
+
+              </div>
+
             </div>
 
-            <h2 className="text-lg font-bold text-gray-900">
-              Delete News?
-            </h2>
-
-            <p className="text-sm text-gray-500 mt-2">
-              Are you sure you want to delete this news item?
-              This action cannot be undone.
-            </p>
-
-            <div className="flex gap-3 mt-6">
+            <div className="flex justify-end gap-3 mt-6">
 
               <button
                 type="button"
                 onClick={() =>
-                  setDeleteId(
-                    null
-                  )
+                  setDeleteId(null)
                 }
-                className="flex-1 h-11 rounded-xl border border-gray-200 text-gray-700 font-semibold text-sm hover:bg-gray-50"
+                disabled={saving}
+                className="h-11 px-5 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 font-semibold text-sm"
               >
                 Cancel
               </button>
@@ -1797,9 +2208,22 @@ export default function MediaPage() {
                 onClick={
                   handleDelete
                 }
-                className="flex-1 h-11 rounded-xl bg-red-600 text-white font-semibold text-sm hover:bg-red-700"
+                disabled={saving}
+                className="h-11 px-5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-semibold text-sm flex items-center gap-2"
               >
-                Delete
+
+                {saving ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <FaTrash />
+                    Delete
+                  </>
+                )}
+
               </button>
 
             </div>
@@ -1807,9 +2231,9 @@ export default function MediaPage() {
           </div>
 
         </div>
+
       )}
 
     </div>
   );
 }
-

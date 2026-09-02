@@ -64,6 +64,14 @@ interface MatrimonialUser {
 }
 
 /* =========================================================
+   BACKEND URL
+========================================================= */
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "http://localhost:5000";
+
+/* =========================================================
    PAGE
 ========================================================= */
 
@@ -81,17 +89,14 @@ export default function AdminDashboard() {
   const [openMenuId, setOpenMenuId] =
     useState<number | null>(null);
 
+  const [deletingId, setDeletingId] =
+    useState<number | null>(null);
+
   const rowsPerPage = 5;
 
   /* =========================================================
      GET MATRIMONIAL USERS
   ========================================================= */
-
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const fetchUsers = async () => {
     try {
@@ -105,6 +110,7 @@ export default function AdminDashboard() {
           headers: {
             "Content-Type": "application/json",
           },
+          cache: "no-store",
         }
       );
 
@@ -116,12 +122,17 @@ export default function AdminDashboard() {
 
       const data = await response.json();
 
-      console.log("Matrimonial users:", data);
+      console.log(
+        "Matrimonial users:",
+        data
+      );
 
-      /*
-       * Backend returns array directly
-       */
-      setUsers(Array.isArray(data) ? data : []);
+      setUsers(
+        Array.isArray(data)
+          ? data
+          : []
+      );
+
     } catch (error) {
       console.error(
         "Error fetching matrimonial users:",
@@ -131,68 +142,89 @@ export default function AdminDashboard() {
       setError(
         "Unable to load matrimonial members. Please check the backend server."
       );
+
     } finally {
       setLoading(false);
     }
   };
 
   /* =========================================================
+     INITIAL LOAD
+  ========================================================= */
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  /* =========================================================
      SEARCH
   ========================================================= */
 
-  const filteredUsers = users.filter((user) => {
-    const searchValue = search
-      .toLowerCase()
-      .trim();
+  const filteredUsers = users.filter(
+    (user) => {
+      const searchValue =
+        search.toLowerCase().trim();
 
-    if (!searchValue) {
-      return true;
+      if (!searchValue) {
+        return true;
+      }
+
+      return (
+        (user.name || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+
+        (user.surname || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+
+        (user.member_id || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+
+        (user.email || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+
+        (user.mobile || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+
+        (user.address || "")
+          .toLowerCase()
+          .includes(searchValue) ||
+
+        (user.profile_category || "")
+          .toLowerCase()
+          .includes(searchValue)
+      );
     }
-
-    return (
-      (user.name || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (user.surname || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (user.member_id || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (user.email || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (user.mobile || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (user.address || "")
-        .toLowerCase()
-        .includes(searchValue) ||
-
-      (user.profile_category || "")
-        .toLowerCase()
-        .includes(searchValue)
-    );
-  });
+  );
 
   /* =========================================================
      PAGINATION
   ========================================================= */
 
   const totalPages = Math.ceil(
-    filteredUsers.length / rowsPerPage
+    filteredUsers.length /
+      rowsPerPage
   );
 
+  const safeCurrentPage =
+    totalPages > 0
+      ? Math.min(
+          currentPage,
+          totalPages
+        )
+      : 1;
+
   const indexOfLastRow =
-    currentPage * rowsPerPage;
+    safeCurrentPage *
+    rowsPerPage;
 
   const indexOfFirstRow =
-    indexOfLastRow - rowsPerPage;
+    indexOfLastRow -
+    rowsPerPage;
 
   const currentUsers =
     filteredUsers.slice(
@@ -214,33 +246,134 @@ export default function AdminDashboard() {
      DELETE
   ========================================================= */
 
-  const handleDelete = (
+  const handleDelete = async (
     id: number,
     name: string
   ) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${name}?`
-    );
+    const confirmed =
+      window.confirm(
+        `Are you sure you want to delete ${name}?`
+      );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
-    console.log(
-      "Delete matrimonial member:",
-      id
-    );
+    try {
+      setDeletingId(id);
+      setOpenMenuId(null);
+      setError("");
 
-    setOpenMenuId(null);
+      console.log(
+        "Deleting matrimonial member:",
+        id
+      );
 
-    // Delete API can be added next.
+      const response =
+        await fetch(
+          `${BACKEND_URL}/matrimonial-users/${id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+      const data =
+        await response
+          .json()
+          .catch(() => null);
+
+      console.log(
+        "DELETE RESPONSE:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(
+            data?.message
+          )
+            ? data.message.join(
+                ", "
+              )
+            : data?.message ||
+                `Failed to delete member (${response.status})`
+        );
+      }
+
+      /* -----------------------------------------
+         REMOVE FROM TABLE
+      ----------------------------------------- */
+
+      setUsers(
+        (previousUsers) =>
+          previousUsers.filter(
+            (user) =>
+              user.id !== id
+          )
+      );
+
+      /* -----------------------------------------
+         PAGINATION FIX
+      ----------------------------------------- */
+
+      setCurrentPage(
+        (previousPage) => {
+          const remainingCount =
+            filteredUsers.length -
+            1;
+
+          const newTotalPages =
+            Math.ceil(
+              remainingCount /
+                rowsPerPage
+            );
+
+          if (
+            newTotalPages === 0
+          ) {
+            return 1;
+          }
+
+          return Math.min(
+            previousPage,
+            newTotalPages
+          );
+        }
+      );
+
+      alert(
+        "Matrimonial profile deleted successfully."
+      );
+
+    } catch (error) {
+      console.error(
+        "Delete member error:",
+        error
+      );
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete matrimonial profile."
+      );
+
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   /* =========================================================
      MENU TOGGLE
   ========================================================= */
 
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((current) =>
-      current === id ? null : id
+  const toggleMenu = (
+    id: number
+  ) => {
+    setOpenMenuId(
+      (current) =>
+        current === id
+          ? null
+          : id
     );
   };
 
@@ -251,12 +384,18 @@ export default function AdminDashboard() {
   const formatDate = (
     date: string | null
   ) => {
-    if (!date) return "-";
+    if (!date) {
+      return "-";
+    }
 
     const formattedDate =
       new Date(date);
 
-    if (isNaN(formattedDate.getTime())) {
+    if (
+      isNaN(
+        formattedDate.getTime()
+      )
+    ) {
       return date;
     }
 
@@ -279,6 +418,17 @@ export default function AdminDashboard() {
     name: string
   ) => {
     if (photo) {
+      if (
+        photo.startsWith(
+          "http://"
+        ) ||
+        photo.startsWith(
+          "https://"
+        )
+      ) {
+        return photo;
+      }
+
       return `${BACKEND_URL}/uploads/matrimonial/${photo}`;
     }
 
@@ -293,10 +443,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50/80">
-
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
 
       <main
         className="
@@ -333,7 +479,8 @@ export default function AdminDashboard() {
             </h2>
 
             <p className="text-sm text-gray-500 mt-1">
-              Manage and monitor all registered matrimonial members.
+              Manage and monitor all registered
+              matrimonial members.
             </p>
 
           </div>
@@ -428,7 +575,9 @@ export default function AdminDashboard() {
 
                     setCurrentPage(1);
 
-                    setOpenMenuId(null);
+                    setOpenMenuId(
+                      null
+                    );
                   }}
                   placeholder="Search by name, member ID, email or phone..."
                   className="
@@ -457,7 +606,9 @@ export default function AdminDashboard() {
                 {search && (
                   <button
                     type="button"
-                    onClick={resetSearch}
+                    onClick={
+                      resetSearch
+                    }
                     title="Clear search"
                     className="
                       absolute
@@ -501,7 +652,9 @@ export default function AdminDashboard() {
                 {search && (
                   <button
                     type="button"
-                    onClick={resetSearch}
+                    onClick={
+                      resetSearch
+                    }
                     className="
                       text-xs
                       font-semibold
@@ -543,7 +696,9 @@ export default function AdminDashboard() {
 
               <button
                 type="button"
-                onClick={fetchUsers}
+                onClick={
+                  fetchUsers
+                }
                 className="
                   mt-3
                   px-4
@@ -599,8 +754,6 @@ export default function AdminDashboard() {
                   <th className="px-6 py-4 text-left font-semibold">
                     Phone Number
                   </th>
-
-                  {/* PROFILE CATEGORY */}
 
                   <th className="px-6 py-4 text-left font-semibold">
                     Profile Category
@@ -665,344 +818,388 @@ export default function AdminDashboard() {
                      USERS
                   ================================================= */
 
-                  currentUsers.map((user) => (
+                  currentUsers.map(
+                    (user) => (
 
-                    <tr
-                      key={user.id}
-                      className="
-                        hover:bg-gray-50/70
-                        transition-colors
-                      "
-                    >
+                      <tr
+                        key={user.id}
+                        className="
+                          hover:bg-gray-50/70
+                          transition-colors
+                        "
+                      >
 
-                      {/* =================================================
-                          NAME
-                      ================================================= */}
+                        {/* NAME */}
 
-                      <td className="px-6 py-4">
+                        <td className="px-6 py-4">
 
-                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3">
 
-                          <img
-                            src={getPhotoUrl(
-                              user.photo,
-                              `${user.name} ${
-                                user.surname || ""
-                              }`
-                            )}
-                            alt={user.name}
-                            className="
-                              w-10
-                              h-10
-                              rounded-xl
-                              object-cover
-                              border
-                              border-gray-100
-                            "
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  user.name
-                                )}&background=f5f5f5&color=555555&bold=true`;
-                            }}
-                          />
-
-                          <div className="min-w-0">
-
-                            <p
+                            <img
+                              src={getPhotoUrl(
+                                user.photo,
+                                `${user.name} ${
+                                  user.surname ||
+                                  ""
+                                }`
+                              )}
+                              alt={
+                                user.name
+                              }
                               className="
-                                font-semibold
-                                text-gray-800
-                                truncate
-                                max-w-[180px]
+                                w-10
+                                h-10
+                                rounded-xl
+                                object-cover
+                                border
+                                border-gray-100
                               "
-                            >
-                              {user.name}{" "}
-                              {user.surname || ""}
-                            </p>
+                              onError={(
+                                e
+                              ) => {
+                                e.currentTarget.src =
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                    user.name
+                                  )}&background=f5f5f5&color=555555&bold=true`;
+                              }}
+                            />
 
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              ID #{user.id}
-                            </p>
+                            <div className="min-w-0">
+
+                              <p
+                                className="
+                                  font-semibold
+                                  text-gray-800
+                                  truncate
+                                  max-w-[180px]
+                                "
+                              >
+                                {user.name}{" "}
+                                {user.surname ||
+                                  ""}
+                              </p>
+
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                ID #
+                                {
+                                  user.id
+                                }
+                              </p>
+
+                            </div>
 
                           </div>
 
-                        </div>
+                        </td>
 
-                      </td>
+                        {/* MEMBER ID */}
 
-                      {/* =================================================
-                          MEMBER ID
-                      ================================================= */}
+                        <td className="px-6 py-4">
 
-                      <td className="px-6 py-4">
+                          <span className="text-sm font-medium text-gray-600">
+                            {user.member_id ||
+                              "-"}
+                          </span>
 
-                        <span className="text-sm font-medium text-gray-600">
-                          {user.member_id || "-"}
-                        </span>
+                        </td>
 
-                      </td>
+                        {/* EMAIL */}
 
-                      {/* =================================================
-                          EMAIL
-                      ================================================= */}
+                        <td className="px-6 py-4">
 
-                      <td className="px-6 py-4">
+                          <span className="text-sm text-gray-600 whitespace-nowrap">
+                            {user.email ||
+                              "-"}
+                          </span>
 
-                        <span className="text-sm text-gray-600 whitespace-nowrap">
-                          {user.email || "-"}
-                        </span>
+                        </td>
 
-                      </td>
+                        {/* PHONE */}
 
-                      {/* =================================================
-                          PHONE
-                      ================================================= */}
+                        <td className="px-6 py-4">
 
-                      <td className="px-6 py-4">
+                          <span className="text-sm text-gray-600 whitespace-nowrap">
+                            {user.mobile ||
+                              "-"}
+                          </span>
 
-                        <span className="text-sm text-gray-600 whitespace-nowrap">
-                          {user.mobile || "-"}
-                        </span>
+                        </td>
 
-                      </td>
+                        {/* PROFILE CATEGORY */}
 
-                      {/* =================================================
-                          PROFILE CATEGORY
-                      ================================================= */}
-
-                      <td className="px-6 py-4">
-
-                        <span
-                          className="
-                            inline-flex
-                            items-center
-                            px-3
-                            py-1.5
-                            rounded-full
-                            text-xs
-                            font-semibold
-                            bg-gray-50
-                            text-gray-600
-                          "
-                        >
-                          {user.profile_category || "-"}
-                        </span>
-
-                      </td>
-
-                      {/* =================================================
-                          CREATE DATE
-                      ================================================= */}
-
-                      <td className="px-6 py-4">
-
-                        <div className="flex flex-col">
+                        <td className="px-6 py-4">
 
                           <span
                             className="
-                              text-sm
-                              font-medium
-                              text-gray-700
-                              whitespace-nowrap
+                              inline-flex
+                              items-center
+                              px-3
+                              py-1.5
+                              rounded-full
+                              text-xs
+                              font-semibold
+                              bg-gray-50
+                              text-gray-600
                             "
                           >
-                            {formatDate(
-                              user.created_at
-                            )}
+                            {user.profile_category ||
+                              "-"}
                           </span>
 
-                          <span className="text-xs text-gray-400 mt-0.5">
-                            Registered
-                          </span>
+                        </td>
 
-                        </div>
+                        {/* CREATE DATE */}
 
-                      </td>
+                        <td className="px-6 py-4">
 
-                      {/* =================================================
-                          ACTIONS
-                      ================================================= */}
+                          <div className="flex flex-col">
 
-                      <td className="px-6 py-4">
-
-                        <div className="flex justify-end">
-
-                          <div className="relative">
-
-                            {/* ACTION BUTTON */}
-
-                            <button
-                              type="button"
-                              title="More actions"
-                              aria-label={`Actions for ${user.name}`}
-                              aria-expanded={
-                                openMenuId ===
-                                user.id
-                              }
-                              onClick={() =>
-                                toggleMenu(
-                                  user.id
-                                )
-                              }
+                            <span
                               className="
-                                w-9
-                                h-9
-                                flex
-                                items-center
-                                justify-center
-                                rounded-lg
-                                border
-                                border-gray-200
-                                bg-white
-                                text-gray-500
-                                hover:text-gray-800
-                                hover:bg-gray-50
-                                hover:border-gray-300
-                                active:bg-gray-100
-                                transition-all
+                                text-sm
+                                font-medium
+                                text-gray-700
+                                whitespace-nowrap
                               "
                             >
-                              <FaEllipsisV className="text-sm" />
-                            </button>
+                              {formatDate(
+                                user.created_at
+                              )}
+                            </span>
 
-                            {/* =================================================
-                                DROPDOWN
-                            ================================================= */}
-
-                            {openMenuId ===
-                              user.id && (
-
-                              <div
-                                className="
-                                  absolute
-                                  right-0
-                                  top-11
-                                  z-50
-                                  w-40
-                                  bg-white
-                                  border
-                                  border-gray-100
-                                  rounded-xl
-                                  shadow-2xl
-                                  py-1.5
-                                "
-                              >
-
-                                {/* VIEW */}
-
-                                <Link
-                                  href={`/admin/matrimony/view/${user.id}`}
-                                  onClick={() =>
-                                    setOpenMenuId(
-                                      null
-                                    )
-                                  }
-                                  className="
-                                    w-full
-                                    flex
-                                    items-center
-                                    gap-3
-                                    px-4
-                                    py-2.5
-                                    text-sm
-                                    text-gray-600
-                                    hover:bg-gray-50
-                                    hover:text-gray-900
-                                    transition
-                                  "
-                                >
-
-                                  <FaEye className="text-gray-400 text-xs" />
-
-                                  <span>
-                                    View
-                                  </span>
-
-                                </Link>
-
-                                {/* EDIT */}
-
-                                <Link
-                                  href={`/admin/matrimony/edit/${user.id}`}
-                                  onClick={() =>
-                                    setOpenMenuId(
-                                      null
-                                    )
-                                  }
-                                  className="
-                                    w-full
-                                    flex
-                                    items-center
-                                    gap-3
-                                    px-4
-                                    py-2.5
-                                    text-sm
-                                    text-gray-600
-                                    hover:bg-gray-50
-                                    hover:text-gray-900
-                                    transition
-                                  "
-                                >
-
-                                  <FaEdit className="text-gray-400 text-xs" />
-
-                                  <span>
-                                    Edit
-                                  </span>
-
-                                </Link>
-
-                                {/* DIVIDER */}
-
-                                <div className="my-1 border-t border-gray-100" />
-
-                                {/* DELETE */}
-
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleDelete(
-                                      user.id,
-                                      user.name
-                                    )
-                                  }
-                                  className="
-                                    w-full
-                                    flex
-                                    items-center
-                                    gap-3
-                                    px-4
-                                    py-2.5
-                                    text-sm
-                                    text-gray-500
-                                    hover:bg-red-50
-                                    hover:text-red-600
-                                    transition
-                                    text-left
-                                  "
-                                >
-
-                                  <FaTrash className="text-gray-400 text-xs" />
-
-                                  <span>
-                                    Delete
-                                  </span>
-
-                                </button>
-
-                              </div>
-                            )}
+                            <span className="text-xs text-gray-400 mt-0.5">
+                              Registered
+                            </span>
 
                           </div>
 
-                        </div>
+                        </td>
 
-                      </td>
+                        {/* ACTIONS */}
 
-                    </tr>
+                        <td className="px-6 py-4">
 
-                  ))
+                          <div className="flex justify-end">
+
+                            <div className="relative">
+
+                              {/* ACTION BUTTON */}
+
+                              <button
+                                type="button"
+                                title="More actions"
+                                aria-label={`Actions for ${user.name}`}
+                                aria-expanded={
+                                  openMenuId ===
+                                  user.id
+                                }
+                                onClick={() =>
+                                  toggleMenu(
+                                    user.id
+                                  )
+                                }
+                                disabled={
+                                  deletingId ===
+                                  user.id
+                                }
+                                className="
+                                  w-9
+                                  h-9
+                                  flex
+                                  items-center
+                                  justify-center
+                                  rounded-lg
+                                  border
+                                  border-gray-200
+                                  bg-white
+                                  text-gray-500
+                                  hover:text-gray-800
+                                  hover:bg-gray-50
+                                  hover:border-gray-300
+                                  active:bg-gray-100
+                                  disabled:opacity-50
+                                  transition-all
+                                "
+                              >
+
+                                <FaEllipsisV className="text-sm" />
+
+                              </button>
+
+                              {/* =================================================
+                                  DROPDOWN
+                              ================================================= */}
+
+                              {openMenuId ===
+                                user.id && (
+
+                                <div
+                                  className="
+                                    absolute
+                                    right-0
+                                    top-11
+                                    z-50
+                                    w-40
+                                    bg-white
+                                    border
+                                    border-gray-100
+                                    rounded-xl
+                                    shadow-2xl
+                                    py-1.5
+                                  "
+                                >
+
+                                  {/* VIEW */}
+
+                                  <Link
+                                    href={`/admin/matrimony/view/${user.id}`}
+                                    onClick={() =>
+                                      setOpenMenuId(
+                                        null
+                                      )
+                                    }
+                                    className="
+                                      w-full
+                                      flex
+                                      items-center
+                                      gap-3
+                                      px-4
+                                      py-2.5
+                                      text-sm
+                                      text-gray-600
+                                      hover:bg-gray-50
+                                      hover:text-gray-900
+                                      transition
+                                    "
+                                  >
+
+                                    <FaEye className="text-gray-400 text-xs" />
+
+                                    <span>
+                                      View
+                                    </span>
+
+                                  </Link>
+
+                                  {/* EDIT */}
+
+                                  <Link
+                                    href={`/admin/matrimony/edit/${user.id}`}
+                                    onClick={() =>
+                                      setOpenMenuId(
+                                        null
+                                      )
+                                    }
+                                    className="
+                                      w-full
+                                      flex
+                                      items-center
+                                      gap-3
+                                      px-4
+                                      py-2.5
+                                      text-sm
+                                      text-gray-600
+                                      hover:bg-gray-50
+                                      hover:text-gray-900
+                                      transition
+                                    "
+                                  >
+
+                                    <FaEdit className="text-gray-400 text-xs" />
+
+                                    <span>
+                                      Edit
+                                    </span>
+
+                                  </Link>
+
+                                  {/* DIVIDER */}
+
+                                  <div className="my-1 border-t border-gray-100" />
+
+                                  {/* DELETE */}
+
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      deletingId ===
+                                      user.id
+                                    }
+                                    onClick={() =>
+                                      handleDelete(
+                                        user.id,
+                                        `${user.name} ${
+                                          user.surname ||
+                                          ""
+                                        }`.trim()
+                                      )
+                                    }
+                                    className="
+                                      w-full
+                                      flex
+                                      items-center
+                                      gap-3
+                                      px-4
+                                      py-2.5
+                                      text-sm
+                                      text-gray-500
+                                      hover:bg-red-50
+                                      hover:text-red-600
+                                      disabled:opacity-50
+                                      disabled:cursor-not-allowed
+                                      transition
+                                      text-left
+                                    "
+                                  >
+
+                                    {deletingId ===
+                                    user.id ? (
+
+                                      <>
+                                        <span
+                                          className="
+                                            w-3
+                                            h-3
+                                            border-2
+                                            border-gray-300
+                                            border-t-red-500
+                                            rounded-full
+                                            animate-spin
+                                          "
+                                        />
+
+                                        <span>
+                                          Deleting...
+                                        </span>
+                                      </>
+
+                                    ) : (
+
+                                      <>
+                                        <FaTrash className="text-gray-400 text-xs" />
+
+                                        <span>
+                                          Delete
+                                        </span>
+                                      </>
+                                    )}
+
+                                  </button>
+
+                                </div>
+
+                              )}
+
+                            </div>
+
+                          </div>
+
+                        </td>
+
+                      </tr>
+
+                    )
+                  )
 
                 ) : (
 
@@ -1040,14 +1237,16 @@ export default function AdminDashboard() {
 
                         <p className="text-xs text-gray-400 mt-1">
                           Try searching with a
-                          different name, email or
-                          phone number.
+                          different name, email
+                          or phone number.
                         </p>
 
                         {search && (
                           <button
                             type="button"
-                            onClick={resetSearch}
+                            onClick={
+                              resetSearch
+                            }
                             className="
                               mt-4
                               text-xs
@@ -1100,9 +1299,11 @@ export default function AdminDashboard() {
               Showing{" "}
 
               <span className="font-semibold text-gray-700">
-                {filteredUsers.length === 0
+                {filteredUsers.length ===
+                0
                   ? 0
-                  : indexOfFirstRow + 1}
+                  : indexOfFirstRow +
+                    1}
               </span>{" "}
 
               to{" "}
@@ -1117,7 +1318,9 @@ export default function AdminDashboard() {
               of{" "}
 
               <span className="font-semibold text-gray-700">
-                {filteredUsers.length}
+                {
+                  filteredUsers.length
+                }
               </span>{" "}
 
               members
@@ -1143,10 +1346,13 @@ export default function AdminDashboard() {
                         )
                     );
 
-                    setOpenMenuId(null);
+                    setOpenMenuId(
+                      null
+                    );
                   }}
                   disabled={
-                    currentPage === 1
+                    safeCurrentPage ===
+                    1
                   }
                   className="
                     px-4
@@ -1169,38 +1375,42 @@ export default function AdminDashboard() {
 
                 {Array.from({
                   length: totalPages,
-                }).map((_, index) => (
+                }).map(
+                  (_, index) => (
 
-                  <button
-                    type="button"
-                    key={index}
-                    onClick={() => {
-                      setCurrentPage(
-                        index + 1
-                      );
+                    <button
+                      type="button"
+                      key={index}
+                      onClick={() => {
+                        setCurrentPage(
+                          index + 1
+                        );
 
-                      setOpenMenuId(null);
-                    }}
-                    className={`
-                      w-9
-                      h-9
-                      rounded-lg
-                      text-sm
-                      font-semibold
-                      transition
+                        setOpenMenuId(
+                          null
+                        );
+                      }}
+                      className={`
+                        w-9
+                        h-9
+                        rounded-lg
+                        text-sm
+                        font-semibold
+                        transition
 
-                      ${
-                        currentPage ===
-                        index + 1
-                          ? "bg-gray-100 text-black shadow-sm"
-                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                      }
-                    `}
-                  >
-                    {index + 1}
-                  </button>
+                        ${
+                          safeCurrentPage ===
+                          index + 1
+                            ? "bg-gray-100 text-black shadow-sm"
+                            : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                        }
+                      `}
+                    >
+                      {index + 1}
+                    </button>
 
-                ))}
+                  )
+                )}
 
                 {/* NEXT */}
 
@@ -1215,10 +1425,12 @@ export default function AdminDashboard() {
                         )
                     );
 
-                    setOpenMenuId(null);
+                    setOpenMenuId(
+                      null
+                    );
                   }}
                   disabled={
-                    currentPage ===
+                    safeCurrentPage ===
                     totalPages
                   }
                   className="
@@ -1251,3 +1463,5 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+

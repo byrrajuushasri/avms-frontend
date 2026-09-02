@@ -11,6 +11,8 @@ import {
   FaSave,
   FaCalendarAlt,
   FaChevronDown,
+  FaEllipsisV,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 /* =========================================================
@@ -61,7 +63,7 @@ const EXECUTIVE_API = `${BACKEND_URL}/executive-bodies`;
 const STATES = ["Telangana"];
 
 /* =========================================================
-   TELANGANA ALL 33 DISTRICTS
+   TELANGANA DISTRICTS
 ========================================================= */
 
 const TELANGANA_DISTRICTS = [
@@ -127,7 +129,7 @@ const emptyForm = {
 };
 
 /* =========================================================
-   HELPER
+   HELPERS
 ========================================================= */
 
 function getItemName(item: OptionItem): string {
@@ -142,30 +144,16 @@ function getItemName(item: OptionItem): string {
   );
 }
 
-/* =========================================================
-   NORMALIZE API RESPONSE
-========================================================= */
-
 function getList(data: any): OptionItem[] {
-  if (Array.isArray(data)) {
-    return data;
-  }
+  if (Array.isArray(data)) return data;
 
-  if (Array.isArray(data?.data)) {
-    return data.data;
-  }
+  if (Array.isArray(data?.data)) return data.data;
 
-  if (Array.isArray(data?.mandals)) {
-    return data.mandals;
-  }
+  if (Array.isArray(data?.mandals)) return data.mandals;
 
-  if (Array.isArray(data?.sanghams)) {
-    return data.sanghams;
-  }
+  if (Array.isArray(data?.sanghams)) return data.sanghams;
 
-  if (Array.isArray(data?.items)) {
-    return data.items;
-  }
+  if (Array.isArray(data?.items)) return data.items;
 
   return [];
 }
@@ -175,10 +163,6 @@ function getList(data: any): OptionItem[] {
 ========================================================= */
 
 export default function ExecutiveBodiesPage() {
-  /* =======================================================
-     EXECUTIVE BODIES
-  ======================================================= */
-
   const [bodies, setBodies] = useState<ExecutiveBody[]>([]);
 
   const [loading, setLoading] = useState(true);
@@ -194,13 +178,19 @@ export default function ExecutiveBodiesPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   /* =======================================================
+     THREE DOT MENU
+  ======================================================= */
+
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+
+  /* =======================================================
      FORM
   ======================================================= */
 
   const [formData, setFormData] = useState(emptyForm);
 
   /* =======================================================
-     DISTRICT / MANDAL / SANGHAM
+     LOCATIONS
   ======================================================= */
 
   const [districts, setDistricts] = useState<OptionItem[]>([]);
@@ -211,7 +201,25 @@ export default function ExecutiveBodiesPage() {
   const [loadingSanghams, setLoadingSanghams] = useState(false);
 
   /* =======================================================
-     FETCH EXECUTIVE BODIES
+     CLOSE 3 DOT MENU ON OUTSIDE CLICK
+  ======================================================= */
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setOpenMenuId(null);
+    };
+
+    if (openMenuId !== null) {
+      document.addEventListener("click", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [openMenuId]);
+
+  /* =======================================================
+     FETCH BODIES
   ======================================================= */
 
   const fetchBodies = async () => {
@@ -258,20 +266,18 @@ export default function ExecutiveBodiesPage() {
   }, []);
 
   /* =======================================================
-     FETCH DISTRICTS FROM LOCATIONS API
+     FETCH DISTRICTS
   ======================================================= */
 
   const fetchDistricts = async () => {
     try {
-      const url = `${LOCATIONS_API}/districts`;
-      console.log("DISTRICTS API:", url);
-
-      const response = await fetch(url, {
+      const response = await fetch(`${LOCATIONS_API}/districts`, {
         method: "GET",
         cache: "no-store",
       });
 
       const text = await response.text();
+
       let data: any = {};
 
       try {
@@ -284,16 +290,16 @@ export default function ExecutiveBodiesPage() {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
-            : data?.message || `Failed to fetch districts (${response.status})`,
+            : data?.message || "Failed to fetch districts",
         );
       }
 
-      const list = getList(data);
-      console.log("DISTRICTS LIST:", list);
-      setDistricts(list);
+      setDistricts(getList(data));
     } catch (err) {
       console.error("Districts GET error:", err);
+
       setDistricts([]);
+
       setError(
         err instanceof Error ? err.message : "Failed to fetch districts",
       );
@@ -323,21 +329,21 @@ export default function ExecutiveBodiesPage() {
       );
 
       if (!district?.id) {
-        throw new Error(`District "${districtName}" not found in locations API`);
+        throw new Error(
+          `District "${districtName}" not found in locations API`,
+        );
       }
 
-      const url = `${LOCATIONS_API}/districts/${district.id}/mandals`;
-
-      console.log("MANDALS API:", url);
-      console.log("DISTRICT:", districtName);
-      console.log("DISTRICT ID:", district.id);
-
-      const response = await fetch(url, {
-        method: "GET",
-        cache: "no-store",
-      });
+      const response = await fetch(
+        `${LOCATIONS_API}/districts/${district.id}/mandals`,
+        {
+          method: "GET",
+          cache: "no-store",
+        },
+      );
 
       const text = await response.text();
+
       let data: any = {};
 
       try {
@@ -346,22 +352,20 @@ export default function ExecutiveBodiesPage() {
         data = {};
       }
 
-      console.log("MANDALS RESPONSE:", data);
-
       if (!response.ok) {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
-            : data?.message || `Failed to fetch mandals (${response.status})`,
+            : data?.message || "Failed to fetch mandals",
         );
       }
 
-      const list = getList(data);
-      console.log("MANDALS LIST:", list);
-      setMandals(list);
+      setMandals(getList(data));
     } catch (err) {
       console.error("Mandals GET error:", err);
+
       setMandals([]);
+
       setError(
         err instanceof Error ? err.message : "Failed to fetch mandals",
       );
@@ -391,21 +395,19 @@ export default function ExecutiveBodiesPage() {
       );
 
       if (!mandal?.id) {
-        throw new Error(`Mandal "${mandalName}" not found in locations API`);
+        throw new Error(`Mandal "${mandalName}" not found`);
       }
 
-      const url = `${LOCATIONS_API}/mandals/${mandal.id}/sanghams`;
-
-      console.log("SANGHAMS API:", url);
-      console.log("MANDAL:", mandalName);
-      console.log("MANDAL ID:", mandal.id);
-
-      const response = await fetch(url, {
-        method: "GET",
-        cache: "no-store",
-      });
+      const response = await fetch(
+        `${LOCATIONS_API}/mandals/${mandal.id}/sanghams`,
+        {
+          method: "GET",
+          cache: "no-store",
+        },
+      );
 
       const text = await response.text();
+
       let data: any = {};
 
       try {
@@ -414,22 +416,20 @@ export default function ExecutiveBodiesPage() {
         data = {};
       }
 
-      console.log("SANGHAMS RESPONSE:", data);
-
       if (!response.ok) {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
-            : data?.message || `Failed to fetch sanghams (${response.status})`,
+            : data?.message || "Failed to fetch sanghams",
         );
       }
 
-      const list = getList(data);
-      console.log("SANGHAMS LIST:", list);
-      setSanghams(list);
+      setSanghams(getList(data));
     } catch (err) {
       console.error("Sanghams GET error:", err);
+
       setSanghams([]);
+
       setError(
         err instanceof Error ? err.message : "Failed to fetch sanghams",
       );
@@ -439,7 +439,7 @@ export default function ExecutiveBodiesPage() {
   };
 
   /* =======================================================
-     DISTRICT CHANGE → FETCH MANDALS
+     LOCATION EFFECTS
   ======================================================= */
 
   useEffect(() => {
@@ -462,10 +462,6 @@ export default function ExecutiveBodiesPage() {
     formData.executive_body,
     districts,
   ]);
-
-  /* =======================================================
-     MANDAL CHANGE → FETCH SANGHAMS
-  ======================================================= */
 
   useEffect(() => {
     if (
@@ -493,14 +489,10 @@ export default function ExecutiveBodiesPage() {
 
   const handleChange = (
     e: React.ChangeEvent<
-      HTMLInputElement |
-        HTMLSelectElement |
-        HTMLTextAreaElement
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
     const { name, value } = e.target;
-
-    /* EXECUTIVE BODY */
 
     if (name === "executive_body") {
       setFormData((prev) => ({
@@ -518,8 +510,6 @@ export default function ExecutiveBodiesPage() {
       return;
     }
 
-    /* STATE */
-
     if (name === "state") {
       setFormData((prev) => ({
         ...prev,
@@ -535,8 +525,6 @@ export default function ExecutiveBodiesPage() {
       return;
     }
 
-    /* DISTRICT */
-
     if (name === "district") {
       setFormData((prev) => ({
         ...prev,
@@ -551,8 +539,6 @@ export default function ExecutiveBodiesPage() {
       return;
     }
 
-    /* MANDAL */
-
     if (name === "mandal") {
       setFormData((prev) => ({
         ...prev,
@@ -565,8 +551,6 @@ export default function ExecutiveBodiesPage() {
       return;
     }
 
-    /* OTHER */
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -574,10 +558,11 @@ export default function ExecutiveBodiesPage() {
   };
 
   /* =======================================================
-     OPEN ADD FORM
+     ADD
   ======================================================= */
 
   const openAddForm = () => {
+    setOpenMenuId(null);
     setEditingId(null);
     setFormData(emptyForm);
 
@@ -592,9 +577,9 @@ export default function ExecutiveBodiesPage() {
      EDIT
   ======================================================= */
 
-  const handleEdit = async (
-    body: ExecutiveBody,
-  ) => {
+  const handleEdit = async (body: ExecutiveBody) => {
+    setOpenMenuId(null);
+
     setEditingId(body.id);
 
     setFormData({
@@ -619,10 +604,8 @@ export default function ExecutiveBodiesPage() {
     if (
       body.state &&
       body.district &&
-      (
-        body.executive_body === "Mandal Body" ||
-        body.executive_body === "Sangham Body"
-      )
+      (body.executive_body === "Mandal Body" ||
+        body.executive_body === "Sangham Body")
     ) {
       await fetchMandals(body.district);
     }
@@ -638,7 +621,7 @@ export default function ExecutiveBodiesPage() {
   };
 
   /* =======================================================
-     SAVE
+     SUBMIT
   ======================================================= */
 
   const handleSubmit = async (
@@ -670,23 +653,17 @@ export default function ExecutiveBodiesPage() {
       formData.executive_body === "Mandal Body" &&
       (!formData.district || !formData.mandal)
     ) {
-      setError(
-        "Please select District and Mandal",
-      );
+      setError("Please select District and Mandal");
       return;
     }
 
     if (
       formData.executive_body === "Sangham Body" &&
-      (
-        !formData.district ||
+      (!formData.district ||
         !formData.mandal ||
-        !formData.sangham
-      )
+        !formData.sangham)
     ) {
-      setError(
-        "Please select District, Mandal and Sangham",
-      );
+      setError("Please select District, Mandal and Sangham");
       return;
     }
 
@@ -719,17 +696,13 @@ export default function ExecutiveBodiesPage() {
         description: formData.description.trim(),
       };
 
-      console.log("SAVE PAYLOAD:", payload);
-
       const url =
         editingId !== null
           ? `${EXECUTIVE_API}/${editingId}`
           : EXECUTIVE_API;
 
       const method =
-        editingId !== null
-          ? "PUT"
-          : "POST";
+        editingId !== null ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
@@ -753,8 +726,7 @@ export default function ExecutiveBodiesPage() {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
-            : data?.message ||
-                "Failed to save executive body",
+            : data?.message || "Failed to save executive body",
         );
       }
 
@@ -767,10 +739,7 @@ export default function ExecutiveBodiesPage() {
       setMandals([]);
       setSanghams([]);
     } catch (err) {
-      console.error(
-        "Executive body save error:",
-        err,
-      );
+      console.error("Executive body save error:", err);
 
       setError(
         err instanceof Error
@@ -813,23 +782,17 @@ export default function ExecutiveBodiesPage() {
         throw new Error(
           Array.isArray(data?.message)
             ? data.message.join(", ")
-            : data?.message ||
-                "Failed to delete executive body",
+            : data?.message || "Failed to delete executive body",
         );
       }
 
       setBodies((prev) =>
-        prev.filter(
-          (body) => body.id !== deleteId,
-        ),
+        prev.filter((body) => body.id !== deleteId),
       );
 
       setDeleteId(null);
     } catch (err) {
-      console.error(
-        "Executive body delete error:",
-        err,
-      );
+      console.error("Executive body delete error:", err);
 
       setError(
         err instanceof Error
@@ -840,7 +803,7 @@ export default function ExecutiveBodiesPage() {
   };
 
   /* =======================================================
-     DATE FORMAT
+     DATE
   ======================================================= */
 
   const formatDate = (date: string) => {
@@ -848,54 +811,33 @@ export default function ExecutiveBodiesPage() {
 
     const parsedDate = new Date(date);
 
-    if (
-      Number.isNaN(
-        parsedDate.getTime(),
-      )
-    ) {
+    if (Number.isNaN(parsedDate.getTime())) {
       return date;
     }
 
-    return parsedDate.toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      },
-    );
+    return parsedDate.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   /* =======================================================
-     LOCATION TEXT
+     LOCATION
   ======================================================= */
 
-  const getLocationText = (
-    body: ExecutiveBody,
-  ) => {
-    if (
-      body.executive_body ===
-      "State Body"
-    ) {
+  const getLocationText = (body: ExecutiveBody) => {
+    if (body.executive_body === "State Body") {
       return body.state || "";
     }
 
-    if (
-      body.executive_body ===
-      "District Body"
-    ) {
-      return [
-        body.state,
-        body.district,
-      ]
+    if (body.executive_body === "District Body") {
+      return [body.state, body.district]
         .filter(Boolean)
         .join(" • ");
     }
 
-    if (
-      body.executive_body ===
-      "Mandal Body"
-    ) {
+    if (body.executive_body === "Mandal Body") {
       return [
         body.state,
         body.district,
@@ -916,29 +858,60 @@ export default function ExecutiveBodiesPage() {
   };
 
   /* =======================================================
+     BODY BADGE
+  ======================================================= */
+
+  const getBodyBadge = (body: string) => {
+    switch (body) {
+      case "State Body":
+        return "bg-purple-50 text-purple-700";
+
+      case "District Body":
+        return "bg-blue-50 text-blue-700";
+
+      case "Mandal Body":
+        return "bg-emerald-50 text-emerald-700";
+
+      case "Sangham Body":
+        return "bg-orange-50 text-orange-700";
+
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  /* =======================================================
      RENDER
   ======================================================= */
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-[#f7f7f8] p-4 md:p-6 lg:p-8">
 
-      {/* HEADER */}
+      {/* ===================================================
+          HEADER
+      =================================================== */}
 
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
 
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f8eef2] text-[#8B1E3F]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#8B1E3F] text-xl text-white shadow-sm">
             <FaBuilding />
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Executive Bodies
-            </h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                Executive Bodies
+              </h1>
+
+              <span className="rounded-full bg-[#f8eef2] px-3 py-1 text-xs font-semibold text-[#8B1E3F]">
+                {bodies.length} Total
+              </span>
+            </div>
 
             <p className="mt-1 text-sm text-gray-500">
-              Manage State, District, Mandal and Sangham bodies
+              Manage State, District, Mandal and Sangham executive bodies
             </p>
           </div>
 
@@ -947,7 +920,7 @@ export default function ExecutiveBodiesPage() {
         <button
           type="button"
           onClick={openAddForm}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#8B1E3F] px-5 text-sm font-semibold text-white transition hover:bg-[#741832]"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#8B1E3F] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#741832]"
         >
           <FaPlus />
           Add Executive Body
@@ -955,123 +928,289 @@ export default function ExecutiveBodiesPage() {
 
       </div>
 
-      {/* ERROR */}
+      {/* ===================================================
+          ERROR
+      =================================================== */}
 
       {error && (
-        <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {error}
+        <div className="mb-5 flex items-start justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+
+          <span>{error}</span>
+
+          <button
+            type="button"
+            onClick={() => setError("")}
+            className="text-red-400 hover:text-red-700"
+          >
+            <FaTimes />
+          </button>
+
         </div>
       )}
 
-      {/* LIST — TABLE */}
+      {/* ===================================================
+          TABLE
+      =================================================== */}
 
       {loading ? (
-        <div className="rounded-2xl bg-white p-12 text-center shadow-sm">
+
+        <div className="rounded-2xl border border-gray-100 bg-white p-16 text-center shadow-sm">
 
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-[#8B1E3F]" />
 
-          <p className="mt-4 text-sm text-gray-500">
+          <p className="mt-4 text-sm font-medium text-gray-500">
             Loading Executive Bodies...
           </p>
 
         </div>
+
       ) : bodies.length === 0 ? (
-        <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
 
-          <FaBuilding className="mx-auto text-3xl text-gray-300" />
+        <div className="rounded-2xl border border-gray-100 bg-white p-16 text-center shadow-sm">
 
-          <p className="mt-3 text-gray-500">
-            No executive bodies found.
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-50 text-2xl text-gray-300">
+            <FaBuilding />
+          </div>
+
+          <h3 className="mt-5 font-semibold text-gray-900">
+            No Executive Bodies
+          </h3>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Add your first executive body to get started.
           </p>
 
+          <button
+            type="button"
+            onClick={openAddForm}
+            className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-[#8B1E3F] px-4 text-sm font-semibold text-white hover:bg-[#741832]"
+          >
+            <FaPlus />
+            Add Executive Body
+          </button>
+
         </div>
+
       ) : (
+
         <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+
+          {/* TABLE HEADER */}
+
+          <div className="flex flex-col gap-2 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+              <h2 className="font-semibold text-gray-900">
+                Executive Body List
+              </h2>
+
+              <p className="mt-0.5 text-xs text-gray-500">
+                View and manage all executive bodies
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500">
+              {bodies.length} records
+            </div>
+
+          </div>
 
           <div className="overflow-x-auto">
 
-            <table className="min-w-full divide-y divide-gray-100 text-left text-sm">
+            <table className="min-w-[1050px] w-full text-left">
 
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/70">
+
+                  <th className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Executive Body
                   </th>
-                  <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+
+                  <th className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Title
                   </th>
-                  <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+
+                  <th className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Location
                   </th>
-                  <th className="whitespace-nowrap px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+
+                  <th className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Formation Date
                   </th>
-                  <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+
+                  <th className="px-5 py-4 text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Description
                   </th>
-                  <th className="whitespace-nowrap px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">
+
+                  <th className="w-20 px-5 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-gray-500">
                     Actions
                   </th>
+
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-gray-100">
-                {bodies.map((body) => (
-                  <tr key={body.id} className="hover:bg-gray-50">
+              <tbody>
 
-                    <td className="whitespace-nowrap px-5 py-4">
-                      <span className="inline-flex rounded-full bg-[#f8eef2] px-3 py-1 text-xs font-semibold text-[#8B1E3F]">
+                {bodies.map((body) => (
+
+                  <tr
+                    key={body.id}
+                    className="group border-b border-gray-100 transition hover:bg-[#fffafb]"
+                  >
+
+                    {/* BODY */}
+
+                    <td className="px-5 py-5">
+
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${getBodyBadge(
+                          body.executive_body,
+                        )}`}
+                      >
                         {body.executive_body}
                       </span>
+
                     </td>
 
-                    <td className="px-5 py-4 font-semibold text-gray-900">
-                      {body.title}
-                    </td>
+                    {/* TITLE */}
 
-                    <td className="px-5 py-4 text-gray-600">
-                      {getLocationText(body) || "—"}
-                    </td>
+                    <td className="px-5 py-5">
 
-                    <td className="whitespace-nowrap px-5 py-4 text-gray-600">
-                      <span className="inline-flex items-center gap-2">
-                        <FaCalendarAlt className="text-[#8B1E3F]" />
-                        {formatDate(body.formation_date)}
-                      </span>
-                    </td>
+                      <div className="max-w-[230px]">
 
-                    <td className="max-w-xs px-5 py-4 text-gray-500">
-                      <span className="line-clamp-2">
-                        {body.description}
-                      </span>
-                    </td>
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {body.title}
+                        </p>
 
-                    <td className="whitespace-nowrap px-5 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(body)}
-                          title="Edit"
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-yellow-50 hover:text-yellow-600"
-                        >
-                          <FaEdit />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setDeleteId(body.id)}
-                          title="Delete"
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600"
-                        >
-                          <FaTrash />
-                        </button>
+                        <p className="mt-1 text-xs text-gray-400">
+                          ID #{body.id}
+                        </p>
 
                       </div>
+
+                    </td>
+
+                    {/* LOCATION */}
+
+                    <td className="px-5 py-5">
+
+                      <div className="flex max-w-[260px] items-start gap-2">
+
+                        <FaMapMarkerAlt className="mt-0.5 shrink-0 text-xs text-[#8B1E3F]" />
+
+                        <span className="text-sm leading-5 text-gray-600">
+                          {getLocationText(body) || "—"}
+                        </span>
+
+                      </div>
+
+                    </td>
+
+                    {/* DATE */}
+
+                    <td className="px-5 py-5">
+
+                      <div className="flex items-center gap-2 whitespace-nowrap">
+
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f8eef2] text-xs text-[#8B1E3F]">
+                          <FaCalendarAlt />
+                        </div>
+
+                        <span className="text-sm font-medium text-gray-600">
+                          {formatDate(body.formation_date)}
+                        </span>
+
+                      </div>
+
+                    </td>
+
+                    {/* DESCRIPTION */}
+
+                    <td className="px-5 py-5">
+
+                      <p className="line-clamp-2 max-w-[300px] text-sm leading-5 text-gray-500">
+                        {body.description || "—"}
+                      </p>
+
+                    </td>
+
+                    {/* ACTIONS */}
+
+                    <td className="relative px-5 py-5 text-right">
+
+                      <button
+                        type="button"
+                        title="More actions"
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          setOpenMenuId((prev) =>
+                            prev === body.id
+                              ? null
+                              : body.id,
+                          );
+                        }}
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition ${
+                          openMenuId === body.id
+                            ? "bg-[#f8eef2] text-[#8B1E3F]"
+                            : "text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                        }`}
+                      >
+                        <FaEllipsisV />
+                      </button>
+
+                      {/* 3 DOT MENU */}
+
+                      {openMenuId === body.id && (
+
+                        <div
+                          onClick={(e) =>
+                            e.stopPropagation()
+                          }
+                          className="absolute right-5 top-14 z-50 w-44 overflow-hidden rounded-xl border border-gray-100 bg-white p-1.5 text-left shadow-xl"
+                        >
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleEdit(body)
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-yellow-50 hover:text-yellow-700"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-50 text-yellow-600">
+                              <FaEdit />
+                            </span>
+
+                            Edit Body
+                          </button>
+
+                          <div className="my-1 border-t border-gray-100" />
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              setDeleteId(body.id);
+                            }}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600">
+                              <FaTrash />
+                            </span>
+
+                            Delete Body
+                          </button>
+
+                        </div>
+
+                      )}
+
                     </td>
 
                   </tr>
+
                 ))}
+
               </tbody>
 
             </table>
@@ -1079,37 +1218,39 @@ export default function ExecutiveBodiesPage() {
           </div>
 
         </div>
+
       )}
 
-      {/* =================================================
+      {/* ===================================================
           ADD / EDIT MODAL
-      ================================================= */}
+      =================================================== */}
 
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
 
-          <div className="max-h-[95vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 
-            {/* HEADER */}
+          <div className="max-h-[94vh] w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+            {/* MODAL HEADER */}
 
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
 
               <div className="flex items-center gap-3">
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f8eef2] text-[#8B1E3F]">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f8eef2] text-[#8B1E3F]">
                   <FaBuilding />
                 </div>
 
                 <div>
 
-                  <h2 className="font-bold text-gray-900">
+                  <h2 className="text-lg font-bold text-gray-900">
                     {editingId !== null
                       ? "Edit Executive Body"
                       : "Add Executive Body"}
                   </h2>
 
-                  <p className="mt-1 text-xs text-gray-500">
-                    Enter executive body details
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    Enter executive body information
                   </p>
 
                 </div>
@@ -1118,10 +1259,13 @@ export default function ExecutiveBodiesPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  setShowForm(false)
-                }
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700"
+                onClick={() => {
+                  if (!saving) {
+                    setShowForm(false);
+                    setError("");
+                  }
+                }}
+                className="flex h-9 w-9 items-center justify-center rounded-xl text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
               >
                 <FaTimes />
               </button>
@@ -1132,7 +1276,7 @@ export default function ExecutiveBodiesPage() {
 
             <form
               onSubmit={handleSubmit}
-              className="space-y-5 p-6"
+              className="max-h-[calc(94vh-90px)] space-y-5 overflow-y-auto p-6"
             >
 
               {/* EXECUTIVE BODY */}
@@ -1143,30 +1287,34 @@ export default function ExecutiveBodiesPage() {
                   Executive Body *
                 </label>
 
-                <select
-                  name="executive_body"
-                  value={formData.executive_body}
-                  onChange={handleChange}
-                  required
-                  className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20"
-                >
+                <div className="relative">
 
-                  <option value="">
-                    Select Executive Body
-                  </option>
+                  <select
+                    name="executive_body"
+                    value={formData.executive_body}
+                    onChange={handleChange}
+                    required
+                    className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10"
+                  >
 
-                  {bodyOptions.map(
-                    (option) => (
+                    <option value="">
+                      Select Executive Body
+                    </option>
+
+                    {bodyOptions.map((option) => (
                       <option
                         key={option}
                         value={option}
                       >
                         {option}
                       </option>
-                    ),
-                  )}
+                    ))}
 
-                </select>
+                  </select>
+
+                  <FaChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
+
+                </div>
 
               </div>
 
@@ -1185,23 +1333,21 @@ export default function ExecutiveBodiesPage() {
                     value={formData.state}
                     onChange={handleChange}
                     required
-                    className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20"
+                    className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10"
                   >
 
                     <option value="">
                       Select State
                     </option>
 
-                    {STATES.map(
-                      (state) => (
-                        <option
-                          key={state}
-                          value={state}
-                        >
-                          {state}
-                        </option>
-                      ),
-                    )}
+                    {STATES.map((state) => (
+                      <option
+                        key={state}
+                        value={state}
+                      >
+                        {state}
+                      </option>
+                    ))}
 
                   </select>
 
@@ -1213,14 +1359,9 @@ export default function ExecutiveBodiesPage() {
 
               {/* DISTRICT */}
 
-              {(
-                formData.executive_body ===
-                  "District Body" ||
-                formData.executive_body ===
-                  "Mandal Body" ||
-                formData.executive_body ===
-                  "Sangham Body"
-              ) && (
+              {(formData.executive_body === "District Body" ||
+                formData.executive_body === "Mandal Body" ||
+                formData.executive_body === "Sangham Body") && (
 
                 <div>
 
@@ -1236,7 +1377,7 @@ export default function ExecutiveBodiesPage() {
                       onChange={handleChange}
                       required
                       disabled={!formData.state}
-                      className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20 disabled:bg-gray-100"
+                      className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10 disabled:bg-gray-100"
                     >
 
                       <option value="">
@@ -1247,24 +1388,38 @@ export default function ExecutiveBodiesPage() {
 
                       {formData.state === "Telangana" &&
                         (districts.length > 0
-                          ? districts.map((district, index) => {
-                              const name = getItemName(district);
-                              if (!name) return null;
+                          ? districts.map(
+                              (district, index) => {
+                                const name =
+                                  getItemName(
+                                    district,
+                                  );
 
-                              return (
+                                if (!name) return null;
+
+                                return (
+                                  <option
+                                    key={
+                                      district.id ??
+                                      `${name}-${index}`
+                                    }
+                                    value={name}
+                                  >
+                                    {name}
+                                  </option>
+                                );
+                              },
+                            )
+                          : TELANGANA_DISTRICTS.map(
+                              (district) => (
                                 <option
-                                  key={district.id ?? `${name}-${index}`}
-                                  value={name}
+                                  key={district}
+                                  value={district}
                                 >
-                                  {name}
+                                  {district}
                                 </option>
-                              );
-                            })
-                          : TELANGANA_DISTRICTS.map((district) => (
-                              <option key={district} value={district}>
-                                {district}
-                              </option>
-                            )))}
+                              ),
+                            ))}
 
                     </select>
 
@@ -1272,10 +1427,11 @@ export default function ExecutiveBodiesPage() {
 
                   </div>
 
-                  {formData.state ===
-                    "Telangana" && (
-                    <p className="mt-1 text-xs text-gray-400">
-                      {districts.length || TELANGANA_DISTRICTS.length} Telangana districts available
+                  {formData.state === "Telangana" && (
+                    <p className="mt-1.5 text-xs text-gray-400">
+                      {districts.length ||
+                        TELANGANA_DISTRICTS.length}{" "}
+                      Telangana districts available
                     </p>
                   )}
 
@@ -1284,12 +1440,8 @@ export default function ExecutiveBodiesPage() {
 
               {/* MANDAL */}
 
-              {(
-                formData.executive_body ===
-                  "Mandal Body" ||
-                formData.executive_body ===
-                  "Sangham Body"
-              ) && (
+              {(formData.executive_body === "Mandal Body" ||
+                formData.executive_body === "Sangham Body") && (
 
                 <div>
 
@@ -1308,7 +1460,7 @@ export default function ExecutiveBodiesPage() {
                         !formData.district ||
                         loadingMandals
                       }
-                      className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20 disabled:bg-gray-100"
+                      className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10 disabled:bg-gray-100"
                     >
 
                       <option value="">
@@ -1322,19 +1474,11 @@ export default function ExecutiveBodiesPage() {
                       </option>
 
                       {mandals.map(
-                        (
-                          mandal,
-                          index,
-                        ) => {
-
+                        (mandal, index) => {
                           const name =
-                            getItemName(
-                              mandal,
-                            );
+                            getItemName(mandal);
 
-                          if (!name) {
-                            return null;
-                          }
+                          if (!name) return null;
 
                           return (
                             <option
@@ -1361,8 +1505,7 @@ export default function ExecutiveBodiesPage() {
 
               {/* SANGHAM */}
 
-              {formData.executive_body ===
-                "Sangham Body" && (
+              {formData.executive_body === "Sangham Body" && (
 
                 <div>
 
@@ -1381,7 +1524,7 @@ export default function ExecutiveBodiesPage() {
                         !formData.mandal ||
                         loadingSanghams
                       }
-                      className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20 disabled:bg-gray-100"
+                      className="h-12 w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 pr-10 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10 disabled:bg-gray-100"
                     >
 
                       <option value="">
@@ -1395,19 +1538,13 @@ export default function ExecutiveBodiesPage() {
                       </option>
 
                       {sanghams.map(
-                        (
-                          sangham,
-                          index,
-                        ) => {
-
+                        (sangham, index) => {
                           const name =
                             getItemName(
                               sangham,
                             );
 
-                          if (!name) {
-                            return null;
-                          }
+                          if (!name) return null;
 
                           return (
                             <option
@@ -1446,8 +1583,8 @@ export default function ExecutiveBodiesPage() {
                   value={formData.title}
                   onChange={handleChange}
                   required
-                  placeholder="Enter title"
-                  className="h-12 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20"
+                  placeholder="Enter executive body title"
+                  className="h-12 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10"
                 />
 
               </div>
@@ -1470,7 +1607,7 @@ export default function ExecutiveBodiesPage() {
                     value={formData.formation_date}
                     onChange={handleChange}
                     required
-                    className="h-12 w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20"
+                    className="h-12 w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10"
                   />
 
                 </div>
@@ -1491,23 +1628,26 @@ export default function ExecutiveBodiesPage() {
                   onChange={handleChange}
                   required
                   rows={5}
-                  placeholder="Enter description"
-                  className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/20"
+                  placeholder="Enter executive body description"
+                  className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none transition focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10"
                 />
 
               </div>
 
               {/* BUTTONS */}
 
-              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
+              <div className="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row">
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowForm(false)
-                  }
+                  onClick={() => {
+                    if (!saving) {
+                      setShowForm(false);
+                      setError("");
+                    }
+                  }}
                   disabled={saving}
-                  className="h-11 flex-1 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="h-11 flex-1 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -1515,7 +1655,7 @@ export default function ExecutiveBodiesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#8B1E3F] text-sm font-semibold text-white hover:bg-[#741832] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#8B1E3F] text-sm font-semibold text-white shadow-sm transition hover:bg-[#741832] disabled:cursor-not-allowed disabled:opacity-60"
                 >
 
                   <FaSave />
@@ -1537,32 +1677,51 @@ export default function ExecutiveBodiesPage() {
         </div>
       )}
 
-      {/* =================================================
+      {/* ===================================================
           DELETE MODAL
-      ================================================= */}
+      =================================================== */}
 
       {deleteId !== null && (
 
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
 
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
 
-            <h2 className="text-lg font-bold text-gray-900">
-              Delete Executive Body?
-            </h2>
+            {/* TOP */}
 
-            <p className="mt-2 text-sm text-gray-500">
-              Are you sure you want to delete this executive body?
-            </p>
+            <div className="p-6">
 
-            <div className="mt-6 flex gap-3">
+              <div className="flex items-start gap-4">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <FaTrash />
+                </div>
+
+                <div>
+
+                  <h2 className="text-lg font-bold text-gray-900">
+                    Delete Executive Body?
+                  </h2>
+
+                  <p className="mt-1.5 text-sm leading-5 text-gray-500">
+                    Are you sure you want to delete this executive body?
+                    This action cannot be undone.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* BUTTONS */}
+
+            <div className="flex gap-3 border-t border-gray-100 bg-gray-50/70 p-5">
 
               <button
                 type="button"
-                onClick={() =>
-                  setDeleteId(null)
-                }
-                className="h-11 flex-1 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                onClick={() => setDeleteId(null)}
+                className="h-11 flex-1 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
               >
                 Cancel
               </button>
@@ -1570,7 +1729,7 @@ export default function ExecutiveBodiesPage() {
               <button
                 type="button"
                 onClick={handleDelete}
-                className="h-11 flex-1 rounded-xl bg-red-600 text-sm font-semibold text-white hover:bg-red-700"
+                className="h-11 flex-1 rounded-xl bg-red-600 text-sm font-semibold text-white transition hover:bg-red-700"
               >
                 Delete
               </button>

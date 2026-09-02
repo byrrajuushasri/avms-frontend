@@ -26,16 +26,28 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   /* =========================================================
+     API URL
+  ========================================================= */
+
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000";
+
+  /* =========================================================
      LOGIN
   ========================================================= */
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
     setError("");
 
     if (!formData.login.trim()) {
-      setError("Please enter your email or mobile number.");
+      setError(
+        "Please enter your email or mobile number."
+      );
       return;
     }
 
@@ -47,7 +59,10 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"; 
+      console.log(
+        "LOGIN BACKEND URL:",
+        BACKEND_URL
+      );
 
       const response = await fetch(
         `${BACKEND_URL}/auth/login`,
@@ -65,85 +80,199 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      console.log("LOGIN RESPONSE:", data);
+      console.log(
+        "LOGIN STATUS:",
+        response.status
+      );
+
+      console.log(
+        "LOGIN RESPONSE:",
+        data
+      );
 
       if (!response.ok) {
+        const message = Array.isArray(
+          data?.message
+        )
+          ? data.message.join(", ")
+          : data?.message ||
+            "Invalid email/mobile or password";
+
+        throw new Error(message);
+      }
+
+      /* =====================================================
+         TOKEN
+      ===================================================== */
+
+      const accessToken =
+        data?.access_token;
+
+      if (!accessToken) {
         throw new Error(
-          data?.message ||
-            "Invalid email/mobile or password"
+          "Login token was not received from server."
         );
       }
 
       /* =====================================================
-         JWT TOKEN
+         USER
       ===================================================== */
 
-      if (!data.access_token) {
-        throw new Error("Login token was not received.");
+      const loggedInUser =
+        data?.user;
+
+      if (!loggedInUser) {
+        throw new Error(
+          "User information was not received from server."
+        );
       }
 
       /* =====================================================
-         SAVE TOKEN
+         CLEAR OLD LOGIN DATA
+      ===================================================== */
+
+      localStorage.removeItem(
+        "access_token"
+      );
+
+      localStorage.removeItem(
+        "adminToken"
+      );
+
+      localStorage.removeItem(
+        "token"
+      );
+
+      localStorage.removeItem(
+        "admin"
+      );
+
+      localStorage.removeItem(
+        "user"
+      );
+
+      /* =====================================================
+         SAVE NEW TOKEN
+
+         IMPORTANT:
+         All admin pages use access_token
       ===================================================== */
 
       localStorage.setItem(
+        "access_token",
+        accessToken
+      );
+
+      /* Compatibility */
+
+      localStorage.setItem(
         "adminToken",
-        data.access_token
+        accessToken
       );
 
       localStorage.setItem(
         "token",
-        data.access_token
+        accessToken
       );
 
       /* =====================================================
          SAVE USER
       ===================================================== */
 
-      if (data.user) {
-        localStorage.setItem(
-          "admin",
-          JSON.stringify(data.user)
-        );
+      localStorage.setItem(
+        "user",
+        JSON.stringify(loggedInUser)
+      );
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data.user)
-        );
-      }
+      localStorage.setItem(
+        "admin",
+        JSON.stringify(loggedInUser)
+      );
+
+      /* =====================================================
+         VERIFY
+      ===================================================== */
+
+      console.log(
+        "ACCESS TOKEN SAVED:",
+        !!localStorage.getItem(
+          "access_token"
+        )
+      );
+
+      console.log(
+        "LOCAL STORAGE USER:",
+        localStorage.getItem("user")
+      );
 
       /* =====================================================
          ROLE
       ===================================================== */
 
-      const role = data.user?.role;
+      const role =
+        loggedInUser?.role || "user";
 
-      console.log("LOGIN ROLE:", role);
+      console.log(
+        "LOGIN ROLE:",
+        role
+      );
+
+      const adminRoles = [
+        "super_admin",
+        "state_admin",
+        "district_admin",
+        "mandal_admin",
+        "sangam_admin",
+      ];
 
       /* =====================================================
-         ROLE BASED REDIRECT
+         ADMIN REDIRECT
       ===================================================== */
 
-      if (
-        role === "super_admin" ||
-        role === "state_admin" ||
-        role === "district_admin" ||
-        role === "mandal_admin" ||
-        role === "sangam_admin"
-      ) {
-        router.replace("/admin/dashboard");
-      } else {
-        setError(
-          "You are not authorized to access the admin panel."
+      if (adminRoles.includes(role)) {
+        console.log(
+          "ADMIN LOGIN SUCCESS"
         );
 
-        localStorage.removeItem("adminToken");
-        localStorage.removeItem("token");
-        localStorage.removeItem("admin");
-        localStorage.removeItem("user");
+        router.replace(
+          "/admin/dashboard"
+        );
+
+        return;
       }
+
+      /* =====================================================
+         UNAUTHORIZED ROLE
+      ===================================================== */
+
+      setError(
+        "You are not authorized to access the admin panel."
+      );
+
+      localStorage.removeItem(
+        "access_token"
+      );
+
+      localStorage.removeItem(
+        "adminToken"
+      );
+
+      localStorage.removeItem(
+        "token"
+      );
+
+      localStorage.removeItem(
+        "admin"
+      );
+
+      localStorage.removeItem(
+        "user"
+      );
     } catch (err: any) {
-      console.error("LOGIN ERROR:", err);
+      console.error(
+        "LOGIN ERROR:",
+        err
+      );
 
       setError(
         err?.message ||
@@ -279,12 +408,14 @@ export default function LoginPage() {
 
                 <input
                   value={formData.login}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       login: e.target.value,
-                    })
-                  }
+                    });
+
+                    setError("");
+                  }}
                   type="text"
                   placeholder="Enter email or mobile"
                   className="w-full outline-none text-sm"
@@ -332,12 +463,14 @@ export default function LoginPage() {
 
                 <input
                   value={formData.password}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setFormData({
                       ...formData,
                       password: e.target.value,
-                    })
-                  }
+                    });
+
+                    setError("");
+                  }}
                   type={
                     showPassword
                       ? "text"
@@ -352,7 +485,9 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowPassword(
+                      !showPassword
+                    )
                   }
                   className="ml-2"
                   disabled={loading}
@@ -404,7 +539,9 @@ export default function LoginPage() {
                 disabled:opacity-60
               "
             >
-              {loading ? "Logging in..." : "Login"}
+              {loading
+                ? "Logging in..."
+                : "Login"}
             </button>
 
           </form>
@@ -416,4 +553,3 @@ export default function LoginPage() {
     </section>
   );
 }
-
