@@ -67,9 +67,10 @@ interface MatrimonialUser {
    BACKEND URL
 ========================================================= */
 
-const BACKEND_URL =
+const BACKEND_URL = (
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5000";
+  "https://avms-backend-production.up.railway.app"
+).replace(/\/+$/, "");
 
 /* =========================================================
    PAGE
@@ -102,7 +103,6 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setError("");
-
       const response = await fetch(
         `${BACKEND_URL}/matrimonial-users`,
         {

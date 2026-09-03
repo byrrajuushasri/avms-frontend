@@ -32,8 +32,23 @@ import {
 // CONFIG
 // =========================================================
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+/**
+ * Production backend:
+ * https://avms-backend-production.up.railway.app
+ *
+ * Vercel Environment Variable:
+ * NEXT_PUBLIC_BACKEND_URL
+ *
+ * Recommended value:
+ * https://avms-backend-production.up.railway.app
+ *
+ * We also support NEXT_PUBLIC_API_URL for compatibility.
+ */
+const API_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://avms-backend-production.up.railway.app"
+).replace(/\/+$/, "");
 
 const MEMBERS_API = `${API_URL}/membership-register`;
 
@@ -113,6 +128,10 @@ const getValue = (
   return fallback;
 };
 
+// =========================================================
+// DATE FORMAT
+// =========================================================
+
 const formatDate = (value?: unknown): string => {
   if (!value) return "-";
 
@@ -128,6 +147,10 @@ const formatDate = (value?: unknown): string => {
     year: "numeric",
   });
 };
+
+// =========================================================
+// AMOUNT FORMAT
+// =========================================================
 
 const formatAmount = (value?: unknown): string => {
   if (
@@ -150,6 +173,10 @@ const formatAmount = (value?: unknown): string => {
   })}`;
 };
 
+// =========================================================
+// PHOTO URL
+// =========================================================
+
 const getPhotoUrl = (member: Member): string | null => {
   const photo = getValue(
     member,
@@ -157,8 +184,11 @@ const getPhotoUrl = (member: Member): string | null => {
     ""
   );
 
-  if (!photo) return null;
+  if (!photo) {
+    return null;
+  }
 
+  // Already a complete URL
   if (
     photo.startsWith("http://") ||
     photo.startsWith("https://")
@@ -166,10 +196,12 @@ const getPhotoUrl = (member: Member): string | null => {
     return photo;
   }
 
+  // Backend relative URL
   if (photo.startsWith("/")) {
     return `${API_URL}${photo}`;
   }
 
+  // Relative filename/path
   return `${API_URL}/${photo}`;
 };
 
@@ -179,23 +211,63 @@ const getPhotoUrl = (member: Member): string | null => {
 
 const createDownloadCard = (member: Member): string => {
   const name = getValue(member, ["full_name", "name"]);
-  const memberId = getValue(member, ["member_id", "id"]);
-  const mobile = getValue(member, ["mobile", "phone"]);
+
+  const memberId = getValue(member, [
+    "member_id",
+    "id",
+  ]);
+
+  const mobile = getValue(member, [
+    "mobile",
+    "phone",
+  ]);
+
   const email = getValue(member, ["email"]);
+
   const gender = getValue(member, ["gender"]);
+
   const dob = formatDate(
-    getValue(member, ["dob", "date_of_birth"], "")
+    getValue(
+      member,
+      ["dob", "date_of_birth"],
+      ""
+    )
   );
 
-  const occupation = getValue(member, ["occupation"]);
+  const occupation = getValue(
+    member,
+    ["occupation"]
+  );
 
-  const district = getValue(member, ["district"]);
-  const mandal = getValue(member, ["mandal"]);
-  const sangham = getValue(member, ["sangham"]);
+  const district = getValue(
+    member,
+    ["district"]
+  );
 
-  const executiveBody = getValue(member, ["executive_body"]);
-  const designation = getValue(member, ["designation"]);
-  const status = getValue(member, ["status"]);
+  const mandal = getValue(
+    member,
+    ["mandal"]
+  );
+
+  const sangham = getValue(
+    member,
+    ["sangham"]
+  );
+
+  const executiveBody = getValue(
+    member,
+    ["executive_body"]
+  );
+
+  const designation = getValue(
+    member,
+    ["designation"]
+  );
+
+  const status = getValue(
+    member,
+    ["status"]
+  );
 
   const photoUrl = getPhotoUrl(member);
 
@@ -227,7 +299,9 @@ const createDownloadCard = (member: Member): string => {
     ["sangam_payment_method"]
   );
 
-  const sangamAmount = formatAmount(member.sangam_amount);
+  const sangamAmount = formatAmount(
+    member.sangam_amount
+  );
 
   const sangamDate = formatDate(
     member.sangam_payment_date
@@ -237,6 +311,7 @@ const createDownloadCard = (member: Member): string => {
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8" />
 
 <title>Membership Details - ${name}</title>
@@ -401,6 +476,7 @@ body {
 }
 
 </style>
+
 </head>
 
 <body>
@@ -408,24 +484,39 @@ body {
 <div class="card">
 
   <div class="header">
+
     <h1>ARYA VYSYA MAHASABHA</h1>
-    <p>Membership Details</p>
+
+    <p>
+      Membership Details
+    </p>
+
   </div>
 
   <div class="member-header">
 
     ${
       photoUrl
-        ? `<img class="photo" src="${photoUrl}" alt="${name}" />`
-        : `<div class="photo-placeholder">No Photo</div>`
+        ? `<img
+            class="photo"
+            src="${photoUrl}"
+            alt="${name}"
+          />`
+        : `<div class="photo-placeholder">
+            No Photo
+          </div>`
     }
 
     <div class="member-name">
-      <h2>${name}</h2>
+
+      <h2>
+        ${name}
+      </h2>
 
       <span class="member-id">
         Member ID: ${memberId}
       </span>
+
     </div>
 
   </div>
@@ -439,33 +530,57 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">Full Name</div>
-        <div class="value">${name}</div>
+        <div class="label">
+          Full Name
+        </div>
+        <div class="value">
+          ${name}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Gender</div>
-        <div class="value">${gender}</div>
+        <div class="label">
+          Gender
+        </div>
+        <div class="value">
+          ${gender}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Date of Birth</div>
-        <div class="value">${dob}</div>
+        <div class="label">
+          Date of Birth
+        </div>
+        <div class="value">
+          ${dob}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Mobile</div>
-        <div class="value">${mobile}</div>
+        <div class="label">
+          Mobile
+        </div>
+        <div class="value">
+          ${mobile}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Email</div>
-        <div class="value">${email}</div>
+        <div class="label">
+          Email
+        </div>
+        <div class="value">
+          ${email}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Occupation</div>
-        <div class="value">${occupation}</div>
+        <div class="label">
+          Occupation
+        </div>
+        <div class="value">
+          ${occupation}
+        </div>
       </div>
 
     </div>
@@ -481,18 +596,30 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">District</div>
-        <div class="value">${district}</div>
+        <div class="label">
+          District
+        </div>
+        <div class="value">
+          ${district}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Mandal</div>
-        <div class="value">${mandal}</div>
+        <div class="label">
+          Mandal
+        </div>
+        <div class="value">
+          ${mandal}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Sangham</div>
-        <div class="value">${sangham}</div>
+        <div class="label">
+          Sangham
+        </div>
+        <div class="value">
+          ${sangham}
+        </div>
       </div>
 
     </div>
@@ -508,18 +635,30 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">Executive Body</div>
-        <div class="value">${executiveBody}</div>
+        <div class="label">
+          Executive Body
+        </div>
+        <div class="value">
+          ${executiveBody}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Designation</div>
-        <div class="value">${designation}</div>
+        <div class="label">
+          Designation
+        </div>
+        <div class="value">
+          ${designation}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Status</div>
-        <div class="value">${status}</div>
+        <div class="label">
+          Status
+        </div>
+        <div class="value">
+          ${status}
+        </div>
       </div>
 
     </div>
@@ -535,23 +674,39 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">Status</div>
-        <div class="value">${mahashabaStatus}</div>
+        <div class="label">
+          Status
+        </div>
+        <div class="value">
+          ${mahashabaStatus}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Payment Method</div>
-        <div class="value">${mahashabaMethod}</div>
+        <div class="label">
+          Payment Method
+        </div>
+        <div class="value">
+          ${mahashabaMethod}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Amount</div>
-        <div class="value">${mahashabaAmount}</div>
+        <div class="label">
+          Amount
+        </div>
+        <div class="value">
+          ${mahashabaAmount}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Payment Date</div>
-        <div class="value">${mahashabaDate}</div>
+        <div class="label">
+          Payment Date
+        </div>
+        <div class="value">
+          ${mahashabaDate}
+        </div>
       </div>
 
     </div>
@@ -567,23 +722,39 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">Status</div>
-        <div class="value">${sangamStatus}</div>
+        <div class="label">
+          Status
+        </div>
+        <div class="value">
+          ${sangamStatus}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Payment Method</div>
-        <div class="value">${sangamMethod}</div>
+        <div class="label">
+          Payment Method
+        </div>
+        <div class="value">
+          ${sangamMethod}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Amount</div>
-        <div class="value">${sangamAmount}</div>
+        <div class="label">
+          Amount
+        </div>
+        <div class="value">
+          ${sangamAmount}
+        </div>
       </div>
 
       <div class="item">
-        <div class="label">Payment Date</div>
-        <div class="value">${sangamDate}</div>
+        <div class="label">
+          Payment Date
+        </div>
+        <div class="value">
+          ${sangamDate}
+        </div>
       </div>
 
     </div>
@@ -607,7 +778,9 @@ body {
 
 export default function MembershipDetailsPage() {
   const [members, setMembers] = useState<Member[]>([]);
+
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
@@ -620,7 +793,8 @@ export default function MembershipDetailsPage() {
   const [downloadingId, setDownloadingId] =
     useState<string | number | null>(null);
 
-  const modalRef = useRef<HTMLDivElement | null>(null);
+  const modalRef =
+    useRef<HTMLDivElement | null>(null);
 
   // =======================================================
   // FETCH MEMBERS
@@ -629,12 +803,29 @@ export default function MembershipDetailsPage() {
   const fetchMembers = useCallback(async () => {
     try {
       setLoading(true);
+
       setError("");
 
-      const response = await fetch(MEMBERS_API, {
-        method: "GET",
-        cache: "no-store",
-      });
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "MEMBERS API:",
+        MEMBERS_API
+      );
+
+      console.log(
+        "================================="
+      );
+
+      const response = await fetch(
+        MEMBERS_API,
+        {
+          method: "GET",
+          cache: "no-store",
+        }
+      );
 
       if (!response.ok) {
         throw new Error(
@@ -644,29 +835,64 @@ export default function MembershipDetailsPage() {
 
       const data = await response.json();
 
+      console.log(
+        "Members API response:",
+        data
+      );
+
       let memberList: Member[] = [];
 
+      // API returns array
       if (Array.isArray(data)) {
         memberList = data;
-      } else if (Array.isArray(data?.data)) {
+      }
+
+      // { data: [] }
+      else if (Array.isArray(data?.data)) {
         memberList = data.data;
-      } else if (Array.isArray(data?.members)) {
+      }
+
+      // { members: [] }
+      else if (Array.isArray(data?.members)) {
         memberList = data.members;
-      } else if (Array.isArray(data?.results)) {
+      }
+
+      // { results: [] }
+      else if (Array.isArray(data?.results)) {
         memberList = data.results;
       }
 
+      // { items: [] }
+      else if (Array.isArray(data?.items)) {
+        memberList = data.items;
+      }
+
+      // { result: [] }
+      else if (Array.isArray(data?.result)) {
+        memberList = data.result;
+      }
+
       setMembers(memberList);
+
     } catch (err) {
-      console.error("Members API error:", err);
+
+      console.error(
+        "Members API error:",
+        err
+      );
+
+      setMembers([]);
 
       setError(
         err instanceof Error
           ? err.message
           : "Unable to load members."
       );
+
     } finally {
+
       setLoading(false);
+
     }
   }, []);
 
@@ -679,36 +905,58 @@ export default function MembershipDetailsPage() {
   // =======================================================
 
   const filteredMembers = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
+
+    const keyword =
+      search.trim().toLowerCase();
 
     if (!keyword) {
       return members;
     }
 
-    return members.filter((member) => {
-      const values = [
-        member.member_id,
-        member.full_name,
-        member.name,
-        member.mobile,
-        member.phone,
-        member.email,
-        member.gender,
-        member.occupation,
-        member.district,
-        member.mandal,
-        member.sangham,
-        member.executive_body,
-        member.designation,
-        member.status,
-      ];
+    return members.filter(
+      (member) => {
 
-      return values.some((value) =>
-        String(value ?? "")
-          .toLowerCase()
-          .includes(keyword)
-      );
-    });
+        const values = [
+
+          member.member_id,
+
+          member.full_name,
+
+          member.name,
+
+          member.mobile,
+
+          member.phone,
+
+          member.email,
+
+          member.gender,
+
+          member.occupation,
+
+          member.district,
+
+          member.mandal,
+
+          member.sangham,
+
+          member.executive_body,
+
+          member.designation,
+
+          member.status,
+
+        ];
+
+        return values.some(
+          (value) =>
+            String(value ?? "")
+              .toLowerCase()
+              .includes(keyword)
+        );
+      }
+    );
+
   }, [members, search]);
 
   // =======================================================
@@ -717,7 +965,10 @@ export default function MembershipDetailsPage() {
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredMembers.length / ROWS_PER_PAGE)
+    Math.ceil(
+      filteredMembers.length /
+        ROWS_PER_PAGE
+    )
   );
 
   const safeCurrentPage = Math.min(
@@ -726,12 +977,14 @@ export default function MembershipDetailsPage() {
   );
 
   const startIndex =
-    (safeCurrentPage - 1) * ROWS_PER_PAGE;
+    (safeCurrentPage - 1) *
+    ROWS_PER_PAGE;
 
-  const paginatedMembers = filteredMembers.slice(
-    startIndex,
-    startIndex + ROWS_PER_PAGE
-  );
+  const paginatedMembers =
+    filteredMembers.slice(
+      startIndex,
+      startIndex + ROWS_PER_PAGE
+    );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -742,12 +995,19 @@ export default function MembershipDetailsPage() {
   // =======================================================
 
   useEffect(() => {
-    if (!selectedMember) return;
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    if (!selectedMember) {
+      return;
+    }
+
+    const handleKeyDown = (
+      event: KeyboardEvent
+    ) => {
+
       if (event.key === "Escape") {
         setSelectedMember(null);
       }
+
     };
 
     document.addEventListener(
@@ -755,16 +1015,20 @@ export default function MembershipDetailsPage() {
       handleKeyDown
     );
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
     return () => {
+
       document.removeEventListener(
         "keydown",
         handleKeyDown
       );
 
-      document.body.style.overflow = "";
+      document.body.style.overflow =
+        "";
     };
+
   }, [selectedMember]);
 
   // =======================================================
@@ -774,6 +1038,7 @@ export default function MembershipDetailsPage() {
   const downloadMemberCard = async (
     member: Member
   ) => {
+
     const id =
       member.member_id ??
       member.id ??
@@ -781,40 +1046,59 @@ export default function MembershipDetailsPage() {
       Math.random();
 
     try {
+
       setDownloadingId(id);
 
-      const html = createDownloadCard(member);
+      const html =
+        createDownloadCard(member);
 
-      const blob = new Blob([html], {
-        type: "text/html;charset=utf-8",
-      });
+      const blob = new Blob(
+        [html],
+        {
+          type:
+            "text/html;charset=utf-8",
+        }
+      );
 
-      const url = URL.createObjectURL(blob);
+      const url =
+        URL.createObjectURL(blob);
 
-      const anchor = document.createElement("a");
+      const anchor =
+        document.createElement("a");
 
       anchor.href = url;
 
-      anchor.download = `membership-${String(
-        member.member_id ??
-          member.id ??
-          member.full_name ??
-          "member"
-      ).replace(/\s+/g, "-")}.html`;
+      anchor.download =
+        `membership-${String(
+          member.member_id ??
+            member.id ??
+            member.full_name ??
+            "member"
+        ).replace(/\s+/g, "-")}.html`;
 
-      document.body.appendChild(anchor);
+      document.body.appendChild(
+        anchor
+      );
 
       anchor.click();
 
       anchor.remove();
 
       URL.revokeObjectURL(url);
+
     } catch (err) {
-      console.error("Download error:", err);
+
+      console.error(
+        "Download error:",
+        err
+      );
+
     } finally {
+
       setTimeout(() => {
         setDownloadingId(null);
       }, 500);
+
     }
   };
 
@@ -822,14 +1106,19 @@ export default function MembershipDetailsPage() {
   // PRINT
   // =======================================================
 
-  const printMemberCard = (member: Member) => {
-    const html = createDownloadCard(member);
+  const printMemberCard = (
+    member: Member
+  ) => {
 
-    const printWindow = window.open(
-      "",
-      "_blank",
-      "width=900,height=800"
-    );
+    const html =
+      createDownloadCard(member);
+
+    const printWindow =
+      window.open(
+        "",
+        "_blank",
+        "width=900,height=800"
+      );
 
     if (!printWindow) {
       return;
@@ -837,14 +1126,18 @@ export default function MembershipDetailsPage() {
 
     printWindow.document.open();
 
-    printWindow.document.write(html);
+    printWindow.document.write(
+      html
+    );
 
     printWindow.document.close();
 
     printWindow.focus();
 
     setTimeout(() => {
+
       printWindow.print();
+
     }, 500);
   };
 
@@ -852,17 +1145,38 @@ export default function MembershipDetailsPage() {
   // UI HELPERS
   // =======================================================
 
-  const getMemberName = (member: Member) =>
-    getValue(member, ["full_name", "name"]);
+  const getMemberName = (
+    member: Member
+  ) =>
+    getValue(
+      member,
+      ["full_name", "name"]
+    );
 
-  const getMemberId = (member: Member) =>
-    getValue(member, ["member_id", "id"]);
+  const getMemberId = (
+    member: Member
+  ) =>
+    getValue(
+      member,
+      ["member_id", "id"]
+    );
 
-  const getMobile = (member: Member) =>
-    getValue(member, ["mobile", "phone"]);
+  const getMobile = (
+    member: Member
+  ) =>
+    getValue(
+      member,
+      ["mobile", "phone"]
+    );
 
-  const getStatus = (member: Member) =>
-    getValue(member, ["status"], "Active");
+  const getStatus = (
+    member: Member
+  ) =>
+    getValue(
+      member,
+      ["status"],
+      "Active"
+    );
 
   // =======================================================
   // RENDER
@@ -882,6 +1196,7 @@ export default function MembershipDetailsPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
             <div>
+
               <h1 className="text-2xl font-bold text-gray-900">
                 Membership Details
               </h1>
@@ -889,13 +1204,17 @@ export default function MembershipDetailsPage() {
               <p className="mt-1 text-sm text-gray-500">
                 View and download registered member details
               </p>
+
             </div>
 
             <div className="text-sm text-gray-500">
+
               Total Members:{" "}
+
               <span className="font-semibold text-gray-900">
                 {members.length}
               </span>
+
             </div>
 
           </div>
@@ -925,7 +1244,9 @@ export default function MembershipDetailsPage() {
               type="text"
               value={search}
               onChange={(event) =>
-                setSearch(event.target.value)
+                setSearch(
+                  event.target.value
+                )
               }
               placeholder="Search name, member ID, mobile, email..."
               className="w-full rounded-md border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-300"
@@ -938,7 +1259,9 @@ export default function MembershipDetailsPage() {
         {/* ERROR */}
 
         {error && (
+
           <div className="mb-5 rounded-md border border-red-200 bg-white px-4 py-3 text-sm text-red-700">
+
             {error}
 
             <button
@@ -947,12 +1270,15 @@ export default function MembershipDetailsPage() {
             >
               Retry
             </button>
+
           </div>
+
         )}
 
         {/* LOADING */}
 
         {loading ? (
+
           <div className="rounded-lg border border-gray-200 bg-white py-16 text-center">
 
             <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700" />
@@ -962,7 +1288,9 @@ export default function MembershipDetailsPage() {
             </p>
 
           </div>
+
         ) : filteredMembers.length === 0 ? (
+
           <div className="rounded-lg border border-gray-200 bg-white py-16 text-center">
 
             <Users
@@ -979,8 +1307,11 @@ export default function MembershipDetailsPage() {
             </p>
 
           </div>
+
         ) : (
+
           <>
+
             {/* ================================================= */}
             {/* DESKTOP TABLE */}
             {/* ================================================= */}
@@ -992,6 +1323,7 @@ export default function MembershipDetailsPage() {
                 <table className="w-full min-w-[950px] border-collapse">
 
                   <thead>
+
                     <tr className="border-b border-gray-200 bg-gray-50">
 
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -1019,21 +1351,29 @@ export default function MembershipDetailsPage() {
                       </th>
 
                     </tr>
+
                   </thead>
 
                   <tbody>
 
                     {paginatedMembers.map(
-                      (member, index) => {
+                      (
+                        member,
+                        index
+                      ) => {
+
                         const id =
                           member.member_id ??
                           member.id ??
                           `${startIndex}-${index}`;
 
                         const photo =
-                          getPhotoUrl(member);
+                          getPhotoUrl(
+                            member
+                          );
 
                         return (
+
                           <tr
                             key={String(id)}
                             className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50"
@@ -1046,35 +1386,52 @@ export default function MembershipDetailsPage() {
                               <div className="flex items-center gap-3">
 
                                 {photo ? (
+
                                   <img
                                     src={photo}
                                     alt={getMemberName(
                                       member
                                     )}
                                     className="h-12 w-12 rounded-md border border-gray-200 object-cover"
+                                    onError={(
+                                      event
+                                    ) => {
+                                      event.currentTarget.style.display =
+                                        "none";
+                                    }}
                                   />
+
                                 ) : (
+
                                   <div className="flex h-12 w-12 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+
                                     <User
                                       size={22}
                                       className="text-gray-400"
                                     />
+
                                   </div>
+
                                 )}
 
                                 <div>
 
                                   <p className="font-semibold text-gray-900">
+
                                     {getMemberName(
                                       member
                                     )}
+
                                   </p>
 
                                   <p className="mt-1 text-xs text-gray-500">
+
                                     ID:{" "}
+
                                     {getMemberId(
                                       member
                                     )}
+
                                   </p>
 
                                 </div>
@@ -1088,14 +1445,18 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <p className="text-sm text-gray-800">
-                                {getMobile(member)}
+                                {getMobile(
+                                  member
+                                )}
                               </p>
 
                               <p className="mt-1 max-w-[220px] truncate text-xs text-gray-500">
+
                                 {getValue(
                                   member,
                                   ["email"]
                                 )}
+
                               </p>
 
                             </td>
@@ -1105,17 +1466,21 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <p className="text-sm text-gray-800">
+
                                 {getValue(
                                   member,
                                   ["district"]
                                 )}
+
                               </p>
 
                               <p className="mt-1 text-xs text-gray-500">
+
                                 {getValue(
                                   member,
                                   ["mandal"]
                                 )}
+
                               </p>
 
                             </td>
@@ -1125,17 +1490,21 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <p className="text-sm text-gray-800">
+
                                 {getValue(
                                   member,
                                   ["designation"]
                                 )}
+
                               </p>
 
                               <p className="mt-1 text-xs text-gray-500">
+
                                 {getValue(
                                   member,
                                   ["executive_body"]
                                 )}
+
                               </p>
 
                             </td>
@@ -1145,7 +1514,11 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <span className="inline-flex rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700">
-                                {getStatus(member)}
+
+                                {getStatus(
+                                  member
+                                )}
+
                               </span>
 
                             </td>
@@ -1165,8 +1538,11 @@ export default function MembershipDetailsPage() {
                                   }
                                   className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
                                 >
+
                                   <Eye size={15} />
+
                                   View
+
                                 </button>
 
                                 <button
@@ -1182,6 +1558,7 @@ export default function MembershipDetailsPage() {
                                   }
                                   className="inline-flex items-center gap-1.5 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-xs font-medium text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
+
                                   <Download
                                     size={15}
                                   />
@@ -1190,6 +1567,7 @@ export default function MembershipDetailsPage() {
                                   id
                                     ? "Downloading..."
                                     : "Download"}
+
                                 </button>
 
                               </div>
@@ -1197,6 +1575,7 @@ export default function MembershipDetailsPage() {
                             </td>
 
                           </tr>
+
                         );
                       }
                     )}
@@ -1216,16 +1595,23 @@ export default function MembershipDetailsPage() {
             <div className="space-y-4 md:hidden">
 
               {paginatedMembers.map(
-                (member, index) => {
+                (
+                  member,
+                  index
+                ) => {
+
                   const id =
                     member.member_id ??
                     member.id ??
                     `${startIndex}-${index}`;
 
                   const photo =
-                    getPhotoUrl(member);
+                    getPhotoUrl(
+                      member
+                    );
 
                   return (
+
                     <div
                       key={String(id)}
                       className="rounded-lg border border-gray-200 bg-white p-4"
@@ -1234,34 +1620,60 @@ export default function MembershipDetailsPage() {
                       <div className="flex gap-3">
 
                         {photo ? (
+
                           <img
                             src={photo}
                             alt={getMemberName(
                               member
                             )}
                             className="h-16 w-16 rounded-md border border-gray-200 object-cover"
+                            onError={(
+                              event
+                            ) => {
+                              event.currentTarget.style.display =
+                                "none";
+                            }}
                           />
+
                         ) : (
+
                           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+
                             <User
                               size={25}
                               className="text-gray-400"
                             />
+
                           </div>
+
                         )}
 
                         <div className="min-w-0 flex-1">
 
                           <h3 className="truncate font-semibold text-gray-900">
-                            {getMemberName(member)}
+
+                            {getMemberName(
+                              member
+                            )}
+
                           </h3>
 
                           <p className="mt-1 text-xs text-gray-500">
-                            ID: {getMemberId(member)}
+
+                            ID:{" "}
+
+                            {getMemberId(
+                              member
+                            )}
+
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
-                            {getMobile(member)}
+
+                            {getMobile(
+                              member
+                            )}
+
                           </p>
 
                         </div>
@@ -1271,29 +1683,37 @@ export default function MembershipDetailsPage() {
                       <div className="mt-4 grid grid-cols-2 gap-3 border-t border-gray-100 pt-4">
 
                         <div>
+
                           <p className="text-xs text-gray-400">
                             District
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
+
                             {getValue(
                               member,
                               ["district"]
                             )}
+
                           </p>
+
                         </div>
 
                         <div>
+
                           <p className="text-xs text-gray-400">
                             Designation
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
+
                             {getValue(
                               member,
                               ["designation"]
                             )}
+
                           </p>
+
                         </div>
 
                       </div>
@@ -1309,8 +1729,11 @@ export default function MembershipDetailsPage() {
                           }
                           className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700"
                         >
+
                           <Eye size={16} />
+
                           View
+
                         </button>
 
                         <button
@@ -1325,16 +1748,19 @@ export default function MembershipDetailsPage() {
                           }
                           className="flex flex-1 items-center justify-center gap-2 rounded-md bg-gray-800 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-60"
                         >
+
                           <Download size={16} />
 
                           {downloadingId === id
                             ? "Downloading..."
                             : "Download"}
+
                         </button>
 
                       </div>
 
                     </div>
+
                   );
                 }
               )}
@@ -1350,21 +1776,33 @@ export default function MembershipDetailsPage() {
               <p className="text-sm text-gray-500">
 
                 Showing{" "}
+
                 <span className="font-medium text-gray-800">
+
                   {filteredMembers.length === 0
                     ? 0
                     : startIndex + 1}
+
                 </span>{" "}
+
                 to{" "}
+
                 <span className="font-medium text-gray-800">
+
                   {Math.min(
-                    startIndex + ROWS_PER_PAGE,
+                    startIndex +
+                      ROWS_PER_PAGE,
                     filteredMembers.length
                   )}
+
                 </span>{" "}
+
                 of{" "}
+
                 <span className="font-medium text-gray-800">
+
                   {filteredMembers.length}
+
                 </span>
 
               </p>
@@ -1373,36 +1811,56 @@ export default function MembershipDetailsPage() {
 
                 <button
                   type="button"
-                  disabled={safeCurrentPage <= 1}
+                  disabled={
+                    safeCurrentPage <= 1
+                  }
                   onClick={() =>
-                    setCurrentPage((page) =>
-                      Math.max(1, page - 1)
+                    setCurrentPage(
+                      (page) =>
+                        Math.max(
+                          1,
+                          page - 1
+                        )
                     )
                   }
                   className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
+
                   <ChevronLeft size={16} />
+
                   Previous
+
                 </button>
 
                 <span className="px-2 text-sm text-gray-600">
-                  {safeCurrentPage} / {totalPages}
+
+                  {safeCurrentPage} /{" "}
+                  {totalPages}
+
                 </span>
 
                 <button
                   type="button"
                   disabled={
-                    safeCurrentPage >= totalPages
+                    safeCurrentPage >=
+                    totalPages
                   }
                   onClick={() =>
-                    setCurrentPage((page) =>
-                      Math.min(totalPages, page + 1)
+                    setCurrentPage(
+                      (page) =>
+                        Math.min(
+                          totalPages,
+                          page + 1
+                        )
                     )
                   }
                   className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >
+
                   Next
+
                   <ChevronRight size={16} />
+
                 </button>
 
               </div>
@@ -1410,6 +1868,7 @@ export default function MembershipDetailsPage() {
             </div>
 
           </>
+
         )}
 
       </main>
@@ -1419,14 +1878,22 @@ export default function MembershipDetailsPage() {
       {/* ===================================================== */}
 
       {selectedMember && (
+
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           onMouseDown={(event) => {
+
             if (
-              event.target === event.currentTarget
+              event.target ===
+              event.currentTarget
             ) {
-              setSelectedMember(null);
+
+              setSelectedMember(
+                null
+              );
+
             }
+
           }}
         >
 
@@ -1446,7 +1913,11 @@ export default function MembershipDetailsPage() {
                 </h2>
 
                 <p className="mt-1 text-xs text-gray-500">
-                  {getMemberId(selectedMember)}
+
+                  {getMemberId(
+                    selectedMember
+                  )}
+
                 </p>
 
               </div>
@@ -1454,11 +1925,15 @@ export default function MembershipDetailsPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setSelectedMember(null)
+                  setSelectedMember(
+                    null
+                  )
                 }
                 className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
               >
+
                 <X size={20} />
+
               </button>
 
             </div>
@@ -1473,48 +1948,71 @@ export default function MembershipDetailsPage() {
 
                 <div className="flex flex-col gap-5 sm:flex-row">
 
-                  {getPhotoUrl(selectedMember) ? (
+                  {getPhotoUrl(
+                    selectedMember
+                  ) ? (
+
                     <img
-                      src={getPhotoUrl(
-                        selectedMember
-                      ) as string}
+                      src={
+                        getPhotoUrl(
+                          selectedMember
+                        ) as string
+                      }
                       alt={getMemberName(
                         selectedMember
                       )}
                       className="h-32 w-28 rounded-md border border-gray-200 object-cover"
+                      onError={(event) => {
+                        event.currentTarget.style.display =
+                          "none";
+                      }}
                     />
+
                   ) : (
+
                     <div className="flex h-32 w-28 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
+
                       <User
                         size={38}
                         className="text-gray-400"
                       />
+
                     </div>
+
                   )}
 
                   <div className="flex-1">
 
                     <h3 className="text-2xl font-bold text-gray-900">
+
                       {getMemberName(
                         selectedMember
                       )}
+
                     </h3>
 
                     <p className="mt-2 text-sm text-gray-500">
+
                       Member ID:{" "}
+
                       <span className="font-semibold text-gray-800">
+
                         {getMemberId(
                           selectedMember
                         )}
+
                       </span>
+
                     </p>
 
                     <div className="mt-4 flex flex-wrap gap-2">
 
                       <span className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-700">
+
                         {getStatus(
                           selectedMember
                         )}
+
                       </span>
 
                       {getValue(
@@ -1522,12 +2020,16 @@ export default function MembershipDetailsPage() {
                         ["designation"],
                         ""
                       ) !== "" && (
+
                         <span className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-700">
+
                           {getValue(
                             selectedMember,
                             ["designation"]
                           )}
+
                         </span>
+
                       )}
 
                     </div>
@@ -1607,7 +2109,11 @@ export default function MembershipDetailsPage() {
                   />
 
                   <DetailItem
-                    icon={<Briefcase size={16} />}
+                    icon={
+                      <Briefcase
+                        size={16}
+                      />
+                    }
                     label="Occupation"
                     value={getValue(
                       selectedMember,
@@ -1639,7 +2145,9 @@ export default function MembershipDetailsPage() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                   <DetailItem
-                    icon={<MapPin size={16} />}
+                    icon={
+                      <MapPin size={16} />
+                    }
                     label="District"
                     value={getValue(
                       selectedMember,
@@ -1648,7 +2156,9 @@ export default function MembershipDetailsPage() {
                   />
 
                   <DetailItem
-                    icon={<MapPin size={16} />}
+                    icon={
+                      <MapPin size={16} />
+                    }
                     label="Mandal"
                     value={getValue(
                       selectedMember,
@@ -1657,7 +2167,11 @@ export default function MembershipDetailsPage() {
                   />
 
                   <DetailItem
-                    icon={<Building2 size={16} />}
+                    icon={
+                      <Building2
+                        size={16}
+                      />
+                    }
                     label="Sangham"
                     value={getValue(
                       selectedMember,
@@ -1689,7 +2203,11 @@ export default function MembershipDetailsPage() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                   <DetailItem
-                    icon={<Building2 size={16} />}
+                    icon={
+                      <Building2
+                        size={16}
+                      />
+                    }
                     label="Executive Body"
                     value={getValue(
                       selectedMember,
@@ -1698,7 +2216,11 @@ export default function MembershipDetailsPage() {
                   />
 
                   <DetailItem
-                    icon={<ShieldCheck size={16} />}
+                    icon={
+                      <ShieldCheck
+                        size={16}
+                      />
+                    }
                     label="Designation"
                     value={getValue(
                       selectedMember,
@@ -1707,7 +2229,11 @@ export default function MembershipDetailsPage() {
                   />
 
                   <DetailItem
-                    icon={<ShieldCheck size={16} />}
+                    icon={
+                      <ShieldCheck
+                        size={16}
+                      />
+                    }
                     label="Status"
                     value={getStatus(
                       selectedMember
@@ -1785,7 +2311,8 @@ export default function MembershipDetailsPage() {
                         }
                         label="Amount"
                         value={formatAmount(
-                          selectedMember.mahashaba_amount
+                          selectedMember
+                            .mahashaba_amount
                         )}
                       />
 
@@ -1797,7 +2324,8 @@ export default function MembershipDetailsPage() {
                         }
                         label="Payment Date"
                         value={formatDate(
-                          selectedMember.mahashaba_payment_date
+                          selectedMember
+                            .mahashaba_payment_date
                         )}
                       />
 
@@ -1853,7 +2381,8 @@ export default function MembershipDetailsPage() {
                         }
                         label="Amount"
                         value={formatAmount(
-                          selectedMember.sangam_amount
+                          selectedMember
+                            .sangam_amount
                         )}
                       />
 
@@ -1865,7 +2394,8 @@ export default function MembershipDetailsPage() {
                         }
                         label="Payment Date"
                         value={formatDate(
-                          selectedMember.sangam_payment_date
+                          selectedMember
+                            .sangam_payment_date
                         )}
                       />
 
@@ -1892,8 +2422,11 @@ export default function MembershipDetailsPage() {
                 }
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
+
                 <Printer size={16} />
+
                 Print
+
               </button>
 
               <button
@@ -1905,19 +2438,27 @@ export default function MembershipDetailsPage() {
                 }
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-900"
               >
+
                 <Download size={16} />
+
                 Download Card
+
               </button>
 
               <button
                 type="button"
                 onClick={() =>
-                  setSelectedMember(null)
+                  setSelectedMember(
+                    null
+                  )
                 }
                 className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
+
                 <X size={16} />
+
                 Close
+
               </button>
 
             </div>
@@ -1925,6 +2466,7 @@ export default function MembershipDetailsPage() {
           </div>
 
         </div>
+
       )}
 
     </div>
@@ -1945,6 +2487,7 @@ function DetailItem({
   value: string;
 }) {
   return (
+
     <div className="flex gap-3">
 
       <div className="mt-0.5 shrink-0 text-gray-400">
@@ -1964,5 +2507,7 @@ function DetailItem({
       </div>
 
     </div>
+
   );
 }
+
