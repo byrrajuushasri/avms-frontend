@@ -17,22 +17,46 @@ import {
 interface Profile {
   id: number;
   member_id: string;
+
   name: string;
+
   date_of_birth?: string | null;
   height?: string | null;
   education?: string | null;
   occupation?: string | null;
   address?: string | null;
+
   photo?: string | null;
+  profile_photo?: string | null;
+
   status?: string | null;
   membership?: string | null;
+
+  [key: string]: unknown;
 }
 
 export default function FeaturedProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
+
+  const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
+
+  // =========================================================
+  // BACKEND URL
+  // =========================================================
+
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000";
+
+  // Remove trailing slash
+  const API_BASE_URL = BACKEND_URL.replace(/\/+$/, "");
+
+  // =========================================================
+  // LIKE
+  // =========================================================
 
   const toggleLike = (id: string) => {
     setLikedProfiles((prev) =>
@@ -42,10 +66,9 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
     );
   };
 
-
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"; 
-
-
+  // =========================================================
+  // FETCH PROFILES
+  // =========================================================
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -53,53 +76,78 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          `${BACKEND_URL}/matrimonial-users`,
-          {
-            cache: "no-store",
-          }
+        const apiUrl = `${API_BASE_URL}/matrimonial-users`;
+
+        console.log("=================================");
+        console.log("FEATURED PROFILES API:", apiUrl);
+        console.log("BACKEND URL:", API_BASE_URL);
+        console.log("=================================");
+
+        const response = await fetch(apiUrl, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        console.log(
+          "Matrimonial API status:",
+          response.status
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch profiles");
+          throw new Error(
+            `Failed to fetch profiles (${response.status})`
+          );
         }
 
         const data = await response.json();
 
-        console.log("Matrimonial API:", data);
+        console.log("Matrimonial API response:", data);
 
-        const list: Profile[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data.data)
-          ? data.data
-          : [];
+        let list: Profile[] = [];
 
-        /*
-         * Your current database profiles are Pending.
-         *
-         * Therefore we are NOT filtering by Approved here.
-         * Once your admin approves profiles, you can add
-         * status filtering later.
-         */
+        if (Array.isArray(data)) {
+          list = data;
+        } else if (Array.isArray(data?.data)) {
+          list = data.data;
+        } else if (Array.isArray(data?.members)) {
+          list = data.members;
+        } else if (Array.isArray(data?.results)) {
+          list = data.results;
+        }
+
+        console.log("Profiles received:", list);
+        console.log("Profiles count:", list.length);
 
         setProfiles(list.slice(0, 8));
       } catch (err) {
-        console.error(err);
-        setError("Unable to load profiles.");
+        console.error(
+          "Featured Profiles API Error:",
+          err
+        );
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load profiles."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfiles();
-  }, []);
+  }, [API_BASE_URL]);
 
-  /* =========================
-     CALCULATE AGE
-  ========================= */
+  // =========================================================
+  // CALCULATE AGE
+  // =========================================================
 
-  const calculateAge = (dob?: string | null) => {
-    if (!dob) return null;
+  const calculateAge = (
+    dob?: string | null
+  ): number | null => {
+    if (!dob) {
+      return null;
+    }
 
     const birthDate = new Date(dob);
 
@@ -107,10 +155,7 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
       return null;
     }
 
-    /*
-     * Ignore invalid old database date
-     * such as 1899-11-30
-     */
+    // Ignore invalid old database dates
     if (birthDate.getFullYear() < 1900) {
       return null;
     }
@@ -140,42 +185,138 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
     return age;
   };
 
-  /* =========================
-     PHOTO URL
-  ========================= */
+  // =========================================================
+  // PHOTO URL
+  // =========================================================
 
-  const getPhotoUrl = (photo?: string | null) => {
+  const getPhotoUrl = (
+    profile: Profile
+  ): string => {
+    const photo =
+      profile.photo ||
+      profile.profile_photo ||
+      null;
+
+    // No photo
     if (!photo) {
+      console.log(
+        `No photo for ${profile.name}`
+      );
+
       return "/images/default-profile.jpg";
     }
 
-    if (photo.startsWith("http://")) {
-      return photo;
+    const photoString = String(photo).trim();
+
+    if (!photoString) {
+      return "/images/default-profile.jpg";
     }
 
-    if (photo.startsWith("https://")) {
-      return photo;
+    // =======================================================
+    // CASE 1
+    // Full HTTP URL
+    // =======================================================
+
+    if (
+      photoString.startsWith("http://") ||
+      photoString.startsWith("https://")
+    ) {
+      return photoString;
     }
 
-    /*
-     * Your database contains:
-     * 1786873911058-401768645.png
-     *
-     * Backend uploads:
-     * /uploads/matrimonial/
-     */
+    // =======================================================
+    // CASE 2
+    // Backend absolute path
+    //
+    // /uploads/matrimonial/photo.jpg
+    // =======================================================
 
-    return `http://localhost:5000/uploads/matrimonial/${photo}`;
+    if (photoString.startsWith("/")) {
+      const finalUrl =
+        `${API_BASE_URL}${photoString}`;
+
+      console.log(
+        `Photo URL for ${profile.name}:`,
+        finalUrl
+      );
+
+      return finalUrl;
+    }
+
+    // =======================================================
+    // CASE 3
+    // uploads/matrimonial/photo.jpg
+    // =======================================================
+
+    if (
+      photoString.startsWith(
+        "uploads/"
+      )
+    ) {
+      const finalUrl =
+        `${API_BASE_URL}/${photoString}`;
+
+      console.log(
+        `Photo URL for ${profile.name}:`,
+        finalUrl
+      );
+
+      return finalUrl;
+    }
+
+    // =======================================================
+    // CASE 4
+    // Just filename
+    //
+    // 1786873911058-401768645.png
+    // =======================================================
+
+    const finalUrl =
+      `${API_BASE_URL}/uploads/matrimonial/${photoString}`;
+
+    console.log(
+      `Photo URL for ${profile.name}:`,
+      finalUrl
+    );
+
+    return finalUrl;
   };
 
-  /* =========================
-     LOADING
-  ========================= */
+  // =========================================================
+  // IMAGE ERROR HANDLER
+  // =========================================================
+
+  const handleImageError = (
+    event: React.SyntheticEvent<HTMLImageElement>
+  ) => {
+    const image =
+      event.currentTarget;
+
+    console.error(
+      "Profile image failed:",
+      image.src
+    );
+
+    // Prevent infinite onError loop
+    if (
+      image.src.includes(
+        "/images/default-profile.jpg"
+      )
+    ) {
+      return;
+    }
+
+    image.src =
+      "/images/default-profile.jpg";
+  };
+
+  // =========================================================
+  // LOADING
+  // =========================================================
 
   if (loading) {
     return (
       <section className="bg-gradient-to-b from-white to-rose-50/40 py-16">
-
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
 
           <div className="mx-auto mb-10 max-w-2xl text-center">
@@ -220,14 +361,13 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
           </div>
 
         </div>
-
       </section>
     );
   }
 
-  /* =========================
-     ERROR
-  ========================= */
+  // =========================================================
+  // ERROR
+  // =========================================================
 
   if (error) {
     return (
@@ -236,7 +376,9 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
         <div className="mx-auto max-w-7xl px-5">
 
           <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-center text-red-600">
+
             {error}
+
           </div>
 
         </div>
@@ -245,91 +387,111 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
     );
   }
 
+  // =========================================================
+  // MAIN
+  // =========================================================
+
   return (
     <section className="bg-gradient-to-b from-white to-rose-50/40 py-16">
 
       <div className="mx-auto max-w-7xl px-5 sm:px-6">
 
-        {/* =================================
+        {/* =================================================
             HEADER
-        ================================= */}
+        ================================================= */}
 
         <div className="mx-auto mb-10 max-w-2xl text-center">
 
-          <span className="
-            inline-flex
-            items-center
-            gap-2
-            rounded-full
-            bg-rose-100
-            px-4
-            py-2
-            text-sm
-            font-semibold
-            text-[#8B1E3F]
-          ">
+          <span
+            className="
+              inline-flex
+              items-center
+              gap-2
+              rounded-full
+              bg-rose-100
+              px-4
+              py-2
+              text-sm
+              font-semibold
+              text-[#8B1E3F]
+            "
+          >
+
             <FaHeart className="text-rose-500" />
 
             Featured Members
+
           </span>
 
-          <h2 className="
-            mt-4
-            text-2xl
-            font-semibold
-            text-[#8B1E3F]
-          ">
+          <h2
+            className="
+              mt-4
+              text-2xl
+              font-semibold
+              text-[#8B1E3F]
+            "
+          >
             Meet Our Featured Profiles
           </h2>
 
-          <p className="
-            mt-3
-            text-sm
-            leading-7
-            text-gray-500
-            sm:text-base
-          ">
+          <p
+            className="
+              mt-3
+              text-sm
+              leading-7
+              text-gray-500
+              sm:text-base
+            "
+          >
             Discover Arya Vysya bride and groom profiles
             looking for a meaningful and lifelong relationship.
           </p>
 
         </div>
 
-        {/* =================================
+        {/* =================================================
             NO DATA
-        ================================= */}
+        ================================================= */}
 
         {profiles.length === 0 && (
-          <div className="
-            rounded-2xl
-            bg-white
-            p-10
-            text-center
-            shadow-sm
-          ">
+          <div
+            className="
+              rounded-2xl
+              bg-white
+              p-10
+              text-center
+              shadow-sm
+            "
+          >
             <p className="text-gray-500">
               No profiles available.
             </p>
           </div>
         )}
 
-        {/* =================================
+        {/* =================================================
             PROFILE GRID
-        ================================= */}
+        ================================================= */}
 
         {profiles.length > 0 && (
-          <div className="
-            grid
-            gap-6
-            sm:grid-cols-2
-            lg:grid-cols-4
-          ">
+          <div
+            className="
+              grid
+              gap-6
+              sm:grid-cols-2
+              lg:grid-cols-4
+            "
+          >
 
             {profiles.map((profile) => {
 
-              const age = calculateAge(
-                profile.date_of_birth
-              );
+              const age =
+                calculateAge(
+                  profile.date_of_birth
+                );
+
+              const photoUrl =
+                getPhotoUrl(profile);
 
               return (
                 <div
@@ -349,20 +511,25 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
                   "
                 >
 
-                  {/* =================================
+                  {/* =================================================
                       IMAGE
-                  ================================= */}
+                  ================================================= */}
 
-                  <div className="
-                    relative
-                    h-72
-                    overflow-hidden
-                    bg-gray-100
-                  ">
+                  <div
+                    className="
+                      relative
+                      h-72
+                      overflow-hidden
+                      bg-gray-100
+                    "
+                  >
 
                     <img
-                      src={getPhotoUrl(profile.photo)}
-                      alt={profile.name}
+                      src={photoUrl}
+                      alt={
+                        profile.name ||
+                        "Profile"
+                      }
                       className="
                         h-full
                         w-full
@@ -371,42 +538,44 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
                         duration-500
                         group-hover:scale-105
                       "
-                      onError={(event) => {
-                        event.currentTarget.src =
-                          "/images/default-profile.jpg";
-                      }}
+                      loading="lazy"
+                      onError={handleImageError}
                     />
 
                     {/* IMAGE OVERLAY */}
 
-                    <div className="
-                      absolute
-                      inset-x-0
-                      bottom-0
-                      h-24
-                      bg-gradient-to-t
-                      from-black/70
-                      to-transparent
-                    " />
+                    <div
+                      className="
+                        absolute
+                        inset-x-0
+                        bottom-0
+                        h-24
+                        bg-gradient-to-t
+                        from-black/70
+                        to-transparent
+                      "
+                    />
 
                     {/* STATUS */}
 
-                    <div className="
-                      absolute
-                      left-4
-                      top-4
-                      inline-flex
-                      items-center
-                      gap-1.5
-                      rounded-full
-                      bg-white/95
-                      px-3
-                      py-1.5
-                      text-xs
-                      font-semibold
-                      text-green-600
-                      shadow
-                    ">
+                    <div
+                      className="
+                        absolute
+                        left-4
+                        top-4
+                        inline-flex
+                        items-center
+                        gap-1.5
+                        rounded-full
+                        bg-white/95
+                        px-3
+                        py-1.5
+                        text-xs
+                        font-semibold
+                        text-green-600
+                        shadow
+                      "
+                    >
 
                       <FaCheckCircle />
 
@@ -418,18 +587,24 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
 
                     {/* HEART */}
 
-                   <button
+                    <button
                       type="button"
                       aria-label={
-                        likedProfiles.includes(profile.member_id)
+                        likedProfiles.includes(
+                          profile.member_id
+                        )
                           ? "Remove from favourites"
                           : "Add to favourites"
                       }
-                      onClick={() => toggleLike(profile.member_id)}
+                      onClick={() =>
+                        toggleLike(
+                          profile.member_id
+                        )
+                      }
                       className="
                         absolute
-                        top-4
                         right-4
+                        top-4
                         flex
                         h-9
                         w-9
@@ -443,33 +618,45 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
                         hover:scale-110
                       "
                     >
+
                       <FaHeart
-                        className={`text-sm transition-colors duration-200 ${
-                          likedProfiles.includes(profile.member_id)
-                            ? "text-rose-600"
-                            : "text-gray-400"
-                        }`}
+                        className={`
+                          text-sm
+                          transition-colors
+                          duration-200
+                          ${
+                            likedProfiles.includes(
+                              profile.member_id
+                            )
+                              ? "text-rose-600"
+                              : "text-gray-400"
+                          }
+                        `}
                       />
+
                     </button>
+
                     {/* MEMBER ID */}
 
-                    <span className="
-                      absolute
-                      bottom-4
-                      left-4
-                      text-xs
-                      font-medium
-                      tracking-wide
-                      text-white
-                    ">
+                    <span
+                      className="
+                        absolute
+                        bottom-4
+                        left-4
+                        text-xs
+                        font-medium
+                        tracking-wide
+                        text-white
+                      "
+                    >
                       {profile.member_id}
                     </span>
 
                   </div>
 
-                  {/* =================================
+                  {/* =================================================
                       CONTENT
-                  ================================= */}
+                  ================================================= */}
 
                   <div className="p-5">
 
@@ -477,12 +664,14 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
 
                     <div className="flex items-center gap-2">
 
-                      <h3 className="
-                        truncate
-                        text-xl
-                        font-bold
-                        text-gray-800
-                      ">
+                      <h3
+                        className="
+                          truncate
+                          text-xl
+                          font-bold
+                          text-gray-800
+                        "
+                      >
                         {profile.name}
                       </h3>
 
@@ -497,83 +686,115 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
                       )}
 
                     </div>
-{/* AGE + HEIGHT */}
-{(age || profile.height) && (
-  <div className="mt-3 flex flex-wrap items-center gap-3">
 
-    {/* AGE */}
-    {age && (
-      <div className="flex items-center gap-2">
-        <span
-          className="
-            flex h-8 w-8 shrink-0
-            items-center justify-center
-            rounded-lg
-            bg-rose-50
-            text-rose-600
-          "
-        >
-          <FaUser className="text-xs" />
-        </span>
+                    {/* =================================================
+                        AGE + HEIGHT
+                    ================================================= */}
 
-        <span className="text-sm text-gray-600">
-          {age} Years
-        </span>
-      </div>
-    )}
+                    {(age !== null ||
+                      profile.height) && (
+                      <div
+                        className="
+                          mt-3
+                          flex
+                          flex-wrap
+                          items-center
+                          gap-3
+                        "
+                      >
 
-    {/* HEIGHT */}
-    {profile.height && (
-      <div className="flex items-center gap-2">
-        <span
-          className="
-            flex h-8 w-8 shrink-0
-            items-center justify-center
-            rounded-lg
-            bg-rose-50
-            text-rose-600
-          "
-        >
-          <FaRulerVertical className="text-xs" />
-        </span>
+                        {/* AGE */}
 
-        <span className="text-sm text-gray-600">
-          {profile.height}
-        </span>
-      </div>
-    )}
+                        {age !== null && (
+                          <div className="flex items-center gap-2">
 
-  </div>
-)}
-                    {/* DETAILS */}
+                            <span
+                              className="
+                                flex
+                                h-8
+                                w-8
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-lg
+                                bg-rose-50
+                                text-rose-600
+                              "
+                            >
+                              <FaUser className="text-xs" />
+                            </span>
+
+                            <span className="text-sm text-gray-600">
+                              {age} Years
+                            </span>
+
+                          </div>
+                        )}
+
+                        {/* HEIGHT */}
+
+                        {profile.height && (
+                          <div className="flex items-center gap-2">
+
+                            <span
+                              className="
+                                flex
+                                h-8
+                                w-8
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-lg
+                                bg-rose-50
+                                text-rose-600
+                              "
+                            >
+                              <FaRulerVertical className="text-xs" />
+                            </span>
+
+                            <span className="text-sm text-gray-600">
+                              {profile.height}
+                            </span>
+
+                          </div>
+                        )}
+
+                      </div>
+                    )}
+
+                    {/* =================================================
+                        DETAILS
+                    ================================================= */}
 
                     <div className="mt-4 space-y-2.5">
 
                       {/* EDUCATION */}
 
                       {profile.education && (
-                        <div className="
-                          flex
-                          items-center
-                          gap-3
-                          text-sm
-                          text-gray-600
-                        ">
-
-                          <span className="
+                        <div
+                          className="
                             flex
-                            h-8
-                            w-8
-                            shrink-0
                             items-center
-                            justify-center
-                            rounded-lg
-                            bg-rose-50
-                            text-rose-600
-                          ">
+                            gap-3
+                            text-sm
+                            text-gray-600
+                          "
+                        >
 
+                          <span
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-lg
+                              bg-rose-50
+                              text-rose-600
+                            "
+                          >
                             <FaGraduationCap />
-
                           </span>
 
                           <span className="truncate">
@@ -586,28 +807,30 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
                       {/* OCCUPATION */}
 
                       {profile.occupation && (
-                        <div className="
-                          flex
-                          items-center
-                          gap-3
-                          text-sm
-                          text-gray-600
-                        ">
-
-                          <span className="
+                        <div
+                          className="
                             flex
-                            h-8
-                            w-8
-                            shrink-0
                             items-center
-                            justify-center
-                            rounded-lg
-                            bg-rose-50
-                            text-rose-600
-                          ">
+                            gap-3
+                            text-sm
+                            text-gray-600
+                          "
+                        >
 
+                          <span
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-lg
+                              bg-rose-50
+                              text-rose-600
+                            "
+                          >
                             <FaBriefcase />
-
                           </span>
 
                           <span className="truncate">
@@ -620,34 +843,37 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
                       {/* LOCATION */}
 
                       {profile.address && (
-                        <div className="
-                          flex
-                          items-center
-                          gap-3
-                          text-sm
-                          text-gray-600
-                        ">
-
-                          <span className="
+                        <div
+                          className="
                             flex
-                            h-8
-                            w-8
-                            shrink-0
                             items-center
-                            justify-center
-                            rounded-lg
-                            bg-rose-50
-                            text-rose-600
-                          ">
+                            gap-3
+                            text-sm
+                            text-gray-600
+                          "
+                        >
 
+                          <span
+                            className="
+                              flex
+                              h-8
+                              w-8
+                              shrink-0
+                              items-center
+                              justify-center
+                              rounded-lg
+                              bg-rose-50
+                              text-rose-600
+                            "
+                          >
                             <FaMapMarkerAlt />
-
                           </span>
 
-                          <span className="
-                            truncate
-                          ">
-                            {profile.address.replace(/\n/g, ", ")}
+                          <span className="truncate">
+                            {profile.address.replace(
+                              /\n/g,
+                              ", "
+                            )}
                           </span>
 
                         </div>
@@ -655,7 +881,9 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
 
                     </div>
 
-                    {/* VIEW PROFILE */}
+                    {/* =================================================
+                        VIEW PROFILE
+                    ================================================= */}
 
                     <Link
                       href={`/profile/${profile.id}`}
@@ -692,9 +920,9 @@ const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
           </div>
         )}
 
-        {/* =================================
+        {/* =================================================
             VIEW ALL
-        ================================= */}
+        ================================================= */}
 
         <div className="mt-12 flex justify-center">
 

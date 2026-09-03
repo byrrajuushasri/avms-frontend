@@ -1,3 +1,5 @@
+"use client";
+
 import {
   FaMapMarkerAlt,
   FaGraduationCap,
@@ -9,121 +11,492 @@ import {
   FaPrayingHands,
 } from "react-icons/fa";
 
-export default function ProfileInfo() {
+interface Profile {
+  id?: number | string;
+  member_id?: string | null;
+
+  name?: string | null;
+  full_name?: string | null;
+
+  date_of_birth?: string | null;
+  dob?: string | null;
+
+  height?: string | null;
+  education?: string | null;
+
+  occupation?: string | null;
+  profession?: string | null;
+
+  annual_income?: string | number | null;
+  income?: string | number | null;
+
+  address?: string | null;
+  city?: string | null;
+  district?: string | null;
+  mandal?: string | null;
+  sangham?: string | null;
+
+  religion?: string | null;
+  caste?: string | null;
+  gotram?: string | null;
+  mother_tongue?: string | null;
+  marital_status?: string | null;
+  physical_status?: string | null;
+
+  about?: string | null;
+  about_me?: string | null;
+  description?: string | null;
+
+  gender?: string | null;
+  status?: string | null;
+
+  [key: string]: unknown;
+}
+
+interface ProfileInfoProps {
+  profile?: Profile | null;
+}
+
+export default function ProfileInfo({
+  profile,
+}: ProfileInfoProps) {
+  // =========================================================
+  // WAIT FOR PROFILE DATA
+  // =========================================================
+
+  if (!profile) {
+    return (
+      <div className="w-full animate-pulse">
+
+        {/* Header skeleton */}
+        <div className="mb-4 flex gap-3">
+          <div className="h-7 w-32 rounded-full bg-gray-200" />
+          <div className="h-7 w-36 rounded-full bg-gray-200" />
+        </div>
+
+        <div className="h-10 w-64 rounded bg-gray-200" />
+
+        <div className="mt-3 h-5 w-40 rounded bg-gray-200" />
+
+        {/* Details skeleton */}
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {[1, 2, 3, 4, 5, 6].map(
+            (item) => (
+              <div
+                key={item}
+                className="h-28 rounded-xl bg-gray-100"
+              />
+            )
+          )}
+        </div>
+
+        <div className="mt-10">
+          <div className="mb-4 h-8 w-48 rounded bg-gray-200" />
+
+          <div className="space-y-3">
+            <div className="h-5 w-full rounded bg-gray-100" />
+            <div className="h-5 w-4/5 rounded bg-gray-100" />
+            <div className="h-5 w-3/5 rounded bg-gray-100" />
+          </div>
+        </div>
+
+      </div>
+    );
+  }
+
+  // =========================================================
+  // NAME
+  // =========================================================
+
+  const name =
+    profile.full_name ||
+    profile.name ||
+    "Profile";
+
+  // =========================================================
+  // MEMBER ID
+  // =========================================================
+
+  const memberId =
+    profile.member_id ||
+    (profile.id
+      ? `AVM${String(profile.id).padStart(6, "0")}`
+      : "AVM");
+
+  // =========================================================
+  // AGE
+  // =========================================================
+
+  const calculateAge = (
+    dob?: string | null
+  ): number | null => {
+    if (!dob) {
+      return null;
+    }
+
+    const birthDate = new Date(dob);
+
+    if (
+      Number.isNaN(
+        birthDate.getTime()
+      )
+    ) {
+      return null;
+    }
+
+    const today = new Date();
+
+    let age =
+      today.getFullYear() -
+      birthDate.getFullYear();
+
+    const monthDifference =
+      today.getMonth() -
+      birthDate.getMonth();
+
+    if (
+      monthDifference < 0 ||
+      (
+        monthDifference === 0 &&
+        today.getDate() <
+          birthDate.getDate()
+      )
+    ) {
+      age--;
+    }
+
+    if (age < 0 || age > 100) {
+      return null;
+    }
+
+    return age;
+  };
+
+  const age = calculateAge(
+    profile.date_of_birth ||
+      profile.dob
+  );
+
+  // =========================================================
+  // PROFESSION
+  // =========================================================
+
+  const profession =
+    profile.occupation ||
+    profile.profession ||
+    null;
+
+  // =========================================================
+  // INCOME
+  // =========================================================
+
+  const income =
+    profile.annual_income ||
+    profile.income ||
+    null;
+
+  // =========================================================
+  // LOCATION
+  // =========================================================
+
+  const locationParts = [
+    profile.city,
+    profile.mandal,
+    profile.district,
+  ].filter(Boolean);
+
+  const location =
+    locationParts.length > 0
+      ? locationParts.join(", ")
+      : profile.address || null;
+
+  // =========================================================
+  // ABOUT
+  // =========================================================
+
+  const about =
+    profile.about_me ||
+    profile.about ||
+    profile.description ||
+    null;
+
+  // =========================================================
+  // VERIFIED
+  // =========================================================
+
+  const isVerified =
+    String(
+      profile.status || ""
+    ).toLowerCase() ===
+    "approved";
+
   return (
     <div>
 
-      {/* Profile ID */}
-      <div className="flex items-center gap-3 mb-3">
+      {/* ================================================= */}
+      {/* PROFILE ID */}
+      {/* ================================================= */}
 
-        <span className="bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-sm font-semibold">
-          ID : AVM102548
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+
+        <span className="rounded-full bg-rose-100 px-3 py-1 text-sm font-semibold text-rose-600">
+          ID : {memberId}
         </span>
 
-        <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
-          <FaCheckCircle />
-          Verified Profile
-        </span>
+        {isVerified && (
+          <span className="flex items-center gap-1 text-sm font-medium text-green-600">
+            <FaCheckCircle />
+            Verified Profile
+          </span>
+        )}
 
       </div>
 
-      {/* Name */}
+      {/* ================================================= */}
+      {/* NAME */}
+      {/* ================================================= */}
 
       <h1 className="text-4xl font-bold text-gray-800">
-        Priya Kumari
+        {name}
       </h1>
 
-      <p className="text-gray-500 mt-2">
-        Software Engineer
-      </p>
+      {profession && (
+        <p className="mt-2 text-gray-500">
+          {profession}
+        </p>
+      )}
 
-      {/* Quick Details */}
+      {/* ================================================= */}
+      {/* QUICK DETAILS */}
+      {/* ================================================= */}
 
-      <div className="grid grid-cols-2 gap-4 mt-8">
+      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
 
-        <div className="bg-gray-50 rounded-xl p-4">
-          <FaBirthdayCake className="text-rose-600 text-xl mb-2" />
-          <p className="text-sm text-gray-500">Age</p>
-          <h3 className="font-semibold">25 Years</h3>
-        </div>
+        {/* AGE */}
 
-        <div className="bg-gray-50 rounded-xl p-4">
-          <FaRulerVertical className="text-rose-600 text-xl mb-2" />
-          <p className="text-sm text-gray-500">Height</p>
-          <h3 className="font-semibold">5'4"</h3>
-        </div>
+        {age !== null && (
+          <div className="rounded-xl bg-gray-50 p-4">
 
-        <div className="bg-gray-50 rounded-xl p-4">
-          <FaGraduationCap className="text-rose-600 text-xl mb-2" />
-          <p className="text-sm text-gray-500">Education</p>
-          <h3 className="font-semibold">M.Tech</h3>
-        </div>
+            <FaBirthdayCake className="mb-2 text-xl text-rose-600" />
 
-        <div className="bg-gray-50 rounded-xl p-4">
-          <FaBriefcase className="text-rose-600 text-xl mb-2" />
-          <p className="text-sm text-gray-500">Profession</p>
-          <h3 className="font-semibold">
-            Software Engineer
-          </h3>
-        </div>
+            <p className="text-sm text-gray-500">
+              Age
+            </p>
 
-        <div className="bg-gray-50 rounded-xl p-4">
-          <FaRupeeSign className="text-rose-600 text-xl mb-2" />
-          <p className="text-sm text-gray-500">Annual Income</p>
-          <h3 className="font-semibold">₹12 Lakhs</h3>
-        </div>
+            <h3 className="font-semibold text-gray-800">
+              {age} Years
+            </h3>
 
-        <div className="bg-gray-50 rounded-xl p-4">
-          <FaMapMarkerAlt className="text-rose-600 text-xl mb-2" />
-          <p className="text-sm text-gray-500">Location</p>
-          <h3 className="font-semibold">Hyderabad</h3>
-        </div>
+          </div>
+        )}
+
+        {/* HEIGHT */}
+
+        {profile.height && (
+          <div className="rounded-xl bg-gray-50 p-4">
+
+            <FaRulerVertical className="mb-2 text-xl text-rose-600" />
+
+            <p className="text-sm text-gray-500">
+              Height
+            </p>
+
+            <h3 className="font-semibold text-gray-800">
+              {profile.height}
+            </h3>
+
+          </div>
+        )}
+
+        {/* EDUCATION */}
+
+        {profile.education && (
+          <div className="rounded-xl bg-gray-50 p-4">
+
+            <FaGraduationCap className="mb-2 text-xl text-rose-600" />
+
+            <p className="text-sm text-gray-500">
+              Education
+            </p>
+
+            <h3 className="font-semibold text-gray-800">
+              {profile.education}
+            </h3>
+
+          </div>
+        )}
+
+        {/* PROFESSION */}
+
+        {profession && (
+          <div className="rounded-xl bg-gray-50 p-4">
+
+            <FaBriefcase className="mb-2 text-xl text-rose-600" />
+
+            <p className="text-sm text-gray-500">
+              Profession
+            </p>
+
+            <h3 className="font-semibold text-gray-800">
+              {profession}
+            </h3>
+
+          </div>
+        )}
+
+        {/* INCOME */}
+
+        {income !== null &&
+          income !== undefined &&
+          String(income).trim() !== "" && (
+            <div className="rounded-xl bg-gray-50 p-4">
+
+              <FaRupeeSign className="mb-2 text-xl text-rose-600" />
+
+              <p className="text-sm text-gray-500">
+                Annual Income
+              </p>
+
+              <h3 className="font-semibold text-gray-800">
+                {String(income).startsWith("₹")
+                  ? String(income)
+                  : `₹${income}`}
+              </h3>
+
+            </div>
+          )}
+
+        {/* LOCATION */}
+
+        {location && (
+          <div className="rounded-xl bg-gray-50 p-4">
+
+            <FaMapMarkerAlt className="mb-2 text-xl text-rose-600" />
+
+            <p className="text-sm text-gray-500">
+              Location
+            </p>
+
+            <h3 className="font-semibold text-gray-800">
+              {location}
+            </h3>
+
+          </div>
+        )}
 
       </div>
 
-      {/* Personal Details */}
+      {/* ================================================= */}
+      {/* PERSONAL DETAILS */}
+      {/* ================================================= */}
 
       <div className="mt-10">
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
+        <h2 className="mb-4 text-2xl font-bold text-gray-800">
           Personal Details
         </h2>
 
-        <div className="grid grid-cols-2 gap-y-4">
+        <div className="grid grid-cols-1 gap-y-4 text-gray-600 sm:grid-cols-2">
 
-          <p><span className="font-semibold">Religion :</span> Hindu</p>
+          {profile.religion && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Religion :
+              </span>{" "}
+              {profile.religion}
+            </p>
+          )}
 
-          <p><span className="font-semibold">Caste :</span> Arya Vysya</p>
+          {profile.caste && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Caste :
+              </span>{" "}
+              {profile.caste}
+            </p>
+          )}
 
-          <p><span className="font-semibold">Gotram :</span> Bharadwaja</p>
+          {profile.gotram && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Gotram :
+              </span>{" "}
+              {profile.gotram}
+            </p>
+          )}
 
-          <p><span className="font-semibold">Mother Tongue :</span> Telugu</p>
+          {profile.mother_tongue && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Mother Tongue :
+              </span>{" "}
+              {profile.mother_tongue}
+            </p>
+          )}
 
-          <p><span className="font-semibold">Marital Status :</span> Never Married</p>
+          {profile.marital_status && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Marital Status :
+              </span>{" "}
+              {profile.marital_status}
+            </p>
+          )}
 
-          <p><span className="font-semibold">Physical Status :</span> Normal</p>
+          {profile.physical_status && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Physical Status :
+              </span>{" "}
+              {profile.physical_status}
+            </p>
+          )}
+
+          {profile.gender && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Gender :
+              </span>{" "}
+              {profile.gender}
+            </p>
+          )}
+
+          {profile.sangham && (
+            <p>
+              <span className="font-semibold text-gray-800">
+                Sangham :
+              </span>{" "}
+              {profile.sangham}
+            </p>
+          )}
 
         </div>
 
       </div>
 
-      {/* About */}
+      {/* ================================================= */}
+      {/* ABOUT ME */}
+      {/* ================================================= */}
 
-      <div className="mt-10">
+      {about && (
+        <div className="mt-10">
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          About Me
-        </h2>
+          <div className="mb-4 flex items-center gap-3">
 
-        <p className="text-gray-600 leading-8">
-          I am a caring, family-oriented, and ambitious person.
-          Currently working as a Software Engineer in Hyderabad.
-          Looking for a well-educated, caring and understanding life partner
-          from the Arya Vysya community.
-        </p>
+            <FaPrayingHands className="text-xl text-rose-600" />
 
-      </div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              About Me
+            </h2>
 
+          </div>
+
+          <p className="leading-8 text-gray-600">
+            {about}
+          </p>
+
+        </div>
+      )}
 
     </div>
   );

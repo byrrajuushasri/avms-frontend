@@ -8,12 +8,12 @@ import {
   FaPhoneAlt,
   FaEnvelope,
   FaMapMarkerAlt,
+  FaChevronRight,
 } from "react-icons/fa";
 
 export default function Footer() {
   return (
     <footer className="mt-16 bg-[#800018] text-[#fffaf0]">
-
       {/* =====================================================
           TOP GOLD LINE
       ====================================================== */}
@@ -22,15 +22,16 @@ export default function Footer() {
       {/* =====================================================
           FOOTER MAIN
       ====================================================== */}
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-12 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-5 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
 
         {/* =====================================================
-            ABOUT / COMPANY
+            ABOUT
         ====================================================== */}
         <div>
-
           <h2 className="mb-4 font-serif text-2xl font-bold tracking-wide text-[#f1d27a]">
-            AARYA VYSYA MAHASABHA
+            AARYA VYSYA
+            <br />
+            MAHASABHA
           </h2>
 
           <p className="leading-7 text-[#f8e8c8]">
@@ -46,14 +47,10 @@ export default function Footer() {
 
           {/* SOCIAL MEDIA */}
           <div className="mt-6 flex gap-3">
-
             <a
               href="#"
               aria-label="Facebook"
-              className="flex h-10 w-10 items-center justify-center rounded-full
-              bg-[#f1d27a] text-[#800018]
-              transition duration-200
-              hover:bg-white hover:text-[#800018]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018] transition-all duration-200 hover:scale-110 hover:bg-white"
             >
               <FaFacebookF />
             </a>
@@ -61,10 +58,7 @@ export default function Footer() {
             <a
               href="#"
               aria-label="Instagram"
-              className="flex h-10 w-10 items-center justify-center rounded-full
-              bg-[#f1d27a] text-[#800018]
-              transition duration-200
-              hover:bg-white hover:text-[#800018]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018] transition-all duration-200 hover:scale-110 hover:bg-white"
             >
               <FaInstagram />
             </a>
@@ -72,10 +66,7 @@ export default function Footer() {
             <a
               href="#"
               aria-label="Twitter"
-              className="flex h-10 w-10 items-center justify-center rounded-full
-              bg-[#f1d27a] text-[#800018]
-              transition duration-200
-              hover:bg-white hover:text-[#800018]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018] transition-all duration-200 hover:scale-110 hover:bg-white"
             >
               <FaTwitter />
             </a>
@@ -83,14 +74,10 @@ export default function Footer() {
             <a
               href="#"
               aria-label="LinkedIn"
-              className="flex h-10 w-10 items-center justify-center rounded-full
-              bg-[#f1d27a] text-[#800018]
-              transition duration-200
-              hover:bg-white hover:text-[#800018]"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018] transition-all duration-200 hover:scale-110 hover:bg-white"
             >
               <FaLinkedinIn />
             </a>
-
           </div>
         </div>
 
@@ -98,103 +85,33 @@ export default function Footer() {
             QUICK LINKS
         ====================================================== */}
         <div>
-
           <h3 className="mb-5 border-b border-[#b98b25] pb-2 font-serif text-xl font-semibold text-[#f1d27a]">
             Quick Links
           </h3>
 
-          <ul className="space-y-3 text-[#f8e8c8]">
-
-            <li>
-              <Link
-                href="/"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Home
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/about"
-                className="transition hover:text-[#f1d27a]"
-              >
-                About Us
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/membership"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Membership
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/election-body"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Election Body
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/matrimony"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Matrimony
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/welfare"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Welfare
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/temples"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Temples
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/annadhanam"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Annadhanam
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/media"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Media
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/contact"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Contact Us
-              </Link>
-            </li>
-
+          <ul className="space-y-3">
+            {[
+              { label: "Home", href: "/" },
+              { label: "About Us", href: "/about" },
+              { label: "Membership", href: "/membership" },
+              { label: "Executive Bodies", href: "/executive-bodies" },
+              { label: "Matrimony", href: "/matrimony" },
+              { label: "Welfare", href: "/welfare" },
+              { label: "Temples", href: "/temples" },
+              { label: "Annadhanam", href: "/annadhanam" },
+              { label: "Media", href: "/media" },
+              { label: "Contact Us", href: "/contact" },
+            ].map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="group flex items-center gap-2 text-[#f8e8c8] transition hover:text-[#f1d27a]"
+                >
+                  <FaChevronRight className="text-[9px] transition-transform group-hover:translate-x-1" />
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -202,76 +119,51 @@ export default function Footer() {
             COMMUNITY SERVICES
         ====================================================== */}
         <div>
-
           <h3 className="mb-5 border-b border-[#b98b25] pb-2 font-serif text-xl font-semibold text-[#f1d27a]">
             Community Services
           </h3>
 
-          <ul className="space-y-3 text-[#f8e8c8]">
-
-            <li>
-              <Link
-                href="/welfare"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Community Welfare
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/education"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Education & Scholarships
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/annadhanam"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Annadhanam
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/temples"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Temple Services
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/matrimony"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Matrimony Services
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/membership"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Community Membership
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                href="/media"
-                className="transition hover:text-[#f1d27a]"
-              >
-                Community Media
-              </Link>
-            </li>
-
+          <ul className="space-y-3">
+            {[
+              {
+                label: "Community Welfare",
+                href: "/welfare",
+              },
+              {
+                label: "Education & Scholarships",
+                href: "/education",
+              },
+              {
+                label: "Annadhanam",
+                href: "/annadhanam",
+              },
+              {
+                label: "Temple Services",
+                href: "/temples",
+              },
+              {
+                label: "Matrimony Services",
+                href: "/matrimony",
+              },
+              {
+                label: "Community Membership",
+                href: "/membership",
+              },
+              {
+                label: "Community Media",
+                href: "/media",
+              },
+            ].map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="group flex items-center gap-2 text-[#f8e8c8] transition hover:text-[#f1d27a]"
+                >
+                  <FaChevronRight className="text-[9px] transition-transform group-hover:translate-x-1" />
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -279,51 +171,57 @@ export default function Footer() {
             CONTACT
         ====================================================== */}
         <div>
-
           <h3 className="mb-5 border-b border-[#b98b25] pb-2 font-serif text-xl font-semibold text-[#f1d27a]">
             Contact Us
           </h3>
 
-          <div className="space-y-5 text-[#f8e8c8]">
+          <div className="space-y-6 text-[#f8e8c8]">
 
             {/* PHONE */}
             <div className="flex items-start gap-3">
-
-              <FaPhoneAlt className="mt-1 text-[#f1d27a]" />
+              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018]">
+                <FaPhoneAlt className="text-sm" />
+              </div>
 
               <div>
                 <p className="font-semibold text-white">
                   Phone
                 </p>
 
-                <p className="mt-1">
+                <a
+                  href="tel:+919876543210"
+                  className="mt-1 block transition hover:text-[#f1d27a]"
+                >
                   +91 98765 43210
-                </p>
+                </a>
               </div>
-
             </div>
 
             {/* EMAIL */}
             <div className="flex items-start gap-3">
+              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018]">
+                <FaEnvelope className="text-sm" />
+              </div>
 
-              <FaEnvelope className="mt-1 text-[#f1d27a]" />
-
-              <div>
+              <div className="min-w-0">
                 <p className="font-semibold text-white">
                   Email
                 </p>
 
-                <p className="mt-1 break-all">
+                <a
+                  href="mailto:info@aryavysyamatrimony.com"
+                  className="mt-1 block break-all transition hover:text-[#f1d27a]"
+                >
                   info@aryavysyamatrimony.com
-                </p>
+                </a>
               </div>
-
             </div>
 
             {/* ADDRESS */}
             <div className="flex items-start gap-3">
-
-              <FaMapMarkerAlt className="mt-1 text-[#f1d27a]" />
+              <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1d27a] text-[#800018]">
+                <FaMapMarkerAlt className="text-sm" />
+              </div>
 
               <div>
                 <p className="font-semibold text-white">
@@ -338,46 +236,45 @@ export default function Footer() {
                   India
                 </p>
               </div>
-
             </div>
-
           </div>
         </div>
+      </div>
 
+      {/* =====================================================
+          DECORATIVE DIVIDER
+      ====================================================== */}
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="h-px bg-[#a87d20]" />
       </div>
 
       {/* =====================================================
           COMMUNITY TAGLINE
       ====================================================== */}
-      <div className="border-t border-[#a87d20]">
-
-        <div className="mx-auto max-w-7xl px-6 py-5 text-center">
-
-          <p className="font-serif text-lg tracking-widest text-[#f1d27a]">
+      <div>
+        <div className="mx-auto max-w-7xl px-6 py-6 text-center">
+          <p className="font-serif text-lg tracking-[0.25em] text-[#f1d27a] sm:text-xl">
             ❧ TOGETHER FOREVER ❧
           </p>
 
           <p className="mt-2 text-sm text-[#f8e8c8]">
             Unity • Service • Welfare • Development
           </p>
-
         </div>
-
       </div>
 
       {/* =====================================================
           COPYRIGHT
       ====================================================== */}
       <div className="border-t border-[#a87d20] bg-[#6d0015]">
-
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-4 md:flex-row">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-5 text-center md:flex-row md:px-6 md:text-left">
 
           <p className="text-sm text-[#ead9b5]">
-            © 2026 Aarya Vysya Mahasabha. All Rights Reserved.
+            © {new Date().getFullYear()} Aarya Vysya Mahasabha.
+            All Rights Reserved.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-5 text-sm text-[#ead9b5]">
-
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-[#ead9b5]">
             <Link
               href="/privacy-policy"
               className="transition hover:text-[#f1d27a]"
@@ -398,13 +295,9 @@ export default function Footer() {
             >
               Refund Policy
             </Link>
-
           </div>
-
         </div>
-
       </div>
-
     </footer>
   );
 }
