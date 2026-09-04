@@ -1545,7 +1545,7 @@ export default function MembershipDetailsPage() {
 
                                 </button>
 
-                                <button
+                            {/*    <button
                                   type="button"
                                   onClick={() =>
                                     downloadMemberCard(
@@ -1568,7 +1568,7 @@ export default function MembershipDetailsPage() {
                                     ? "Downloading..."
                                     : "Download"}
 
-                                </button>
+                                </button>*/}
 
                               </div>
 
@@ -2409,7 +2409,7 @@ export default function MembershipDetailsPage() {
 
             </div>
 
-            {/* MODAL FOOTER */}
+            {/* MODAL FOOTER
 
             <div className="flex flex-col gap-2 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end">
 
@@ -2461,7 +2461,7 @@ export default function MembershipDetailsPage() {
 
               </button>
 
-            </div>
+            </div> */}
 
           </div>
 
