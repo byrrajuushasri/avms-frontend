@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -36,6 +37,7 @@ type FormData = {
 
   /* LOCATION */
   address: string;
+  location: string;
   district: string;
   mandal: string;
   sangham: string;
@@ -336,22 +338,6 @@ const telanganaData: Record<string, DistrictData> = {
     sanghams: [],
   },
 
-  Nalgonda: {
-    mandals: [
-      "Nalgonda",
-      "Miryalaguda",
-      "Devarakonda",
-      "Chandur",
-      "Nakrekal",
-      "Munugode",
-    ],
-    sanghams: [
-      "Nalgonda Arya Vysya Sangham",
-      "Miryalaguda Arya Vysya Sangham",
-      "Devarakonda Arya Vysya Sangham",
-    ],
-  },
-
   Peddapalli: {
     mandals: [],
     sanghams: [],
@@ -421,207 +407,14 @@ const districtList = [
   "Yadadri_Bhuvanagiri",
 ];
 
-/* =========================================================
-   GOTRAM LIST
-========================================================= */
+ 
 
-const gotramList = [
-  "Aathreya",
-  "Aswalayana",
-  "Agasthya",
-  "Bruhadashwah",
-  "Bodayanah",
-  "Baradwaja",
-  "Bargava",
-  "Chakrapani",
-  "Chamarsanah",
-  "Daalbyah",
-  "Durvasah",
-  "Devarathah",
-  "Devavalkyah",
-  "Gargyah",
-  "Gruthsna Madah",
-  "Gopakah",
-  "Gowthama",
-  "Harivalkya",
-  "JadaBharatha",
-  "Jatukarnah",
-  "Jambasudhana",
-  "Jarathaarkha",
-  "Jaabilih",
-  "Jabrih",
-  "Jeevanthi",
-  "Kanvah",
-  "Kandarpa",
-  "Kapila",
-  "Kapeetha",
-  "Kasyapa",
-  "Kuthsah",
-  "Koundinya",
-  "Koushika",
-  "Krishna",
-  "Mandapala",
-  "Manava",
-  "Mareechi",
-  "Markandeya",
-  "Muniraja",
-  "Mythreyah",
-  "Mounala",
-  "Mounjayanah",
-  "Moudgalya",
-  "Nanaka",
-  "Naradah",
-  "Netrapadah",
-  "Ouchithya",
-  "Parasparayanah",
-  "Pallavah",
-  "PavithraPranih",
-  "Parasharya",
-  "Pingala",
-  "Pundareeka",
-  "Poothimava",
-  "Poundraka",
-  "Poulasthya",
-  "Pracheena",
-  "Prabhatha",
-  "RushyaSrunga",
-  "Sharabangah",
-  "Sharjgaravah",
-  "Sandilya",
-  "Sreevathsah",
-  "Sreedharah",
-  "Suklarushi",
-  "Sowcheyah",
-  "Sownaka",
-  "Sathyah",
-  "Sanathkumara",
-  "Sanadanath",
-  "Samvarthaka",
-  "Sukanchana",
-  "Sutheekshah",
-  "Sundarah",
-  "Suvarna",
-  "Subramanyah",
-  "Sowbarna",
-  "Sowmyah",
-  "Sowvarna",
-  "Tharanih",
-  "Thittirih",
-  "Thrijatah",
-  "Thaithrevah",
-  "Uthkrushta",
-  "Uttamouja",
-  "Ugrasena",
-  "Vatuka",
-  "Vaarathanthu",
-  "Varuna",
-  "Vasista",
-  "Vamadeva",
-  "Vasudeva",
-  "Vaayuvya",
-  "Valmika",
-  "Vishwaksenah",
-  "Viswamithra",
-  "Vishnuvrudha",
-  "Virohithyah",
-  "Vyana",
-  "Yaskah",
-  "Yagnavalkya",
-  "Others",
-];
+ 
 
-/* =========================================================
-   NAKSHATRAM
-========================================================= */
+ 
+ 
 
-const nakshatramList = [
-  "Ashwini",
-  "Bharani",
-  "Krittika",
-  "Rohini",
-  "Mrigashira",
-  "Ardra",
-  "Punarvasu",
-  "Pushya",
-  "Ashlesha",
-  "Magha",
-  "Purva Phalguni",
-  "Uttara Phalguni",
-  "Hasta",
-  "Chitra",
-  "Swati",
-  "Vishakha",
-  "Anuradha",
-  "Jyeshtha",
-  "Moola",
-  "Purva Ashadha",
-  "Uttara Ashadha",
-  "Shravana",
-  "Dhanishta",
-  "Shatabhisha",
-  "Purva Bhadrapada",
-  "Uttara Bhadrapada",
-  "Revathi",
-];
-
-/* =========================================================
-   RASI
-========================================================= */
-
-const rasiList = [
-  "Mesha (Aries)",
-  "Vrishabha (Taurus)",
-  "Mithuna (Gemini)",
-  "Karka (Cancer)",
-  "Simha (Leo)",
-  "Kanya (Virgo)",
-  "Tula (Libra)",
-  "Vrischika (Scorpio)",
-  "Dhanu (Sagittarius)",
-  "Makara (Capricorn)",
-  "Kumbha (Aquarius)",
-  "Meena (Pisces)",
-];
-
-/* =========================================================
-   EDUCATION
-========================================================= */
-
-const educationList = [
-  "10th",
-  "Intermediate",
-  "ITI",
-  "Diploma",
-  "B.A",
-  "B.Com",
-  "B.Sc",
-  "B.Tech",
-  "B.E",
-  "BBA",
-  "BCA",
-  "M.A",
-  "M.Com",
-  "M.Sc",
-  "M.Tech",
-  "MBA",
-  "MCA",
-  "Ph.D",
-  "Other",
-];
-
-/* =========================================================
-   COLOUR
-========================================================= */
-
-const colorList = [
-  "Very Fair",
-  "Fair",
-  "Wheatish",
-  "Wheatish Brown",
-  "Brown",
-  "Dark",
-];
-
+ 
 /* =========================================================
    EXECUTIVE BODY
 ========================================================= */
@@ -671,38 +464,12 @@ const initialFormData: FormData = {
   date_of_birth: "",
 
   address: "",
+  location: "",
   district: "",
   mandal: "",
   sangham: "",
   location_name: "",
-  latitude: "",
-  longitude: "",
-
-  marital_status: "",
-  previous_marriage_details: "",
-
-  father_gotram: "",
-  mother_gotram: "",
-  grandmother_gotram: "",
-
-  father_gotram_other: "",
-  mother_gotram_other: "",
-  grandmother_gotram_other: "",
-
-  nakshatram: "",
-  padham: "",
-  rasi: "",
-
-  color: "",
-  height: "",
-  education: "",
-  annual_income: "",
-  property_details: "",
-  preferred_requirements: "",
-
-  brothers: [],
-  sisters: [],
-
+   
   mahashaba_payment_status: "",
   mahashaba_payment_method: "",
   mahashaba_receipt_number: "",
@@ -780,7 +547,9 @@ const getTodayDate = () => {
 
 export default function MembershipPage() {
   const [formData, setFormData] =
-    useState<FormData>(initialFormData);
+    useState<FormData>({
+      ...initialFormData,
+    });
 
   const [errors, setErrors] =
     useState<ErrorState>({});
@@ -873,7 +642,6 @@ export default function MembershipPage() {
     if (!file) {
       setPhoto(null);
       setPhotoPreview("");
-      clearFieldError("photo");
       return;
     }
 
@@ -1061,6 +829,25 @@ export default function MembershipPage() {
         );
       } else {
         clearFieldError("email");
+      }
+
+      return;
+    }
+
+    /* LOCATION */
+    if (name === "location") {
+      setFormData((prev) => ({
+        ...prev,
+        location: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "location",
+          "Location is required"
+        );
+      } else {
+        clearFieldError("location");
       }
 
       return;
@@ -1529,6 +1316,14 @@ export default function MembershipPage() {
         "Occupation is required";
     }
 
+    /* LOCATION */
+    if (
+      !formData.location.trim()
+    ) {
+      newErrors.location =
+        "Location is required";
+    }
+
     /* GENDER */
     if (!formData.gender) {
       newErrors.gender =
@@ -1556,42 +1351,7 @@ export default function MembershipPage() {
         "Member photo is required";
     }
 
-    /* MARITAL STATUS */
-    if (
-      !formData.marital_status
-    ) {
-      newErrors.marital_status =
-        "Please select marital status";
-    }
-
-    /* GOTRAM */
-    if (
-      formData.father_gotram ===
-        "Others" &&
-      !formData.father_gotram_other.trim()
-    ) {
-      newErrors.father_gotram_other =
-        "Please enter father's Gotram";
-    }
-
-    if (
-      formData.mother_gotram ===
-        "Others" &&
-      !formData.mother_gotram_other.trim()
-    ) {
-      newErrors.mother_gotram_other =
-        "Please enter mother's Gotram";
-    }
-
-    if (
-      formData.grandmother_gotram ===
-        "Others" &&
-      !formData.grandmother_gotram_other.trim()
-    ) {
-      newErrors.grandmother_gotram_other =
-        "Please enter grandmother's Gotram";
-    }
-
+    
     /* EXECUTIVE BODY */
     if (
       !formData.executive_body
@@ -1780,6 +1540,23 @@ export default function MembershipPage() {
 
     if (loading) return;
 
+    /*
+     * EXTRA SAFETY:
+     * Never submit without consent.
+     */
+    if (!consent) {
+      setFieldError(
+        "consent",
+        "Please agree to the declaration before submitting"
+      );
+
+      toast.error(
+        "Please agree to the declaration before submitting"
+      );
+
+      return;
+    }
+
     if (!validateForm()) return;
 
     setLoading(true);
@@ -1797,12 +1574,6 @@ export default function MembershipPage() {
       const designation =
         formData.designation?.trim() ||
         "Member";
-
-      /*
-       * IMPORTANT:
-       * Photo upload requires FormData.
-       * Do NOT manually set Content-Type.
-       */
 
       const body = new FormData();
 
@@ -1849,6 +1620,11 @@ export default function MembershipPage() {
       );
 
       body.append(
+        "location",
+        formData.location.trim()
+      );
+
+      body.append(
         "district",
         formData.district || ""
       );
@@ -1863,121 +1639,12 @@ export default function MembershipPage() {
         formData.sangham || ""
       );
 
-      body.append(
-        "location_name",
-        formData.location_name || ""
-      );
+       
 
-      body.append(
-        "latitude",
-        formData.latitude || ""
-      );
+  
+      
 
-      body.append(
-        "longitude",
-        formData.longitude || ""
-      );
-
-      /* MATRIMONIAL */
-      body.append(
-        "marital_status",
-        formData.marital_status
-      );
-
-      body.append(
-        "previous_marriage_details",
-        formData.previous_marriage_details || ""
-      );
-
-      /* GOTRAM */
-      body.append(
-        "father_gotram",
-        formData.father_gotram || ""
-      );
-
-      body.append(
-        "mother_gotram",
-        formData.mother_gotram || ""
-      );
-
-      body.append(
-        "grandmother_gotram",
-        formData.grandmother_gotram || ""
-      );
-
-      body.append(
-        "father_gotram_other",
-        formData.father_gotram_other || ""
-      );
-
-      body.append(
-        "mother_gotram_other",
-        formData.mother_gotram_other || ""
-      );
-
-      body.append(
-        "grandmother_gotram_other",
-        formData.grandmother_gotram_other || ""
-      );
-
-      /* ASTROLOGY */
-      body.append(
-        "nakshatram",
-        formData.nakshatram || ""
-      );
-
-      body.append(
-        "padham",
-        formData.padham || ""
-      );
-
-      body.append(
-        "rasi",
-        formData.rasi || ""
-      );
-
-      /* PERSONAL */
-      body.append(
-        "color",
-        formData.color || ""
-      );
-
-      body.append(
-        "height",
-        formData.height || ""
-      );
-
-      body.append(
-        "education",
-        formData.education || ""
-      );
-
-      body.append(
-        "annual_income",
-        formData.annual_income || ""
-      );
-
-      body.append(
-        "property_details",
-        formData.property_details || ""
-      );
-
-      body.append(
-        "preferred_requirements",
-        formData.preferred_requirements || ""
-      );
-
-      /* FAMILY */
-      body.append(
-        "brothers",
-        JSON.stringify(formData.brothers)
-      );
-
-      body.append(
-        "sisters",
-        JSON.stringify(formData.sisters)
-      );
-
+       
       /* MAHASHABA */
       body.append(
         "mahashaba_payment_status",
@@ -2061,8 +1728,17 @@ export default function MembershipPage() {
 
       console.log(
         "Photo:",
-        photo?.name ||
-          "No photo"
+        photo?.name || "No photo"
+      );
+
+      console.log(
+        "Consent:",
+        consent
+      );
+
+      console.log(
+        "Location:",
+        formData.location
       );
 
       const apiUrl = (
@@ -2236,7 +1912,6 @@ export default function MembershipPage() {
                 ]
               }
               onChange={handleChange}
-              required
               className={getInputClass(
                 statusName
               )}
@@ -2276,7 +1951,6 @@ export default function MembershipPage() {
                   onChange={
                     handleChange
                   }
-                  required
                   className={getInputClass(
                     methodName
                   )}
@@ -2323,7 +1997,6 @@ export default function MembershipPage() {
                     handleChange
                   }
                   placeholder="Enter Receipt Number"
-                  required
                   maxLength={50}
                   className={getInputClass(
                     receiptName
@@ -2354,7 +2027,6 @@ export default function MembershipPage() {
                     handleChange
                   }
                   placeholder="Enter Amount Paid"
-                  required
                   className={getInputClass(
                     amountName
                   )}
@@ -2381,7 +2053,6 @@ export default function MembershipPage() {
                   onChange={
                     handleChange
                   }
-                  required
                   max={getTodayDate()}
                   className={getInputClass(
                     dateName
@@ -2403,141 +2074,7 @@ export default function MembershipPage() {
      SIBLING ROW
   ========================================================= */
 
-  const renderSiblingRows = (
-    type: "brothers" | "sisters"
-  ) => {
-    const siblings =
-      formData[type];
-
-    if (siblings.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="mt-5 space-y-4">
-        {siblings.map(
-          (sibling, index) => (
-            <div
-              key={`${type}-${index}`}
-              className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
-            >
-              <h4 className="mb-4 text-sm font-semibold text-rose-700">
-                {type ===
-                "brothers"
-                  ? "Brother"
-                  : "Sister"}{" "}
-                {index + 1}
-              </h4>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-                <div>
-                  <label className={labelClass}>
-                    Name
-                  </label>
-
-                  <input
-                    value={
-                      sibling.name
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(
-                        type,
-                        index,
-                        "name",
-                        e.target.value
-                      )
-                    }
-                    placeholder="Name"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>
-                    Age
-                  </label>
-
-                  <input
-                    type="number"
-                    min="0"
-                    max="120"
-                    value={
-                      sibling.age
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(
-                        type,
-                        index,
-                        "age",
-                        e.target.value
-                      )
-                    }
-                    placeholder="Age"
-                    className={inputClass}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClass}>
-                    Marital Status
-                  </label>
-
-                  <select
-                    value={
-                      sibling.marital_status
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(
-                        type,
-                        index,
-                        "marital_status",
-                        e.target.value
-                      )
-                    }
-                    className={inputClass}
-                  >
-                    <option value="">
-                      Select Status
-                    </option>
-
-                    <option value="Unmarried">
-                      Unmarried
-                    </option>
-
-                    <option value="Married">
-                      Married
-                    </option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className={labelClass}>
-                    Occupation
-                  </label>
-
-                  <input
-                    value={
-                      sibling.occupation
-                    }
-                    onChange={(e) =>
-                      handleSiblingChange(
-                        type,
-                        index,
-                        "occupation",
-                        e.target.value
-                      )
-                    }
-                    placeholder="Occupation"
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-            </div>
-          )
-        )}
-      </div>
-    );
-  };
+   
 
   /* =========================================================
      RETURN
@@ -2567,9 +2104,7 @@ export default function MembershipPage() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
-          {/* =====================================================
-              HEADER
-          ===================================================== */}
+          {/* HEADER */}
 
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
             <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
@@ -2589,9 +2124,7 @@ export default function MembershipPage() {
 
           <div className="space-y-7 p-5 sm:p-8">
 
-            {/* ===================================================
-                SERVICE IS OUR MOTTO
-            =================================================== */}
+            {/* SERVICE */}
 
             <section className="rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-white p-6 shadow-sm sm:p-8">
               <div className="text-center">
@@ -2615,7 +2148,6 @@ export default function MembershipPage() {
 
               <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
 
-                {/* FREE */}
                 <div className="rounded-2xl border border-green-200 bg-white p-5 text-center shadow-sm">
                   <div className="mb-3 text-3xl">
                     🆓
@@ -2630,7 +2162,6 @@ export default function MembershipPage() {
                   </p>
                 </div>
 
-                {/* EXTENSION */}
                 <div className="rounded-2xl border border-blue-200 bg-white p-5 text-center shadow-sm">
                   <div className="mb-3 text-3xl">
                     📅
@@ -2645,7 +2176,6 @@ export default function MembershipPage() {
                   </p>
                 </div>
 
-                {/* SUPPORT */}
                 <div className="rounded-2xl border border-amber-200 bg-white p-5 text-center shadow-sm">
                   <div className="mb-3 text-3xl">
                     🤝
@@ -2670,18 +2200,15 @@ export default function MembershipPage() {
               </div>
             </section>
 
-            {/* ===================================================
-                FORM
-            =================================================== */}
+            {/* FORM */}
 
             <form
               onSubmit={handleSubmit}
+              noValidate
               className="space-y-7"
             >
 
-              {/* =================================================
-                  MEMBER DETAILS
-              ================================================= */}
+              {/* MEMBER DETAILS */}
 
               <section>
                 <h2 className="mb-5 text-lg font-semibold text-gray-900">
@@ -2691,6 +2218,7 @@ export default function MembershipPage() {
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* FULL NAME */}
+
                   <div>
                     <label className={labelClass}>
                       Full Name *
@@ -2705,7 +2233,6 @@ export default function MembershipPage() {
                         handleChange
                       }
                       placeholder="Enter Full Name"
-                      required
                       minLength={3}
                       maxLength={100}
                       className={getInputClass(
@@ -2713,13 +2240,16 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage field="full_name" />
+                    <ErrorMessage
+                      field="full_name"
+                    />
                   </div>
 
                   {/* SURNAME */}
+
                   <div>
                     <label className={labelClass}>
-                      Sure Name *
+                      Surname *
                     </label>
 
                     <input
@@ -2731,17 +2261,19 @@ export default function MembershipPage() {
                         handleChange
                       }
                       placeholder="Enter Surname"
-                      required
                       maxLength={100}
                       className={getInputClass(
                         "surname"
                       )}
                     />
 
-                    <ErrorMessage field="surname" />
+                    <ErrorMessage
+                      field="surname"
+                    />
                   </div>
 
                   {/* MOBILE */}
+
                   <div>
                     <label className={labelClass}>
                       Mobile Number *
@@ -2757,7 +2289,6 @@ export default function MembershipPage() {
                         handleChange
                       }
                       placeholder="Enter 10 Digit Mobile Number"
-                      required
                       inputMode="numeric"
                       maxLength={10}
                       className={getInputClass(
@@ -2765,10 +2296,13 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage field="mobile" />
+                    <ErrorMessage
+                      field="mobile"
+                    />
                   </div>
 
                   {/* EMAIL */}
+
                   <div>
                     <label className={labelClass}>
                       Email Address *
@@ -2784,17 +2318,19 @@ export default function MembershipPage() {
                         handleChange
                       }
                       placeholder="Enter Email Address"
-                      required
                       maxLength={150}
                       className={getInputClass(
                         "email"
                       )}
                     />
 
-                    <ErrorMessage field="email" />
+                    <ErrorMessage
+                      field="email"
+                    />
                   </div>
 
                   {/* GENDER */}
+
                   <div>
                     <label className={labelClass}>
                       Gender *
@@ -2808,7 +2344,6 @@ export default function MembershipPage() {
                       onChange={
                         handleChange
                       }
-                      required
                       className={getInputClass(
                         "gender"
                       )}
@@ -2826,10 +2361,13 @@ export default function MembershipPage() {
                       </option>
                     </select>
 
-                    <ErrorMessage field="gender" />
+                    <ErrorMessage
+                      field="gender"
+                    />
                   </div>
 
                   {/* DOB */}
+
                   <div>
                     <label className={labelClass}>
                       Date of Birth *
@@ -2844,14 +2382,15 @@ export default function MembershipPage() {
                       onChange={
                         handleChange
                       }
-                      required
                       max={getTodayDate()}
                       className={getInputClass(
                         "date_of_birth"
                       )}
                     />
 
-                    <ErrorMessage field="date_of_birth" />
+                    <ErrorMessage
+                      field="date_of_birth"
+                    />
 
                     {formData.date_of_birth &&
                       calculateAge(
@@ -2868,6 +2407,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* OCCUPATION */}
+
                   <div>
                     <label className={labelClass}>
                       Occupation *
@@ -2882,418 +2422,404 @@ export default function MembershipPage() {
                         handleChange
                       }
                       placeholder="Enter Occupation"
-                      required
                       maxLength={100}
                       className={getInputClass(
                         "occupation"
                       )}
                     />
 
-                    <ErrorMessage field="occupation" />
+                    <ErrorMessage
+                      field="occupation"
+                    />
                   </div>
 
-                    {/* Location  */}
+                  {/* LOCATION */}
+
                   <div>
                     <label className={labelClass}>
                       Location *
                     </label>
 
                     <input
+                      type="text"
                       name="location"
                       value={
-                        formData.location
+                        formData.location ?? ""
                       }
                       onChange={
                         handleChange
                       }
                       placeholder="Enter Location"
-                      required
                       maxLength={100}
                       className={getInputClass(
                         "location"
                       )}
                     />
 
-                    <ErrorMessage field="location" />
+                    <ErrorMessage
+                      field="location"
+                    />
                   </div>
 
+                  {/* PHOTO */}
 
-      <div className="flex flex-col gap-3 sm:flex-row">
+                  <div>
+                    <label className={labelClass}>
+                      Member Photo *
+                    </label>
 
-  {/* CAMERA */}
-  <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
-    📷 Take Photo
+                    <div className="flex flex-col gap-3 sm:flex-row">
 
-    <input
-      type="file"
-      name="photo"
-      accept="image/jpeg,image/jpg,image/png,image/webp"
-      capture="environment"
-      onChange={handlePhotoChange}
-      className="hidden"
-    />
-  </label>
+                      {/* CAMERA */}
 
-  {/* GALLERY */}
-  <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
-    🖼️ Choose Photo
+                      <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
+                        📷 Take Photo
 
-    <input
-      type="file"
-      name="photo"
-      accept="image/jpeg,image/jpg,image/png,image/webp"
-      onChange={handlePhotoChange}
-      className="hidden"
-    />
-  </label>
+                        <input
+                          type="file"
+                          name="photo"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          capture="environment"
+                          onChange={
+                            handlePhotoChange
+                          }
+                          className="hidden"
+                        />
+                      </label>
 
-</div>
+                      {/* GALLERY */}
+
+                      <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
+                        🖼️ Choose Photo
+
+                        <input
+                          type="file"
+                          name="photo"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={
+                            handlePhotoChange
+                          }
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    {photoPreview && (
+                      <div className="mt-4">
+                        <img
+                          src={photoPreview}
+                          alt="Selected member"
+                          className="h-32 w-32 rounded-2xl object-cover border border-rose-200 shadow-sm"
+                        />
+                      </div>
+                    )}
+
+                    <ErrorMessage
+                      field="photo"
+                    />
+                  </div>
                 </div>
               </section>
 
-         
-
-   
-              {/* =================================================
-                  FAMILY DETAILS
-              ================================================= */}
+              {/* COMMUNITY MEMBERSHIP DETAILS */}
 
               <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
-                <h2 className="mb-5 text-lg font-semibold text-gray-900">
-                  Family Details
-                </h2>
+
+                <div className="mb-5">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Community Membership Details
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Select the body in which the member is associated.
+                  </p>
+                </div>
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
-                  {/* BROTHER COUNT */}
+                  {/* STATE BODY */}
+
                   <div>
                     <label className={labelClass}>
-                      Number of Brothers
+                      State Body
                     </label>
 
-                    <select
-                      value={
-                        brotherCount
-                      }
-                      onChange={
-                        handleBrotherCountChange
-                      }
-                      className={inputClass}
-                    >
-                      {Array.from(
-                        { length: 5 },
-                        (_, index) => (
-                          <option
-                            key={index}
-                            value={index}
-                          >
-                            {index}
-                          </option>
-                        )
-                      )}
-                    </select>
+                    <input
+                      type="text"
+                      value="Telangana State Arya Vysya Mahasabha"
+                      readOnly
+                      className={`${inputClass} cursor-not-allowed bg-gray-100`}
+                    />
                   </div>
 
-                  {/* SISTER COUNT */}
+                  {/* EXECUTIVE BODY */}
+
                   <div>
                     <label className={labelClass}>
-                      Number of Sisters
+                      Executive Body *
                     </label>
 
                     <select
+                      name="executive_body"
                       value={
-                        sisterCount
+                        formData.executive_body
                       }
                       onChange={
-                        handleSisterCountChange
+                        handleExecutiveBodyChange
                       }
-                      className={inputClass}
+                      className={getInputClass(
+                        "executive_body"
+                      )}
                     >
-                      {Array.from(
-                        { length: 5 },
-                        (_, index) => (
+                      <option value="">
+                        Select Executive Body
+                      </option>
+
+                      {executiveBodies.map(
+                        (body) => (
                           <option
-                            key={index}
-                            value={index}
+                            key={body}
+                            value={body}
                           >
-                            {index}
+                            {body}
                           </option>
                         )
                       )}
                     </select>
+
+                    <ErrorMessage
+                      field="executive_body"
+                    />
+                  </div>
+
+                  {/* DISTRICT */}
+
+                  {[
+                    "District Body",
+                    "Mandal Body",
+                    "Sangham Body",
+                  ].includes(
+                    formData.executive_body
+                  ) && (
+                    <div>
+                      <label className={labelClass}>
+                        District *
+                      </label>
+
+                      <select
+                        name="district"
+                        value={
+                          formData.district
+                        }
+                        onChange={
+                          handleDistrictChange
+                        }
+                        className={getInputClass(
+                          "district"
+                        )}
+                      >
+                        <option value="">
+                          Select District
+                        </option>
+
+                        {districtList.map(
+                          (district) => (
+                            <option
+                              key={district}
+                              value={district}
+                            >
+                              {district.replaceAll(
+                                "_",
+                                " "
+                              )}
+                            </option>
+                          )
+                        )}
+                      </select>
+
+                      <ErrorMessage
+                        field="district"
+                      />
+                    </div>
+                  )}
+
+                  {/* MANDAL */}
+
+                  {[
+                    "Mandal Body",
+                    "Sangham Body",
+                  ].includes(
+                    formData.executive_body
+                  ) && (
+                    <div>
+                      <label className={labelClass}>
+                        Mandal *
+                      </label>
+
+                      <select
+                        name="mandal"
+                        value={
+                          formData.mandal
+                        }
+                        onChange={
+                          handleMandalChange
+                        }
+                        disabled={
+                          !formData.district ||
+                          !selectedDistrict
+                        }
+                        className={`${getInputClass(
+                          "mandal"
+                        )} ${
+                          !formData.district
+                            ? "cursor-not-allowed bg-gray-100"
+                            : ""
+                        }`}
+                      >
+                        <option value="">
+                          {!formData.district
+                            ? "Select District First"
+                            : selectedDistrict.mandals.length
+                            ? "Select Mandal"
+                            : "No Mandals Available"}
+                        </option>
+
+                        {selectedDistrict?.mandals.map(
+                          (mandal) => (
+                            <option
+                              key={mandal}
+                              value={mandal}
+                            >
+                              {mandal}
+                            </option>
+                          )
+                        )}
+                      </select>
+
+                      <ErrorMessage
+                        field="mandal"
+                      />
+                    </div>
+                  )}
+
+                  {/* SANGHAM */}
+
+                  {formData.executive_body ===
+                    "Sangham Body" && (
+                    <div>
+                      <label className={labelClass}>
+                        Sangham *
+                      </label>
+
+                      <select
+                        name="sangham"
+                        value={
+                          formData.sangham
+                        }
+                        onChange={(e) => {
+                          const sangham =
+                            e.target.value;
+
+                          setFormData(
+                            (prev) => ({
+                              ...prev,
+                              sangham,
+                            })
+                          );
+
+                          if (sangham) {
+                            clearFieldError(
+                              "sangham"
+                            );
+                          }
+                        }}
+                        disabled={
+                          !formData.district ||
+                          !formData.mandal ||
+                          !selectedDistrict
+                        }
+                        className={`${getInputClass(
+                          "sangham"
+                        )} ${
+                          !formData.district ||
+                          !formData.mandal
+                            ? "cursor-not-allowed bg-gray-100"
+                            : ""
+                        }`}
+                      >
+                        <option value="">
+                          {!formData.district
+                            ? "Select District First"
+                            : !formData.mandal
+                            ? "Select Mandal First"
+                            : selectedDistrict.sanghams.length
+                            ? "Select Sangham"
+                            : "No Sanghams Available"}
+                        </option>
+
+                        {selectedDistrict?.sanghams.map(
+                          (sangham) => (
+                            <option
+                              key={sangham}
+                              value={sangham}
+                            >
+                              {sangham}
+                            </option>
+                          )
+                        )}
+                      </select>
+
+                      <ErrorMessage
+                        field="sangham"
+                      />
+                    </div>
+                  )}
+
+                  {/* DESIGNATION */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Designation *
+                    </label>
+
+                    <select
+                      name="designation"
+                      value={
+                        formData.designation
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className={getInputClass(
+                        "designation"
+                      )}
+                    >
+                      <option value="">
+                        Select Designation
+                      </option>
+
+                      {designations.map(
+                        (designation) => (
+                          <option
+                            key={designation}
+                            value={
+                              designation
+                            }
+                          >
+                            {designation}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                    <ErrorMessage
+                      field="designation"
+                    />
                   </div>
                 </div>
-
-                {renderSiblingRows(
-                  "brothers"
-                )}
-
-                {renderSiblingRows(
-                  "sisters"
-                )}
               </section>
-{/* =================================================
-    COMMUNITY MEMBERSHIP DETAILS
-================================================= */}
 
-<section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
-  <div className="mb-5">
-    <h2 className="text-lg font-semibold text-gray-900">
-      Community Membership Details
-    </h2>
-
-    <p className="mt-1 text-sm text-gray-500">
-      Select the body in which the member is associated.
-    </p>
-  </div>
-
-  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-
-    {/* STATE BODY */}
-    <div>
-      <label className={labelClass}>
-        State Body
-      </label>
-
-      <input
-        type="text"
-        value="Telangana State Arya Vysya Mahasabha"
-        readOnly
-        className={`${inputClass} cursor-not-allowed bg-gray-100`}
-      />
-    </div>
-
-    {/* EXECUTIVE BODY */}
-    <div>
-      <label className={labelClass}>
-        Executive Body *
-      </label>
-
-      <select
-        name="executive_body"
-        value={formData.executive_body}
-        onChange={handleExecutiveBodyChange}
-        required
-        className={getInputClass("executive_body")}
-      >
-        <option value="">
-          Select Executive Body
-        </option>
-
-        {executiveBodies.map((body) => (
-          <option key={body} value={body}>
-            {body}
-          </option>
-        ))}
-      </select>
-
-      <ErrorMessage field="executive_body" />
-    </div>
-
-    {/* =================================================
-        DISTRICT
-        Show for District / Mandal / Sangham Body
-    ================================================= */}
-
-    {[
-      "District Body",
-      "Mandal Body",
-      "Sangham Body",
-    ].includes(formData.executive_body) && (
-      <div>
-        <label className={labelClass}>
-          District *
-        </label>
-
-        <select
-          name="district"
-          value={formData.district}
-          onChange={handleDistrictChange}
-          required
-          className={getInputClass("district")}
-        >
-          <option value="">
-            Select District
-          </option>
-
-          {districtList.map((district) => (
-            <option
-              key={district}
-              value={district}
-            >
-              {district.replaceAll("_", " ")}
-            </option>
-          ))}
-        </select>
-
-        <ErrorMessage field="district" />
-      </div>
-    )}
-
-    {/* =================================================
-        MANDAL
-        Show for Mandal / Sangham Body
-    ================================================= */}
-
-    {[
-      "Mandal Body",
-      "Sangham Body",
-    ].includes(formData.executive_body) && (
-      <div>
-        <label className={labelClass}>
-          Mandal *
-        </label>
-
-        <select
-          name="mandal"
-          value={formData.mandal}
-          onChange={handleMandalChange}
-          required
-          disabled={
-            !formData.district ||
-            !selectedDistrict
-          }
-          className={`${getInputClass(
-            "mandal"
-          )} ${
-            !formData.district
-              ? "cursor-not-allowed bg-gray-100"
-              : ""
-          }`}
-        >
-          <option value="">
-            {!formData.district
-              ? "Select District First"
-              : selectedDistrict.mandals.length
-              ? "Select Mandal"
-              : "No Mandals Available"}
-          </option>
-
-          {selectedDistrict?.mandals.map(
-            (mandal) => (
-              <option
-                key={mandal}
-                value={mandal}
-              >
-                {mandal}
-              </option>
-            )
-          )}
-        </select>
-
-        <ErrorMessage field="mandal" />
-      </div>
-    )}
-
-    {/* =================================================
-        SANGHAM
-        Show only for Sangham Body
-    ================================================= */}
-
-    {formData.executive_body ===
-      "Sangham Body" && (
-      <div>
-        <label className={labelClass}>
-          Sangham *
-        </label>
-
-        <select
-          name="sangham"
-          value={formData.sangham}
-          onChange={(e) => {
-            const sangham =
-              e.target.value;
-
-            setFormData((prev) => ({
-              ...prev,
-              sangham,
-            }));
-
-            if (sangham) {
-              clearFieldError("sangham");
-            }
-          }}
-          required
-          disabled={
-            !formData.district ||
-            !formData.mandal ||
-            !selectedDistrict
-          }
-          className={`${getInputClass(
-            "sangham"
-          )} ${
-            !formData.district ||
-            !formData.mandal
-              ? "cursor-not-allowed bg-gray-100"
-              : ""
-          }`}
-        >
-          <option value="">
-            {!formData.district
-              ? "Select District First"
-              : !formData.mandal
-              ? "Select Mandal First"
-              : selectedDistrict.sanghams.length
-              ? "Select Sangham"
-              : "No Sanghams Available"}
-          </option>
-
-          {selectedDistrict?.sanghams.map(
-            (sangham) => (
-              <option
-                key={sangham}
-                value={sangham}
-              >
-                {sangham}
-              </option>
-            )
-          )}
-        </select>
-
-        <ErrorMessage field="sangham" />
-      </div>
-    )}
-
-    {/* =================================================
-        DESIGNATION
-    ================================================= */}
-
-    <div>
-      <label className={labelClass}>
-        Designation *
-      </label>
-
-      <select
-        name="designation"
-        value={formData.designation}
-        onChange={handleChange}
-        required
-        className={getInputClass("designation")}
-      >
-        <option value="">
-          Select Designation
-        </option>
-
-        {designations.map(
-          (designation) => (
-            <option
-              key={designation}
-              value={designation}
-            >
-              {designation}
-            </option>
-          )
-        )}
-      </select>
-
-      <ErrorMessage field="designation" />
-    </div>
-  </div>
-</section>
-
-              {/* =================================================
-                  MAHASHABA PAYMENT
-              ================================================= */}
+              {/* MAHASHABA PAYMENT */}
 
               {renderPaymentSection(
                 "Payment Details Of Mahashaba",
@@ -3304,9 +2830,7 @@ export default function MembershipPage() {
                 "mahashaba_payment_date"
               )}
 
-              {/* =================================================
-                  SANGAM PAYMENT
-              ================================================= */}
+              {/* SANGAM PAYMENT */}
 
               {renderPaymentSection(
                 "Payment Details Of Sangam",
@@ -3317,11 +2841,10 @@ export default function MembershipPage() {
                 "sangam_payment_date"
               )}
 
-              {/* =================================================
-                  DECLARATION & DIVINE BLESSINGS
-              ================================================= */}
+              {/* DECLARATION */}
 
               <section className="rounded-3xl border border-rose-200 bg-rose-50/50 p-5 sm:p-6">
+
                 <div className="mb-4">
                   <h2 className="text-lg font-bold text-rose-700 sm:text-xl">
                     Declaration & Divine Blessings
@@ -3344,7 +2867,8 @@ export default function MembershipPage() {
                   </p>
                 </div>
 
-                {/* CONSENT */}
+                {/* CONSENT CHECKBOX */}
+
                 <div
                   className={`mt-5 rounded-2xl border p-4 transition ${
                     errors.consent
@@ -3353,11 +2877,10 @@ export default function MembershipPage() {
                   }`}
                 >
                   <label className="flex cursor-pointer items-start gap-3">
+
                     <input
                       type="checkbox"
-                      checked={
-                        consent
-                      }
+                      checked={consent}
                       onChange={(e) => {
                         const checked =
                           e.target.checked;
@@ -3392,13 +2915,13 @@ export default function MembershipPage() {
                     </span>
                   </label>
 
-                  <ErrorMessage field="consent" />
+                  <ErrorMessage
+                    field="consent"
+                  />
                 </div>
               </section>
 
-              {/* =================================================
-                  SUBMIT
-              ================================================= */}
+              {/* SUBMIT */}
 
               <div className="flex flex-col items-center justify-center gap-3 border-t border-gray-100 pt-7">
 
@@ -3425,6 +2948,7 @@ export default function MembershipPage() {
             </form>
 
             {/* EXISTING MEMBERS */}
+
             <p className="mt-7 text-center text-sm text-gray-600">
               Already registered?
 
@@ -3441,3 +2965,4 @@ export default function MembershipPage() {
     </>
   );
 }
+
