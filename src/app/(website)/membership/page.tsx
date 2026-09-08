@@ -1640,10 +1640,6 @@ export default function MembershipPage() {
       );
 
        
-
-  
-      
-
        
       /* MAHASHABA */
       body.append(
