@@ -748,7 +748,7 @@ export default function Header() {
             >
               <img
                 src="/images/logo.png"
-                alt="Telangana State Arya Vysya Mahasabha"
+                alt="Telangana State Aarya Vysya Mahasabha"
                 className="
                   h-[36px]
                   w-[36px]
@@ -793,7 +793,7 @@ export default function Header() {
                   lg:text-[26px]
                 "
               >
-                Telangana State Arya Vysya Mahasabha
+                Telangana State Aarya Vysya Mahasabha
               </h1>
 
               <h2

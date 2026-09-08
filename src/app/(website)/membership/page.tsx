@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+
 import toast, { Toaster } from "react-hot-toast";
 
 /* =========================================================
@@ -12,18 +17,63 @@ type DistrictData = {
   sanghams: string[];
 };
 
+type Sibling = {
+  name: string;
+  age: string;
+  marital_status: string;
+  occupation: string;
+};
+
 type FormData = {
+  /* BASIC DETAILS */
   full_name: string;
+  surname: string;
   mobile: string;
   email: string;
   occupation: string;
   gender: string;
   date_of_birth: string;
 
+  /* LOCATION */
+  address: string;
   district: string;
   mandal: string;
   sangham: string;
+  location_name: string;
+  latitude: string;
+  longitude: string;
 
+  /* MATRIMONIAL DETAILS */
+  marital_status: string;
+  previous_marriage_details: string;
+
+  /* GOTRAM */
+  father_gotram: string;
+  mother_gotram: string;
+  grandmother_gotram: string;
+
+  father_gotram_other: string;
+  mother_gotram_other: string;
+  grandmother_gotram_other: string;
+
+  /* ASTROLOGY */
+  nakshatram: string;
+  padham: string;
+  rasi: string;
+
+  /* PERSONAL DETAILS */
+  color: string;
+  height: string;
+  education: string;
+  annual_income: string;
+  property_details: string;
+  preferred_requirements: string;
+
+  /* FAMILY */
+  brothers: Sibling[];
+  sisters: Sibling[];
+
+  /* MEMBERSHIP PAYMENT */
   mahashaba_payment_status: string;
   mahashaba_payment_method: string;
   mahashaba_receipt_number: string;
@@ -36,6 +86,7 @@ type FormData = {
   sangam_amount_paid: string;
   sangam_payment_date: string;
 
+  /* BODY */
   executive_body: string;
   designation: string;
 };
@@ -209,7 +260,367 @@ const telanganaData: Record<string, DistrictData> = {
       "Narayanpet Arya Vysya Sangham",
     ],
   },
+
+  Adilabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Bhadradri_Kothagudem: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Hanamkonda: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jagtial: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jangaon: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jayashankar_Bhupalpally: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jogulamba_Gadwal: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Kamareddy: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Komaram_Bheem_Asifabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Mahabubabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Mancherial: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Mulugu: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Nagarkurnool: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Narayanpet: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Nirmal: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Nalgonda: {
+    mandals: [
+      "Nalgonda",
+      "Miryalaguda",
+      "Devarakonda",
+      "Chandur",
+      "Nakrekal",
+      "Munugode",
+    ],
+    sanghams: [
+      "Nalgonda Arya Vysya Sangham",
+      "Miryalaguda Arya Vysya Sangham",
+      "Devarakonda Arya Vysya Sangham",
+    ],
+  },
+
+  Peddapalli: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Rajanna_Sircilla: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Suryapet: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Vikarabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Wanaparthy: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Yadadri_Bhuvanagiri: {
+    mandals: [],
+    sanghams: [],
+  },
 };
+
+/* =========================================================
+   DISTRICTS
+========================================================= */
+
+const districtList = [
+  "Adilabad",
+  "Bhadradri_Kothagudem",
+  "Hanamkonda",
+  "Hyderabad",
+  "Jagtial",
+  "Jangaon",
+  "Jayashankar_Bhupalpally",
+  "Jogulamba_Gadwal",
+  "Kamareddy",
+  "Karimnagar",
+  "Khammam",
+  "Komaram_Bheem_Asifabad",
+  "Mahabubabad",
+  "Mahbubnagar",
+  "Mancherial",
+  "Medchal_Malkajgiri",
+  "Mulugu",
+  "Nagarkurnool",
+  "Nalgonda",
+  "Narayanpet",
+  "Nirmal",
+  "Nizamabad",
+  "Peddapalli",
+  "Rajanna_Sircilla",
+  "Rangareddy",
+  "Sangareddy",
+  "Suryapet",
+  "Vikarabad",
+  "Wanaparthy",
+  "Warangal",
+  "Yadadri_Bhuvanagiri",
+];
+
+/* =========================================================
+   GOTRAM LIST
+========================================================= */
+
+const gotramList = [
+  "Aathreya",
+  "Aswalayana",
+  "Agasthya",
+  "Bruhadashwah",
+  "Bodayanah",
+  "Baradwaja",
+  "Bargava",
+  "Chakrapani",
+  "Chamarsanah",
+  "Daalbyah",
+  "Durvasah",
+  "Devarathah",
+  "Devavalkyah",
+  "Gargyah",
+  "Gruthsna Madah",
+  "Gopakah",
+  "Gowthama",
+  "Harivalkya",
+  "JadaBharatha",
+  "Jatukarnah",
+  "Jambasudhana",
+  "Jarathaarkha",
+  "Jaabilih",
+  "Jabrih",
+  "Jeevanthi",
+  "Kanvah",
+  "Kandarpa",
+  "Kapila",
+  "Kapeetha",
+  "Kasyapa",
+  "Kuthsah",
+  "Koundinya",
+  "Koushika",
+  "Krishna",
+  "Mandapala",
+  "Manava",
+  "Mareechi",
+  "Markandeya",
+  "Muniraja",
+  "Mythreyah",
+  "Mounala",
+  "Mounjayanah",
+  "Moudgalya",
+  "Nanaka",
+  "Naradah",
+  "Netrapadah",
+  "Ouchithya",
+  "Parasparayanah",
+  "Pallavah",
+  "PavithraPranih",
+  "Parasharya",
+  "Pingala",
+  "Pundareeka",
+  "Poothimava",
+  "Poundraka",
+  "Poulasthya",
+  "Pracheena",
+  "Prabhatha",
+  "RushyaSrunga",
+  "Sharabangah",
+  "Sharjgaravah",
+  "Sandilya",
+  "Sreevathsah",
+  "Sreedharah",
+  "Suklarushi",
+  "Sowcheyah",
+  "Sownaka",
+  "Sathyah",
+  "Sanathkumara",
+  "Sanadanath",
+  "Samvarthaka",
+  "Sukanchana",
+  "Sutheekshah",
+  "Sundarah",
+  "Suvarna",
+  "Subramanyah",
+  "Sowbarna",
+  "Sowmyah",
+  "Sowvarna",
+  "Tharanih",
+  "Thittirih",
+  "Thrijatah",
+  "Thaithrevah",
+  "Uthkrushta",
+  "Uttamouja",
+  "Ugrasena",
+  "Vatuka",
+  "Vaarathanthu",
+  "Varuna",
+  "Vasista",
+  "Vamadeva",
+  "Vasudeva",
+  "Vaayuvya",
+  "Valmika",
+  "Vishwaksenah",
+  "Viswamithra",
+  "Vishnuvrudha",
+  "Virohithyah",
+  "Vyana",
+  "Yaskah",
+  "Yagnavalkya",
+  "Others",
+];
+
+/* =========================================================
+   NAKSHATRAM
+========================================================= */
+
+const nakshatramList = [
+  "Ashwini",
+  "Bharani",
+  "Krittika",
+  "Rohini",
+  "Mrigashira",
+  "Ardra",
+  "Punarvasu",
+  "Pushya",
+  "Ashlesha",
+  "Magha",
+  "Purva Phalguni",
+  "Uttara Phalguni",
+  "Hasta",
+  "Chitra",
+  "Swati",
+  "Vishakha",
+  "Anuradha",
+  "Jyeshtha",
+  "Moola",
+  "Purva Ashadha",
+  "Uttara Ashadha",
+  "Shravana",
+  "Dhanishta",
+  "Shatabhisha",
+  "Purva Bhadrapada",
+  "Uttara Bhadrapada",
+  "Revathi",
+];
+
+/* =========================================================
+   RASI
+========================================================= */
+
+const rasiList = [
+  "Mesha (Aries)",
+  "Vrishabha (Taurus)",
+  "Mithuna (Gemini)",
+  "Karka (Cancer)",
+  "Simha (Leo)",
+  "Kanya (Virgo)",
+  "Tula (Libra)",
+  "Vrischika (Scorpio)",
+  "Dhanu (Sagittarius)",
+  "Makara (Capricorn)",
+  "Kumbha (Aquarius)",
+  "Meena (Pisces)",
+];
+
+/* =========================================================
+   EDUCATION
+========================================================= */
+
+const educationList = [
+  "10th",
+  "Intermediate",
+  "ITI",
+  "Diploma",
+  "B.A",
+  "B.Com",
+  "B.Sc",
+  "B.Tech",
+  "B.E",
+  "BBA",
+  "BCA",
+  "M.A",
+  "M.Com",
+  "M.Sc",
+  "M.Tech",
+  "MBA",
+  "MCA",
+  "Ph.D",
+  "Other",
+];
+
+/* =========================================================
+   COLOUR
+========================================================= */
+
+const colorList = [
+  "Very Fair",
+  "Fair",
+  "Wheatish",
+  "Wheatish Brown",
+  "Brown",
+  "Dark",
+];
 
 /* =========================================================
    EXECUTIVE BODY
@@ -236,20 +647,61 @@ const designations = [
 ];
 
 /* =========================================================
+   INITIAL SIBLING
+========================================================= */
+
+const emptySibling = (): Sibling => ({
+  name: "",
+  age: "",
+  marital_status: "",
+  occupation: "",
+});
+
+/* =========================================================
    INITIAL FORM
 ========================================================= */
 
 const initialFormData: FormData = {
   full_name: "",
+  surname: "",
   mobile: "",
   email: "",
   occupation: "",
   gender: "",
   date_of_birth: "",
 
+  address: "",
   district: "",
   mandal: "",
   sangham: "",
+  location_name: "",
+  latitude: "",
+  longitude: "",
+
+  marital_status: "",
+  previous_marriage_details: "",
+
+  father_gotram: "",
+  mother_gotram: "",
+  grandmother_gotram: "",
+
+  father_gotram_other: "",
+  mother_gotram_other: "",
+  grandmother_gotram_other: "",
+
+  nakshatram: "",
+  padham: "",
+  rasi: "",
+
+  color: "",
+  height: "",
+  education: "",
+  annual_income: "",
+  property_details: "",
+  preferred_requirements: "",
+
+  brothers: [],
+  sisters: [],
 
   mahashaba_payment_status: "",
   mahashaba_payment_method: "",
@@ -274,7 +726,8 @@ const initialFormData: FormData = {
 const inputClass =
   "w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-50";
 
-const labelClass = "mb-2 block text-sm font-medium text-gray-700";
+const labelClass =
+  "mb-2 block text-sm font-medium text-gray-700";
 
 /* =========================================================
    HELPERS
@@ -286,13 +739,18 @@ const calculateAge = (dob: string) => {
   const birthDate = new Date(dob);
   const today = new Date();
 
-  let age = today.getFullYear() - birthDate.getFullYear();
+  let age =
+    today.getFullYear() -
+    birthDate.getFullYear();
 
-  const monthDifference = today.getMonth() - birthDate.getMonth();
+  const monthDifference =
+    today.getMonth() -
+    birthDate.getMonth();
 
   if (
     monthDifference < 0 ||
-    (monthDifference === 0 && today.getDate() < birthDate.getDate())
+    (monthDifference === 0 &&
+      today.getDate() < birthDate.getDate())
   ) {
     age--;
   }
@@ -305,9 +763,13 @@ const getTodayDate = () => {
 
   const year = today.getFullYear();
 
-  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const month = String(
+    today.getMonth() + 1
+  ).padStart(2, "0");
 
-  const day = String(today.getDate()).padStart(2, "0");
+  const day = String(
+    today.getDate()
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 };
@@ -317,49 +779,67 @@ const getTodayDate = () => {
 ========================================================= */
 
 export default function MembershipPage() {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] =
+    useState<FormData>(initialFormData);
 
-  const [errors, setErrors] = useState<ErrorState>({});
+  const [errors, setErrors] =
+    useState<ErrorState>({});
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
   /* PHOTO */
+  const [photo, setPhoto] =
+    useState<File | null>(null);
 
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] =
+    useState<string>("");
 
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+  /* CONSENT */
+  const [consent, setConsent] =
+    useState(false);
 
-  /* =======================================================
-     SELECTED DISTRICT
-  ======================================================= */
+  /* SIBLING COUNTS */
+  const [brotherCount, setBrotherCount] =
+    useState(0);
 
+  const [sisterCount, setSisterCount] =
+    useState(0);
+
+  /* LOCATION */
   const selectedDistrict =
-    formData.district && telanganaData[formData.district]
+    formData.district &&
+    telanganaData[formData.district]
       ? telanganaData[formData.district]
       : null;
 
-  /* =======================================================
+  /* =========================================================
      ERROR HELPERS
-  ======================================================= */
+  ========================================================= */
 
-  const setFieldError = (field: string, message: string) => {
+  const setFieldError = (
+    field: string,
+    message: string
+  ) => {
     setErrors((prev) => ({
       ...prev,
       [field]: message,
     }));
   };
 
-  const clearFieldError = (field: string) => {
+  const clearFieldError = (
+    field: string
+  ) => {
     setErrors((prev) => {
       const updated = { ...prev };
-
       delete updated[field];
-
       return updated;
     });
   };
 
-  const getInputClass = (field: string) => {
+  const getInputClass = (
+    field: string
+  ) => {
     return `${inputClass} ${
       errors[field]
         ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
@@ -367,10 +847,12 @@ export default function MembershipPage() {
     }`;
   };
 
-  const ErrorMessage = ({ field }: { field: string }) => {
-    if (!errors[field]) {
-      return null;
-    }
+  const ErrorMessage = ({
+    field,
+  }: {
+    field: string;
+  }) => {
+    if (!errors[field]) return null;
 
     return (
       <p className="mt-1 text-xs font-medium text-red-600">
@@ -379,12 +861,12 @@ export default function MembershipPage() {
     );
   };
 
-  /* =======================================================
+  /* =========================================================
      PHOTO CHANGE
-  ======================================================= */
+  ========================================================= */
 
   const handlePhotoChange = (
-    e: React.ChangeEvent<HTMLInputElement>
+    e: ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
 
@@ -394,8 +876,6 @@ export default function MembershipPage() {
       clearFieldError("photo");
       return;
     }
-
-    /* FILE TYPE */
 
     const allowedTypes = [
       "image/jpeg",
@@ -407,7 +887,6 @@ export default function MembershipPage() {
     if (!allowedTypes.includes(file.type)) {
       setPhoto(null);
       setPhotoPreview("");
-
       e.target.value = "";
 
       setFieldError(
@@ -416,18 +895,15 @@ export default function MembershipPage() {
       );
 
       toast.error("Invalid photo format");
-
       return;
     }
 
-    /* FILE SIZE - 5 MB */
-
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize =
+      5 * 1024 * 1024;
 
     if (file.size > maxSize) {
       setPhoto(null);
       setPhotoPreview("");
-
       e.target.value = "";
 
       setFieldError(
@@ -435,38 +911,42 @@ export default function MembershipPage() {
         "Photo size must be less than 5 MB"
       );
 
-      toast.error("Photo must be less than 5 MB");
+      toast.error(
+        "Photo must be less than 5 MB"
+      );
 
       return;
     }
 
     setPhoto(file);
 
-    setPhotoPreview(URL.createObjectURL(file));
+    setPhotoPreview(
+      URL.createObjectURL(file)
+    );
 
     clearFieldError("photo");
   };
 
-  /* =======================================================
+  /* =========================================================
      NORMAL CHANGE
-  ======================================================= */
+  ========================================================= */
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
     /* MOBILE */
-
     if (name === "mobile") {
-      const onlyNumbers = value.replace(/\D/g, "");
+      const onlyNumbers =
+        value.replace(/\D/g, "");
 
       if (onlyNumbers.length > 10) {
-        setFieldError(
-          "mobile",
-          "Mobile number must contain only 10 digits"
-        );
-
         return;
       }
 
@@ -476,8 +956,15 @@ export default function MembershipPage() {
       }));
 
       if (!onlyNumbers) {
-        setFieldError("mobile", "Mobile number is required");
-      } else if (!/^[6-9]\d{9}$/.test(onlyNumbers)) {
+        setFieldError(
+          "mobile",
+          "Mobile number is required"
+        );
+      } else if (
+        !/^[6-9]\d{9}$/.test(
+          onlyNumbers
+        )
+      ) {
         setFieldError(
           "mobile",
           "Enter a valid 10-digit Indian mobile number"
@@ -490,50 +977,84 @@ export default function MembershipPage() {
     }
 
     /* FULL NAME */
-
     if (name === "full_name") {
       setFormData((prev) => ({
         ...prev,
         full_name: value,
       }));
 
-      const nameValue = value.trim();
+      const nameValue =
+        value.trim();
 
       if (!nameValue) {
-        setFieldError("full_name", "Full name is required");
-      } else if (nameValue.length < 3) {
+        setFieldError(
+          "full_name",
+          "Full name is required"
+        );
+      } else if (
+        nameValue.length < 3
+      ) {
         setFieldError(
           "full_name",
           "Minimum 3 characters required"
         );
-      } else if (!/^[A-Za-z\s.'-]+$/.test(nameValue)) {
+      } else if (
+        !/^[A-Za-z\s.'-]+$/.test(
+          nameValue
+        )
+      ) {
         setFieldError(
           "full_name",
           "Only letters and spaces are allowed"
         );
       } else {
-        clearFieldError("full_name");
+        clearFieldError(
+          "full_name"
+        );
+      }
+
+      return;
+    }
+
+    /* SURNAME */
+    if (name === "surname") {
+      setFormData((prev) => ({
+        ...prev,
+        surname: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "surname",
+          "Surname is required"
+        );
+      } else {
+        clearFieldError(
+          "surname"
+        );
       }
 
       return;
     }
 
     /* EMAIL */
-
     if (name === "email") {
       setFormData((prev) => ({
         ...prev,
         email: value,
       }));
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!value.trim()) {
         setFieldError(
           "email",
           "Email address is required"
         );
-      } else if (!emailRegex.test(value)) {
+      } else if (
+        !emailRegex.test(value)
+      ) {
         setFieldError(
           "email",
           "Enter a valid email address"
@@ -546,7 +1067,6 @@ export default function MembershipPage() {
     }
 
     /* DOB */
-
     if (name === "date_of_birth") {
       setFormData((prev) => ({
         ...prev,
@@ -562,7 +1082,8 @@ export default function MembershipPage() {
         return;
       }
 
-      const age = calculateAge(value);
+      const age =
+        calculateAge(value);
 
       if (age < 18) {
         setFieldError(
@@ -570,19 +1091,23 @@ export default function MembershipPage() {
           "Member must be 18 years or above"
         );
       } else {
-        clearFieldError("date_of_birth");
+        clearFieldError(
+          "date_of_birth"
+        );
       }
 
       return;
     }
 
     /* PAYMENT DATE */
-
     if (
-      name === "mahashaba_payment_date" ||
-      name === "sangam_payment_date"
+      name ===
+        "mahashaba_payment_date" ||
+      name ===
+        "sangam_payment_date"
     ) {
-      const today = getTodayDate();
+      const today =
+        getTodayDate();
 
       if (value > today) {
         setFieldError(
@@ -597,17 +1122,24 @@ export default function MembershipPage() {
     }
 
     /* AMOUNT */
-
     if (
-      name === "mahashaba_amount_paid" ||
-      name === "sangam_amount_paid"
+      name ===
+        "mahashaba_amount_paid" ||
+      name ===
+        "sangam_amount_paid"
     ) {
-      if (value !== "" && Number(value) < 0) {
+      if (
+        value !== "" &&
+        Number(value) < 0
+      ) {
         setFieldError(
           name,
           "Amount cannot be negative"
         );
-      } else if (value !== "" && Number(value) <= 0) {
+      } else if (
+        value !== "" &&
+        Number(value) <= 0
+      ) {
         setFieldError(
           name,
           "Amount must be greater than 0"
@@ -617,65 +1149,50 @@ export default function MembershipPage() {
       }
     }
 
-    /* MAHASHABA STATUS */
-
+    /* PAYMENT STATUS */
     if (
-      name === "mahashaba_payment_status" &&
-      value
+      name ===
+        "mahashaba_payment_status" &&
+      value === "Free"
     ) {
       clearFieldError(
-        "mahashaba_payment_status"
+        "mahashaba_payment_method"
       );
 
-      if (value === "Free") {
-        clearFieldError(
-          "mahashaba_payment_method"
-        );
+      clearFieldError(
+        "mahashaba_receipt_number"
+      );
 
-        clearFieldError(
-          "mahashaba_receipt_number"
-        );
+      clearFieldError(
+        "mahashaba_amount_paid"
+      );
 
-        clearFieldError(
-          "mahashaba_amount_paid"
-        );
-
-        clearFieldError(
-          "mahashaba_payment_date"
-        );
-      }
+      clearFieldError(
+        "mahashaba_payment_date"
+      );
     }
-
-    /* SANGAM STATUS */
 
     if (
-      name === "sangam_payment_status" &&
-      value
+      name ===
+        "sangam_payment_status" &&
+      value === "Free"
     ) {
       clearFieldError(
-        "sangam_payment_status"
+        "sangam_payment_method"
       );
 
-      if (value === "Free") {
-        clearFieldError(
-          "sangam_payment_method"
-        );
+      clearFieldError(
+        "sangam_receipt_number"
+      );
 
-        clearFieldError(
-          "sangam_receipt_number"
-        );
+      clearFieldError(
+        "sangam_amount_paid"
+      );
 
-        clearFieldError(
-          "sangam_amount_paid"
-        );
-
-        clearFieldError(
-          "sangam_payment_date"
-        );
-      }
+      clearFieldError(
+        "sangam_payment_date"
+      );
     }
-
-    /* NORMAL */
 
     setFormData((prev) => ({
       ...prev,
@@ -687,14 +1204,15 @@ export default function MembershipPage() {
     }
   };
 
-  /* =======================================================
-     DISTRICT CHANGE
-  ======================================================= */
+  /* =========================================================
+     DISTRICT
+  ========================================================= */
 
   const handleDistrictChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: ChangeEvent<HTMLSelectElement>
   ) => {
-    const district = e.target.value;
+    const district =
+      e.target.value;
 
     setFormData((prev) => ({
       ...prev,
@@ -709,19 +1227,23 @@ export default function MembershipPage() {
 
     if (district) {
       toast.success(
-        `District selected: ${district.replaceAll("_", " ")}`
+        `District selected: ${district.replaceAll(
+          "_",
+          " "
+        )}`
       );
     }
   };
 
-  /* =======================================================
-     MANDAL CHANGE
-  ======================================================= */
+  /* =========================================================
+     MANDAL
+  ========================================================= */
 
   const handleMandalChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: ChangeEvent<HTMLSelectElement>
   ) => {
-    const mandal = e.target.value;
+    const mandal =
+      e.target.value;
 
     setFormData((prev) => ({
       ...prev,
@@ -733,17 +1255,21 @@ export default function MembershipPage() {
     clearFieldError("sangham");
   };
 
-  /* =======================================================
-     EXECUTIVE BODY CHANGE
-  ======================================================= */
+  /* =========================================================
+     EXECUTIVE BODY
+  ========================================================= */
 
   const handleExecutiveBodyChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+    e: ChangeEvent<HTMLSelectElement>
   ) => {
-    const executive_body = e.target.value;
+    const executive_body =
+      e.target.value;
 
     setFormData((prev) => {
-      if (executive_body === "State Body") {
+      if (
+        executive_body ===
+        "State Body"
+      ) {
         return {
           ...prev,
           executive_body,
@@ -753,7 +1279,10 @@ export default function MembershipPage() {
         };
       }
 
-      if (executive_body === "District Body") {
+      if (
+        executive_body ===
+        "District Body"
+      ) {
         return {
           ...prev,
           executive_body,
@@ -762,7 +1291,10 @@ export default function MembershipPage() {
         };
       }
 
-      if (executive_body === "Mandal Body") {
+      if (
+        executive_body ===
+        "Mandal Body"
+      ) {
         return {
           ...prev,
           executive_body,
@@ -770,121 +1302,319 @@ export default function MembershipPage() {
         };
       }
 
-      if (executive_body === "Sangham Body") {
-        return {
-          ...prev,
-          executive_body,
-        };
-      }
-
       return {
         ...prev,
-        executive_body: "State Body",
-        district: "",
-        mandal: "",
-        sangham: "",
+        executive_body,
       };
     });
 
-    clearFieldError("executive_body");
+    clearFieldError(
+      "executive_body"
+    );
+
     clearFieldError("district");
     clearFieldError("mandal");
     clearFieldError("sangham");
 
-    if (executive_body) {
-      toast.success(`${executive_body} selected`);
-    }
+    toast.success(
+      `${executive_body} selected`
+    );
   };
 
-  /* =======================================================
+  /* =========================================================
+     BROTHER COUNT
+  ========================================================= */
+
+  const handleBrotherCountChange = (
+    e: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const count = Number(
+      e.target.value
+    );
+
+    setBrotherCount(count);
+
+    setFormData((prev) => ({
+      ...prev,
+      brothers: Array.from(
+        { length: count },
+        (_, index) =>
+          prev.brothers[index] ||
+          emptySibling()
+      ),
+    }));
+  };
+
+  /* =========================================================
+     SISTER COUNT
+  ========================================================= */
+
+  const handleSisterCountChange = (
+    e: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const count = Number(
+      e.target.value
+    );
+
+    setSisterCount(count);
+
+    setFormData((prev) => ({
+      ...prev,
+      sisters: Array.from(
+        { length: count },
+        (_, index) =>
+          prev.sisters[index] ||
+          emptySibling()
+      ),
+    }));
+  };
+
+  /* =========================================================
+     SIBLING CHANGE
+  ========================================================= */
+
+  const handleSiblingChange = (
+    type: "brothers" | "sisters",
+    index: number,
+    field: keyof Sibling,
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const updated = [
+        ...prev[type],
+      ];
+
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+
+      return {
+        ...prev,
+        [type]: updated,
+      };
+    });
+  };
+
+  /* =========================================================
+     LOCATION CAPTURE
+  ========================================================= */
+
+  const captureLocation = () => {
+    if (
+      typeof navigator ===
+        "undefined" ||
+      !navigator.geolocation
+    ) {
+      toast.error(
+        "Location is not supported by this browser"
+      );
+      return;
+    }
+
+    toast.loading(
+      "Getting your location...",
+      {
+        id: "location-loading",
+      }
+    );
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude =
+          position.coords.latitude.toString();
+
+        const longitude =
+          position.coords.longitude.toString();
+
+        setFormData((prev) => ({
+          ...prev,
+          latitude,
+          longitude,
+        }));
+
+        toast.dismiss(
+          "location-loading"
+        );
+
+        toast.success(
+          "Location captured successfully"
+        );
+      },
+      () => {
+        toast.dismiss(
+          "location-loading"
+        );
+
+        toast.error(
+          "Unable to get location. Please allow location access."
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
+  /* =========================================================
      VALIDATION
-  ======================================================= */
+  ========================================================= */
 
   const validateForm = (): boolean => {
-    const newErrors: ErrorState = {};
+    const newErrors: ErrorState =
+      {};
 
     /* FULL NAME */
-
-    const name = formData.full_name.trim();
+    const name =
+      formData.full_name.trim();
 
     if (!name) {
-      newErrors.full_name = "Full name is required";
-    } else if (name.length < 3) {
-      newErrors.full_name = "Minimum 3 characters required";
-    } else if (!/^[A-Za-z\s.'-]+$/.test(name)) {
+      newErrors.full_name =
+        "Full name is required";
+    } else if (
+      name.length < 3
+    ) {
+      newErrors.full_name =
+        "Minimum 3 characters required";
+    } else if (
+      !/^[A-Za-z\s.'-]+$/.test(name)
+    ) {
       newErrors.full_name =
         "Only letters and spaces are allowed";
     }
 
-    /* MOBILE */
+    /* SURNAME */
+    if (
+      !formData.surname.trim()
+    ) {
+      newErrors.surname =
+        "Surname is required";
+    }
 
-    if (!/^[6-9]\d{9}$/.test(formData.mobile)) {
+    /* MOBILE */
+    if (
+      !/^[6-9]\d{9}$/.test(
+        formData.mobile
+      )
+    ) {
       newErrors.mobile =
         "Enter a valid 10-digit Indian mobile number";
     }
 
     /* EMAIL */
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email address is required";
-    } else if (!emailRegex.test(formData.email.trim())) {
-      newErrors.email = "Enter a valid email address";
+    if (
+      !formData.email.trim()
+    ) {
+      newErrors.email =
+        "Email address is required";
+    } else if (
+      !emailRegex.test(
+        formData.email.trim()
+      )
+    ) {
+      newErrors.email =
+        "Enter a valid email address";
     }
 
     /* OCCUPATION */
-
-    if (!formData.occupation.trim()) {
-      newErrors.occupation = "Occupation is required";
+    if (
+      !formData.occupation.trim()
+    ) {
+      newErrors.occupation =
+        "Occupation is required";
     }
 
     /* GENDER */
-
     if (!formData.gender) {
-      newErrors.gender = "Please select gender";
+      newErrors.gender =
+        "Please select gender";
     }
 
     /* DOB */
-
-    if (!formData.date_of_birth) {
+    if (
+      !formData.date_of_birth
+    ) {
       newErrors.date_of_birth =
         "Date of birth is required";
     } else if (
-      calculateAge(formData.date_of_birth) < 18
+      calculateAge(
+        formData.date_of_birth
+      ) < 18
     ) {
       newErrors.date_of_birth =
         "Member must be 18 years or above";
     }
 
     /* PHOTO */
-
     if (!photo) {
-      newErrors.photo = "Member photo is required";
+      newErrors.photo =
+        "Member photo is required";
+    }
+
+    /* MARITAL STATUS */
+    if (
+      !formData.marital_status
+    ) {
+      newErrors.marital_status =
+        "Please select marital status";
+    }
+
+    /* GOTRAM */
+    if (
+      formData.father_gotram ===
+        "Others" &&
+      !formData.father_gotram_other.trim()
+    ) {
+      newErrors.father_gotram_other =
+        "Please enter father's Gotram";
+    }
+
+    if (
+      formData.mother_gotram ===
+        "Others" &&
+      !formData.mother_gotram_other.trim()
+    ) {
+      newErrors.mother_gotram_other =
+        "Please enter mother's Gotram";
+    }
+
+    if (
+      formData.grandmother_gotram ===
+        "Others" &&
+      !formData.grandmother_gotram_other.trim()
+    ) {
+      newErrors.grandmother_gotram_other =
+        "Please enter grandmother's Gotram";
     }
 
     /* EXECUTIVE BODY */
-
-    if (!formData.executive_body) {
+    if (
+      !formData.executive_body
+    ) {
       newErrors.executive_body =
         "Please select Executive Body";
     }
 
     /* DESIGNATION */
-
     if (!formData.designation) {
       newErrors.designation =
         "Please select Designation";
     }
 
     /* DISTRICT */
-
     if (
       [
         "District Body",
         "Mandal Body",
         "Sangham Body",
-      ].includes(formData.executive_body) &&
+      ].includes(
+        formData.executive_body
+      ) &&
       !formData.district
     ) {
       newErrors.district =
@@ -892,12 +1622,13 @@ export default function MembershipPage() {
     }
 
     /* MANDAL */
-
     if (
       [
         "Mandal Body",
         "Sangham Body",
-      ].includes(formData.executive_body) &&
+      ].includes(
+        formData.executive_body
+      ) &&
       !formData.mandal
     ) {
       newErrors.mandal =
@@ -905,9 +1636,9 @@ export default function MembershipPage() {
     }
 
     /* SANGHAM */
-
     if (
-      formData.executive_body === "Sangham Body" &&
+      formData.executive_body ===
+        "Sangham Body" &&
       !formData.sangham
     ) {
       newErrors.sangham =
@@ -915,18 +1646,21 @@ export default function MembershipPage() {
     }
 
     /* MAHASHABA STATUS */
-
-    if (!formData.mahashaba_payment_status) {
+    if (
+      !formData.mahashaba_payment_status
+    ) {
       newErrors.mahashaba_payment_status =
         "Please select Mahashaba payment status";
     }
 
     /* MAHASHABA PAID */
-
     if (
-      formData.mahashaba_payment_status === "Paid"
+      formData.mahashaba_payment_status ===
+      "Paid"
     ) {
-      if (!formData.mahashaba_payment_method) {
+      if (
+        !formData.mahashaba_payment_method
+      ) {
         newErrors.mahashaba_payment_method =
           "Please select Mahashaba payment method";
       }
@@ -940,13 +1674,17 @@ export default function MembershipPage() {
 
       if (
         !formData.mahashaba_amount_paid ||
-        Number(formData.mahashaba_amount_paid) <= 0
+        Number(
+          formData.mahashaba_amount_paid
+        ) <= 0
       ) {
         newErrors.mahashaba_amount_paid =
           "Please enter a valid Mahashaba amount";
       }
 
-      if (!formData.mahashaba_payment_date) {
+      if (
+        !formData.mahashaba_payment_date
+      ) {
         newErrors.mahashaba_payment_date =
           "Please select Mahashaba payment date";
       } else if (
@@ -959,18 +1697,21 @@ export default function MembershipPage() {
     }
 
     /* SANGAM STATUS */
-
-    if (!formData.sangam_payment_status) {
+    if (
+      !formData.sangam_payment_status
+    ) {
       newErrors.sangam_payment_status =
         "Please select Sangam payment status";
     }
 
     /* SANGAM PAID */
-
     if (
-      formData.sangam_payment_status === "Paid"
+      formData.sangam_payment_status ===
+      "Paid"
     ) {
-      if (!formData.sangam_payment_method) {
+      if (
+        !formData.sangam_payment_method
+      ) {
         newErrors.sangam_payment_method =
           "Please select Sangam payment method";
       }
@@ -984,13 +1725,17 @@ export default function MembershipPage() {
 
       if (
         !formData.sangam_amount_paid ||
-        Number(formData.sangam_amount_paid) <= 0
+        Number(
+          formData.sangam_amount_paid
+        ) <= 0
       ) {
         newErrors.sangam_amount_paid =
           "Please enter a valid Sangam amount";
       }
 
-      if (!formData.sangam_payment_date) {
+      if (
+        !formData.sangam_payment_date
+      ) {
         newErrors.sangam_payment_date =
           "Please select Sangam payment date";
       } else if (
@@ -1002,9 +1747,18 @@ export default function MembershipPage() {
       }
     }
 
+    /* CONSENT */
+    if (!consent) {
+      newErrors.consent =
+        "Please agree to the declaration before submitting";
+    }
+
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length > 0) {
+    if (
+      Object.keys(newErrors).length >
+      0
+    ) {
       toast.error(
         "Please correct the highlighted fields"
       );
@@ -1015,314 +1769,448 @@ export default function MembershipPage() {
     return true;
   };
 
-  /* =======================================================
+  /* =========================================================
      SUBMIT
-  ======================================================= */
+  ========================================================= */
 
-const handleSubmit = async (
-  e: React.FormEvent<HTMLFormElement>
-) => {
-  e.preventDefault();
+  const handleSubmit = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
 
-  if (loading) return;
+    if (loading) return;
 
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  const loadingToast = toast.loading(
-    "Registering membership..."
-  );
-
-  try {
-    const executiveBody =
-      formData.executive_body?.trim() || "State Body";
-
-    const designation =
-      formData.designation?.trim() || "Member";
-
-    /*
-     * IMPORTANT
-     * We are uploading a photo, so use FormData.
-     * Do NOT manually set Content-Type.
-     */
-
-    const body = new FormData();
-
-    body.append(
-      "full_name",
-      formData.full_name.trim()
-    );
-
-    body.append(
-      "mobile",
-      formData.mobile.trim()
-    );
-
-    body.append(
-      "email",
-      formData.email.trim()
-    );
-
-    body.append(
-      "occupation",
-      formData.occupation.trim()
-    );
-
-    body.append(
-      "gender",
-      formData.gender
-    );
-
-    body.append(
-      "date_of_birth",
-      formData.date_of_birth
-    );
-
-    body.append(
-      "district",
-      formData.district || ""
-    );
-
-    body.append(
-      "mandal",
-      formData.mandal || ""
-    );
-
-    body.append(
-      "sangham",
-      formData.sangham || ""
-    );
-
-    body.append(
-      "mahashaba_payment_status",
-      formData.mahashaba_payment_status
-    );
-
-    body.append(
-      "mahashaba_payment_method",
-      formData.mahashaba_payment_method || ""
-    );
-
-    body.append(
-      "mahashaba_receipt_number",
-      formData.mahashaba_receipt_number || ""
-    );
-
-    body.append(
-      "mahashaba_amount_paid",
-      formData.mahashaba_amount_paid || ""
-    );
-
-    body.append(
-      "mahashaba_payment_date",
-      formData.mahashaba_payment_date || ""
-    );
-
-    body.append(
-      "sangam_payment_status",
-      formData.sangam_payment_status
-    );
-
-    body.append(
-      "sangam_payment_method",
-      formData.sangam_payment_method || ""
-    );
-
-    body.append(
-      "sangam_receipt_number",
-      formData.sangam_receipt_number || ""
-    );
-
-    body.append(
-      "sangam_amount_paid",
-      formData.sangam_amount_paid || ""
-    );
-
-    body.append(
-      "sangam_payment_date",
-      formData.sangam_payment_date || ""
-    );
-
-    body.append(
-      "executive_body",
-      executiveBody
-    );
-
-    body.append(
-      "designation",
-      designation
-    );
-
-    /*
-     * PHOTO
-     */
-    if (photo) {
-      body.append("photo", photo);
-    }
-
-    console.log(
-      "Submitting membership registration..."
-    );
-
-    console.log(
-      "Photo:",
-      photo?.name || "No photo"
-    );
-
-    /*
-     * API URL
-     *
-     * .env.local:
-     *
-     * NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
-     *
-     * If env variable is not available,
-     * localhost:5000 will be used.
-     */
-
-    
-
-    const apiUrl = (
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
-      "http://localhost:5000"
-    ).replace(/\/$/, "");
-
-    const apiEndpoint =
-      `${apiUrl}/membership-register`;
-
-    console.log(
-      "Membership API:",
-      apiEndpoint
-    );
-
-    /*
-     * SEND REQUEST
-     */
-    const response = await fetch(
-      apiEndpoint,
-      {
-        method: "POST",
-        body,
-      }
-    );
-
-    /*
-     * READ RESPONSE SAFELY
-     */
-    const contentType =
-      response.headers.get("content-type") || "";
-
-    let data: any = null;
-
-    if (
-      contentType.includes("application/json")
-    ) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-
-      data = {
-        message: text,
-      };
-    }
-
-    console.log(
-      "Membership API response:",
-      data
-    );
-
-    /*
-     * ERROR
-     */
-    if (!response.ok) {
-      throw new Error(
-        Array.isArray(data?.message)
-          ? data.message.join(", ")
-          : data?.message ||
-              `Registration failed (${response.status})`
+    const loadingToast =
+      toast.loading(
+        "Registering membership..."
       );
+
+    try {
+      const executiveBody =
+        formData.executive_body?.trim() ||
+        "State Body";
+
+      const designation =
+        formData.designation?.trim() ||
+        "Member";
+
+      /*
+       * IMPORTANT:
+       * Photo upload requires FormData.
+       * Do NOT manually set Content-Type.
+       */
+
+      const body = new FormData();
+
+      /* BASIC */
+      body.append(
+        "full_name",
+        formData.full_name.trim()
+      );
+
+      body.append(
+        "surname",
+        formData.surname.trim()
+      );
+
+      body.append(
+        "mobile",
+        formData.mobile.trim()
+      );
+
+      body.append(
+        "email",
+        formData.email.trim()
+      );
+
+      body.append(
+        "occupation",
+        formData.occupation.trim()
+      );
+
+      body.append(
+        "gender",
+        formData.gender
+      );
+
+      body.append(
+        "date_of_birth",
+        formData.date_of_birth
+      );
+
+      /* LOCATION */
+      body.append(
+        "address",
+        formData.address || ""
+      );
+
+      body.append(
+        "district",
+        formData.district || ""
+      );
+
+      body.append(
+        "mandal",
+        formData.mandal || ""
+      );
+
+      body.append(
+        "sangham",
+        formData.sangham || ""
+      );
+
+      body.append(
+        "location_name",
+        formData.location_name || ""
+      );
+
+      body.append(
+        "latitude",
+        formData.latitude || ""
+      );
+
+      body.append(
+        "longitude",
+        formData.longitude || ""
+      );
+
+      /* MATRIMONIAL */
+      body.append(
+        "marital_status",
+        formData.marital_status
+      );
+
+      body.append(
+        "previous_marriage_details",
+        formData.previous_marriage_details || ""
+      );
+
+      /* GOTRAM */
+      body.append(
+        "father_gotram",
+        formData.father_gotram || ""
+      );
+
+      body.append(
+        "mother_gotram",
+        formData.mother_gotram || ""
+      );
+
+      body.append(
+        "grandmother_gotram",
+        formData.grandmother_gotram || ""
+      );
+
+      body.append(
+        "father_gotram_other",
+        formData.father_gotram_other || ""
+      );
+
+      body.append(
+        "mother_gotram_other",
+        formData.mother_gotram_other || ""
+      );
+
+      body.append(
+        "grandmother_gotram_other",
+        formData.grandmother_gotram_other || ""
+      );
+
+      /* ASTROLOGY */
+      body.append(
+        "nakshatram",
+        formData.nakshatram || ""
+      );
+
+      body.append(
+        "padham",
+        formData.padham || ""
+      );
+
+      body.append(
+        "rasi",
+        formData.rasi || ""
+      );
+
+      /* PERSONAL */
+      body.append(
+        "color",
+        formData.color || ""
+      );
+
+      body.append(
+        "height",
+        formData.height || ""
+      );
+
+      body.append(
+        "education",
+        formData.education || ""
+      );
+
+      body.append(
+        "annual_income",
+        formData.annual_income || ""
+      );
+
+      body.append(
+        "property_details",
+        formData.property_details || ""
+      );
+
+      body.append(
+        "preferred_requirements",
+        formData.preferred_requirements || ""
+      );
+
+      /* FAMILY */
+      body.append(
+        "brothers",
+        JSON.stringify(formData.brothers)
+      );
+
+      body.append(
+        "sisters",
+        JSON.stringify(formData.sisters)
+      );
+
+      /* MAHASHABA */
+      body.append(
+        "mahashaba_payment_status",
+        formData.mahashaba_payment_status
+      );
+
+      body.append(
+        "mahashaba_payment_method",
+        formData.mahashaba_payment_method || ""
+      );
+
+      body.append(
+        "mahashaba_receipt_number",
+        formData.mahashaba_receipt_number || ""
+      );
+
+      body.append(
+        "mahashaba_amount_paid",
+        formData.mahashaba_amount_paid || ""
+      );
+
+      body.append(
+        "mahashaba_payment_date",
+        formData.mahashaba_payment_date || ""
+      );
+
+      /* SANGAM */
+      body.append(
+        "sangam_payment_status",
+        formData.sangam_payment_status
+      );
+
+      body.append(
+        "sangam_payment_method",
+        formData.sangam_payment_method || ""
+      );
+
+      body.append(
+        "sangam_receipt_number",
+        formData.sangam_receipt_number || ""
+      );
+
+      body.append(
+        "sangam_amount_paid",
+        formData.sangam_amount_paid || ""
+      );
+
+      body.append(
+        "sangam_payment_date",
+        formData.sangam_payment_date || ""
+      );
+
+      /* BODY */
+      body.append(
+        "executive_body",
+        executiveBody
+      );
+
+      body.append(
+        "designation",
+        designation
+      );
+
+      /* CONSENT */
+      body.append(
+        "consent",
+        String(consent)
+      );
+
+      /* PHOTO */
+      if (photo) {
+        body.append(
+          "photo",
+          photo
+        );
+      }
+
+      console.log(
+        "Submitting membership registration..."
+      );
+
+      console.log(
+        "Photo:",
+        photo?.name ||
+          "No photo"
+      );
+
+      const apiUrl = (
+        process.env
+          .NEXT_PUBLIC_BACKEND_URL ||
+        "http://localhost:5000"
+      ).replace(/\/$/, "");
+
+      const apiEndpoint =
+        `${apiUrl}/membership-register`;
+
+      console.log(
+        "Membership API:",
+        apiEndpoint
+      );
+
+      const response =
+        await fetch(
+          apiEndpoint,
+          {
+            method: "POST",
+            body,
+          }
+        );
+
+      const contentType =
+        response.headers.get(
+          "content-type"
+        ) || "";
+
+      let data: any = null;
+
+      if (
+        contentType.includes(
+          "application/json"
+        )
+      ) {
+        data =
+          await response.json();
+      } else {
+        const text =
+          await response.text();
+
+        data = {
+          message: text,
+        };
+      }
+
+      console.log(
+        "Membership API response:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(
+            data?.message
+          )
+            ? data.message.join(
+                ", "
+              )
+            : data?.message ||
+                `Registration failed (${response.status})`
+        );
+      }
+
+      toast.dismiss(
+        loadingToast
+      );
+
+      const memberId =
+        data?.member_id ||
+        data?.data?.member_id ||
+        "";
+
+      toast.success(
+        `Membership registration successful!${
+          memberId
+            ? ` Member ID: ${memberId}`
+            : ""
+        }`,
+        {
+          duration: 6000,
+        }
+      );
+
+      /* RESET */
+      setFormData({
+        ...initialFormData,
+      });
+
+      setPhoto(null);
+      setPhotoPreview("");
+
+      setBrotherCount(0);
+      setSisterCount(0);
+
+      setConsent(false);
+
+      setErrors({});
+    } catch (err) {
+      console.error(
+        "MEMBERSHIP REGISTRATION ERROR:",
+        err
+      );
+
+      toast.dismiss(
+        loadingToast
+      );
+
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again.",
+        {
+          duration: 6000,
+        }
+      );
+    } finally {
+      setLoading(false);
     }
+  };
 
-    /*
-     * SUCCESS
-     */
-    toast.dismiss(loadingToast);
-
-    toast.success(
-      `Membership registration successful!${
-        data?.member_id
-          ? ` Member ID: ${data.member_id}`
-          : data?.data?.member_id
-          ? ` Member ID: ${data.data.member_id}`
-          : ""
-      }`,
-      {
-        duration: 6000,
-      }
-    );
-
-    /*
-     * RESET FORM
-     */
-    setFormData({
-      ...initialFormData,
-    });
-
-    setPhoto(null);
-    setPhotoPreview("");
-    setErrors({});
-
-  } catch (err) {
-    console.error(
-      "MEMBERSHIP REGISTRATION ERROR:",
-      err
-    );
-
-    toast.dismiss(loadingToast);
-
-    toast.error(
-      err instanceof Error
-        ? err.message
-        : "Registration failed. Please try again.",
-      {
-        duration: 6000,
-      }
-    );
-
-  } finally {
-    setLoading(false);
-  }
-};
-  /* =======================================================
+  /* =========================================================
      PAYMENT SECTION
-  ======================================================= */
+  ========================================================= */
 
   const renderPaymentSection = (
     title: string,
-
     statusName:
       | "mahashaba_payment_status"
       | "sangam_payment_status",
-
     methodName:
       | "mahashaba_payment_method"
       | "sangam_payment_method",
-
     receiptName:
       | "mahashaba_receipt_number"
       | "sangam_receipt_number",
-
     amountName:
       | "mahashaba_amount_paid"
       | "sangam_amount_paid",
-
     dateName:
       | "mahashaba_payment_date"
       | "sangam_payment_date"
   ) => {
     const paid =
-      formData[statusName] === "Paid";
+      formData[statusName] ===
+      "Paid";
 
     return (
       <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5 sm:p-6">
@@ -1330,13 +2218,11 @@ const handleSubmit = async (
           {title}
         </h2>
 
-        <p className="mt-1 mb-5 text-xs text-gray-500">
+        <p className="mb-5 mt-1 text-xs text-gray-500">
           Enter payment details if payment has been made.
         </p>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {/* PAYMENT STATUS */}
-
           <div>
             <label className={labelClass}>
               Payment Status *
@@ -1344,10 +2230,16 @@ const handleSubmit = async (
 
             <select
               name={statusName}
-              value={formData[statusName]}
+              value={
+                formData[
+                  statusName
+                ]
+              }
               onChange={handleChange}
               required
-              className={getInputClass(statusName)}
+              className={getInputClass(
+                statusName
+              )}
             >
               <option value="">
                 Select Payment Status
@@ -1362,13 +2254,13 @@ const handleSubmit = async (
               </option>
             </select>
 
-            <ErrorMessage field={statusName} />
+            <ErrorMessage
+              field={statusName}
+            />
           </div>
 
           {paid && (
             <>
-              {/* PAYMENT METHOD */}
-
               <div>
                 <label className={labelClass}>
                   Payment Method *
@@ -1376,10 +2268,18 @@ const handleSubmit = async (
 
                 <select
                   name={methodName}
-                  value={formData[methodName]}
-                  onChange={handleChange}
+                  value={
+                    formData[
+                      methodName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
                   required
-                  className={getInputClass(methodName)}
+                  className={getInputClass(
+                    methodName
+                  )}
                 >
                   <option value="">
                     Select Payment Method
@@ -1402,10 +2302,10 @@ const handleSubmit = async (
                   </option>
                 </select>
 
-                <ErrorMessage field={methodName} />
+                <ErrorMessage
+                  field={methodName}
+                />
               </div>
-
-              {/* RECEIPT */}
 
               <div>
                 <label className={labelClass}>
@@ -1414,18 +2314,26 @@ const handleSubmit = async (
 
                 <input
                   name={receiptName}
-                  value={formData[receiptName]}
-                  onChange={handleChange}
+                  value={
+                    formData[
+                      receiptName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Enter Receipt Number"
                   required
                   maxLength={50}
-                  className={getInputClass(receiptName)}
+                  className={getInputClass(
+                    receiptName
+                  )}
                 />
 
-                <ErrorMessage field={receiptName} />
+                <ErrorMessage
+                  field={receiptName}
+                />
               </div>
-
-              {/* AMOUNT */}
 
               <div>
                 <label className={labelClass}>
@@ -1437,17 +2345,25 @@ const handleSubmit = async (
                   min="1"
                   step="0.01"
                   name={amountName}
-                  value={formData[amountName]}
-                  onChange={handleChange}
+                  value={
+                    formData[
+                      amountName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
                   placeholder="Enter Amount Paid"
                   required
-                  className={getInputClass(amountName)}
+                  className={getInputClass(
+                    amountName
+                  )}
                 />
 
-                <ErrorMessage field={amountName} />
+                <ErrorMessage
+                  field={amountName}
+                />
               </div>
-
-              {/* PAYMENT DATE */}
 
               <div>
                 <label className={labelClass}>
@@ -1457,14 +2373,24 @@ const handleSubmit = async (
                 <input
                   type="date"
                   name={dateName}
-                  value={formData[dateName]}
-                  onChange={handleChange}
+                  value={
+                    formData[
+                      dateName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
                   required
                   max={getTodayDate()}
-                  className={getInputClass(dateName)}
+                  className={getInputClass(
+                    dateName
+                  )}
                 />
 
-                <ErrorMessage field={dateName} />
+                <ErrorMessage
+                  field={dateName}
+                />
               </div>
             </>
           )}
@@ -1473,9 +2399,149 @@ const handleSubmit = async (
     );
   };
 
-  /* =======================================================
-     UI
-  ======================================================= */
+  /* =========================================================
+     SIBLING ROW
+  ========================================================= */
+
+  const renderSiblingRows = (
+    type: "brothers" | "sisters"
+  ) => {
+    const siblings =
+      formData[type];
+
+    if (siblings.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="mt-5 space-y-4">
+        {siblings.map(
+          (sibling, index) => (
+            <div
+              key={`${type}-${index}`}
+              className="rounded-2xl border border-gray-200 bg-gray-50 p-4"
+            >
+              <h4 className="mb-4 text-sm font-semibold text-rose-700">
+                {type ===
+                "brothers"
+                  ? "Brother"
+                  : "Sister"}{" "}
+                {index + 1}
+              </h4>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+                <div>
+                  <label className={labelClass}>
+                    Name
+                  </label>
+
+                  <input
+                    value={
+                      sibling.name
+                    }
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        type,
+                        index,
+                        "name",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Name"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Age
+                  </label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    max="120"
+                    value={
+                      sibling.age
+                    }
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        type,
+                        index,
+                        "age",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Age"
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Marital Status
+                  </label>
+
+                  <select
+                    value={
+                      sibling.marital_status
+                    }
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        type,
+                        index,
+                        "marital_status",
+                        e.target.value
+                      )
+                    }
+                    className={inputClass}
+                  >
+                    <option value="">
+                      Select Status
+                    </option>
+
+                    <option value="Unmarried">
+                      Unmarried
+                    </option>
+
+                    <option value="Married">
+                      Married
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Occupation
+                  </label>
+
+                  <input
+                    value={
+                      sibling.occupation
+                    }
+                    onChange={(e) =>
+                      handleSiblingChange(
+                        type,
+                        index,
+                        "occupation",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Occupation"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+          )
+        )}
+      </div>
+    );
+  };
+
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
   return (
     <>
@@ -1484,17 +2550,14 @@ const handleSubmit = async (
         reverseOrder={false}
         toastOptions={{
           duration: 4000,
-
           style: {
             borderRadius: "12px",
             fontSize: "14px",
             fontWeight: "500",
           },
-
           success: {
             duration: 5000,
           },
-
           error: {
             duration: 5000,
           },
@@ -1504,7 +2567,9 @@ const handleSubmit = async (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
-          {/* HEADER */}
+          {/* =====================================================
+              HEADER
+          ===================================================== */}
 
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
             <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
@@ -1522,9 +2587,93 @@ const handleSubmit = async (
             </div>
           </div>
 
-          {/* FORM */}
+          <div className="space-y-7 p-5 sm:p-8">
 
-          <div className="p-5 sm:p-8">
+            {/* ===================================================
+                SERVICE IS OUR MOTTO
+            =================================================== */}
+
+            <section className="rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-white p-6 shadow-sm sm:p-8">
+              <div className="text-center">
+                <div className="mb-2 text-3xl">
+                  🙏
+                </div>
+
+                <h2 className="text-xl font-bold uppercase tracking-wide text-rose-700 sm:text-2xl">
+                  SERVICE IS OUR MOTTO
+                </h2>
+
+                <p className="mx-auto mt-4 max-w-4xl text-sm leading-7 text-gray-700 sm:text-base">
+                  This matrimonial website is intended to sustain
+                  and serve our community for a long time with
+                  your wholehearted support. Our aim is to provide
+                  safe, accountable and good connectivity for our
+                  unmarried youth and married couples and to
+                  strengthen the Vysya community.
+                </p>
+              </div>
+
+              <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
+
+                {/* FREE */}
+                <div className="rounded-2xl border border-green-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mb-3 text-3xl">
+                    🆓
+                  </div>
+
+                  <h3 className="text-base font-bold text-green-700">
+                    FREE REGISTRATION
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-600">
+                    Registration available for 99 days
+                  </p>
+                </div>
+
+                {/* EXTENSION */}
+                <div className="rounded-2xl border border-blue-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mb-3 text-3xl">
+                    📅
+                  </div>
+
+                  <h3 className="text-base font-bold text-blue-700">
+                    EXTENSION
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-600">
+                    Can be extended up to 180 days
+                  </p>
+                </div>
+
+                {/* SUPPORT */}
+                <div className="rounded-2xl border border-amber-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mb-3 text-3xl">
+                    🤝
+                  </div>
+
+                  <h3 className="text-base font-bold text-amber-700">
+                    COMMUNITY SUPPORT
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
+                    Voluntary three-digit contribution where applicable
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-rose-100 bg-white px-5 py-4 text-center">
+                <p className="text-sm font-semibold leading-6 text-rose-700">
+                  Registration is offered free for the initial
+                  99 days. Extension support up to 180 days may
+                  be facilitated through a voluntary contribution.
+                </p>
+              </div>
+            </section>
+
+            {/* ===================================================
+                FORM
+            =================================================== */}
+
             <form
               onSubmit={handleSubmit}
               className="space-y-7"
@@ -1542,7 +2691,6 @@ const handleSubmit = async (
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* FULL NAME */}
-
                   <div>
                     <label className={labelClass}>
                       Full Name *
@@ -1550,20 +2698,50 @@ const handleSubmit = async (
 
                     <input
                       name="full_name"
-                      value={formData.full_name}
-                      onChange={handleChange}
+                      value={
+                        formData.full_name
+                      }
+                      onChange={
+                        handleChange
+                      }
                       placeholder="Enter Full Name"
                       required
                       minLength={3}
                       maxLength={100}
-                      className={getInputClass("full_name")}
+                      className={getInputClass(
+                        "full_name"
+                      )}
                     />
 
                     <ErrorMessage field="full_name" />
                   </div>
 
-                  {/* MOBILE */}
+                  {/* SURNAME */}
+                  <div>
+                    <label className={labelClass}>
+                      Sure Name *
+                    </label>
 
+                    <input
+                      name="surname"
+                      value={
+                        formData.surname
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Surname"
+                      required
+                      maxLength={100}
+                      className={getInputClass(
+                        "surname"
+                      )}
+                    />
+
+                    <ErrorMessage field="surname" />
+                  </div>
+
+                  {/* MOBILE */}
                   <div>
                     <label className={labelClass}>
                       Mobile Number *
@@ -1572,20 +2750,25 @@ const handleSubmit = async (
                     <input
                       type="tel"
                       name="mobile"
-                      value={formData.mobile}
-                      onChange={handleChange}
+                      value={
+                        formData.mobile
+                      }
+                      onChange={
+                        handleChange
+                      }
                       placeholder="Enter 10 Digit Mobile Number"
                       required
                       inputMode="numeric"
                       maxLength={10}
-                      className={getInputClass("mobile")}
+                      className={getInputClass(
+                        "mobile"
+                      )}
                     />
 
                     <ErrorMessage field="mobile" />
                   </div>
 
                   {/* EMAIL */}
-
                   <div>
                     <label className={labelClass}>
                       Email Address *
@@ -1594,39 +2777,24 @@ const handleSubmit = async (
                     <input
                       type="email"
                       name="email"
-                      value={formData.email}
-                      onChange={handleChange}
+                      value={
+                        formData.email
+                      }
+                      onChange={
+                        handleChange
+                      }
                       placeholder="Enter Email Address"
                       required
                       maxLength={150}
-                      className={getInputClass("email")}
+                      className={getInputClass(
+                        "email"
+                      )}
                     />
 
                     <ErrorMessage field="email" />
                   </div>
 
-                  {/* OCCUPATION */}
-
-                  <div>
-                    <label className={labelClass}>
-                      Occupation *
-                    </label>
-
-                    <input
-                      name="occupation"
-                      value={formData.occupation}
-                      onChange={handleChange}
-                      placeholder="Enter Occupation"
-                      required
-                      maxLength={100}
-                      className={getInputClass("occupation")}
-                    />
-
-                    <ErrorMessage field="occupation" />
-                  </div>
-
                   {/* GENDER */}
-
                   <div>
                     <label className={labelClass}>
                       Gender *
@@ -1634,10 +2802,16 @@ const handleSubmit = async (
 
                     <select
                       name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
+                      value={
+                        formData.gender
+                      }
+                      onChange={
+                        handleChange
+                      }
                       required
-                      className={getInputClass("gender")}
+                      className={getInputClass(
+                        "gender"
+                      )}
                     >
                       <option value="">
                         Select Gender
@@ -1656,7 +2830,6 @@ const handleSubmit = async (
                   </div>
 
                   {/* DOB */}
-
                   <div>
                     <label className={labelClass}>
                       Date of Birth *
@@ -1665,17 +2838,25 @@ const handleSubmit = async (
                     <input
                       type="date"
                       name="date_of_birth"
-                      value={formData.date_of_birth}
-                      onChange={handleChange}
+                      value={
+                        formData.date_of_birth
+                      }
+                      onChange={
+                        handleChange
+                      }
                       required
                       max={getTodayDate()}
-                      className={getInputClass("date_of_birth")}
+                      className={getInputClass(
+                        "date_of_birth"
+                      )}
                     />
 
                     <ErrorMessage field="date_of_birth" />
 
                     {formData.date_of_birth &&
-                      calculateAge(formData.date_of_birth) >= 0 && (
+                      calculateAge(
+                        formData.date_of_birth
+                      ) >= 0 && (
                         <p className="mt-1 text-xs text-gray-500">
                           Age:{" "}
                           {calculateAge(
@@ -1686,261 +2867,433 @@ const handleSubmit = async (
                       )}
                   </div>
 
-                  {/* =================================================
-                      PHOTO
-                  ================================================= */}
-
-                  <div className="md:col-span-2">
-                    <label className={labelClass}>
-                      Member Photo *
-                    </label>
-
-                    <div className="rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/40 p-5">
-
-                      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-
-                        {/* PREVIEW */}
-
-                        <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                          {photoPreview ? (
-                            <img
-                              src={photoPreview}
-                              alt="Member photo preview"
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="text-center text-xs text-gray-400">
-                              <div className="mb-1 text-3xl">
-                                📷
-                              </div>
-                              No Photo
-                            </div>
-                          )}
-                        </div>
-
-                        {/* INPUT */}
-
-                        <div className="flex-1">
-                          <input
-                            type="file"
-                            name="photo"
-                            accept="image/jpeg,image/jpg,image/png,image/webp"
-                            onChange={handlePhotoChange}
-                            className="block w-full cursor-pointer rounded-xl border border-gray-200 bg-white text-sm text-gray-700 file:mr-4 file:cursor-pointer file:border-0 file:bg-rose-600 file:px-4 file:py-3 file:text-sm file:font-semibold file:text-white hover:file:bg-rose-700"
-                          />
-
-                          <p className="mt-2 text-xs text-gray-500">
-                            JPG, JPEG, PNG or WEBP only. Maximum
-                            size: 5 MB.
-                          </p>
-
-                          {photo && (
-                            <p className="mt-2 text-xs font-medium text-green-600">
-                              Selected: {photo.name}
-                            </p>
-                          )}
-
-                          <ErrorMessage field="photo" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* STATE BODY */}
-
+                  {/* OCCUPATION */}
                   <div>
                     <label className={labelClass}>
-                      State Body
+                      Occupation *
                     </label>
 
                     <input
-                      type="text"
-                      value="Telangana State Arya Vysya Mahasabha"
-                      readOnly
-                      className={`${inputClass} cursor-not-allowed bg-gray-100`}
+                      name="occupation"
+                      value={
+                        formData.occupation
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Occupation"
+                      required
+                      maxLength={100}
+                      className={getInputClass(
+                        "occupation"
+                      )}
                     />
+
+                    <ErrorMessage field="occupation" />
                   </div>
 
-                  {/* EXECUTIVE BODY */}
-
+                    {/* Location  */}
                   <div>
                     <label className={labelClass}>
-                      Executive Body *
+                      Location *
                     </label>
 
-                    <select
-                      name="executive_body"
-                      value={formData.executive_body}
-                      onChange={handleExecutiveBodyChange}
+                    <input
+                      name="location"
+                      value={
+                        formData.location
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Location"
                       required
-                      className={getInputClass("executive_body")}
-                    >
-                      <option value="">
-                        Select Executive Body
-                      </option>
+                      maxLength={100}
+                      className={getInputClass(
+                        "location"
+                      )}
+                    />
 
-                      {executiveBodies.map((body) => (
-                        <option
-                          key={body}
-                          value={body}
-                        >
-                          {body}
-                        </option>
-                      ))}
-                    </select>
-
-                    <ErrorMessage field="executive_body" />
+                    <ErrorMessage field="location" />
                   </div>
 
-                  {/* DESIGNATION */}
 
-                  <div>
-                    <label className={labelClass}>
-                      Designation *
-                    </label>
+      <div className="flex flex-col gap-3 sm:flex-row">
 
-                    <select
-                      name="designation"
-                      value={formData.designation}
-                      onChange={handleChange}
-                      required
-                      className={getInputClass("designation")}
-                    >
-                      <option value="">
-                        Select Designation
-                      </option>
+  {/* CAMERA */}
+  <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
+    📷 Take Photo
 
-                      {designations.map((designation) => (
-                        <option
-                          key={designation}
-                          value={designation}
-                        >
-                          {designation}
-                        </option>
-                      ))}
-                    </select>
+    <input
+      type="file"
+      name="photo"
+      accept="image/jpeg,image/jpg,image/png,image/webp"
+      capture="environment"
+      onChange={handlePhotoChange}
+      className="hidden"
+    />
+  </label>
 
-                    <ErrorMessage field="designation" />
-                  </div>
+  {/* GALLERY */}
+  <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
+    🖼️ Choose Photo
 
-                  {/* DISTRICT */}
+    <input
+      type="file"
+      name="photo"
+      accept="image/jpeg,image/jpg,image/png,image/webp"
+      onChange={handlePhotoChange}
+      className="hidden"
+    />
+  </label>
 
-                  {[
-                    "District Body",
-                    "Mandal Body",
-                    "Sangham Body",
-                  ].includes(formData.executive_body) && (
-                    <div>
-                      <label className={labelClass}>
-                        District *
-                      </label>
-
-                      <select
-                        name="district"
-                        value={formData.district}
-                        onChange={handleDistrictChange}
-                        required
-                        className={getInputClass("district")}
-                      >
-                        <option value="">
-                          Select District
-                        </option>
-
-                        {Object.keys(telanganaData).map(
-                          (district) => (
-                            <option
-                              key={district}
-                              value={district}
-                            >
-                              {district.replaceAll("_", " ")}
-                            </option>
-                          )
-                        )}
-                      </select>
-
-                      <ErrorMessage field="district" />
-                    </div>
-                  )}
-
-                  {/* MANDAL */}
-
-                  {[
-                    "Mandal Body",
-                    "Sangham Body",
-                  ].includes(formData.executive_body) && (
-                    <div>
-                      <label className={labelClass}>
-                        Mandal *
-                      </label>
-
-                      <select
-                        name="mandal"
-                        value={formData.mandal}
-                        onChange={handleMandalChange}
-                        required
-                        disabled={!formData.district}
-                        className={getInputClass("mandal")}
-                      >
-                        <option value="">
-                          Select Mandal
-                        </option>
-
-                        {selectedDistrict?.mandals.map(
-                          (mandal) => (
-                            <option
-                              key={mandal}
-                              value={mandal}
-                            >
-                              {mandal}
-                            </option>
-                          )
-                        )}
-                      </select>
-
-                      <ErrorMessage field="mandal" />
-                    </div>
-                  )}
-
-                  {/* SANGHAM */}
-
-                  {formData.executive_body ===
-                    "Sangham Body" && (
-                    <div>
-                      <label className={labelClass}>
-                        Sangham *
-                      </label>
-
-                      <select
-                        name="sangham"
-                        value={formData.sangham}
-                        onChange={handleChange}
-                        required
-                        disabled={!formData.mandal}
-                        className={getInputClass("sangham")}
-                      >
-                        <option value="">
-                          Select Sangham
-                        </option>
-
-                        {selectedDistrict?.sanghams.map(
-                          (sangham) => (
-                            <option
-                              key={sangham}
-                              value={sangham}
-                            >
-                              {sangham}
-                            </option>
-                          )
-                        )}
-                      </select>
-
-                      <ErrorMessage field="sangham" />
-                    </div>
-                  )}
+</div>
                 </div>
               </section>
 
-              {/* MAHASHABA PAYMENT */}
+         
+
+   
+              {/* =================================================
+                  FAMILY DETAILS
+              ================================================= */}
+
+              <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+                <h2 className="mb-5 text-lg font-semibold text-gray-900">
+                  Family Details
+                </h2>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                  {/* BROTHER COUNT */}
+                  <div>
+                    <label className={labelClass}>
+                      Number of Brothers
+                    </label>
+
+                    <select
+                      value={
+                        brotherCount
+                      }
+                      onChange={
+                        handleBrotherCountChange
+                      }
+                      className={inputClass}
+                    >
+                      {Array.from(
+                        { length: 5 },
+                        (_, index) => (
+                          <option
+                            key={index}
+                            value={index}
+                          >
+                            {index}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+
+                  {/* SISTER COUNT */}
+                  <div>
+                    <label className={labelClass}>
+                      Number of Sisters
+                    </label>
+
+                    <select
+                      value={
+                        sisterCount
+                      }
+                      onChange={
+                        handleSisterCountChange
+                      }
+                      className={inputClass}
+                    >
+                      {Array.from(
+                        { length: 5 },
+                        (_, index) => (
+                          <option
+                            key={index}
+                            value={index}
+                          >
+                            {index}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                {renderSiblingRows(
+                  "brothers"
+                )}
+
+                {renderSiblingRows(
+                  "sisters"
+                )}
+              </section>
+{/* =================================================
+    COMMUNITY MEMBERSHIP DETAILS
+================================================= */}
+
+<section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+  <div className="mb-5">
+    <h2 className="text-lg font-semibold text-gray-900">
+      Community Membership Details
+    </h2>
+
+    <p className="mt-1 text-sm text-gray-500">
+      Select the body in which the member is associated.
+    </p>
+  </div>
+
+  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+    {/* STATE BODY */}
+    <div>
+      <label className={labelClass}>
+        State Body
+      </label>
+
+      <input
+        type="text"
+        value="Telangana State Arya Vysya Mahasabha"
+        readOnly
+        className={`${inputClass} cursor-not-allowed bg-gray-100`}
+      />
+    </div>
+
+    {/* EXECUTIVE BODY */}
+    <div>
+      <label className={labelClass}>
+        Executive Body *
+      </label>
+
+      <select
+        name="executive_body"
+        value={formData.executive_body}
+        onChange={handleExecutiveBodyChange}
+        required
+        className={getInputClass("executive_body")}
+      >
+        <option value="">
+          Select Executive Body
+        </option>
+
+        {executiveBodies.map((body) => (
+          <option key={body} value={body}>
+            {body}
+          </option>
+        ))}
+      </select>
+
+      <ErrorMessage field="executive_body" />
+    </div>
+
+    {/* =================================================
+        DISTRICT
+        Show for District / Mandal / Sangham Body
+    ================================================= */}
+
+    {[
+      "District Body",
+      "Mandal Body",
+      "Sangham Body",
+    ].includes(formData.executive_body) && (
+      <div>
+        <label className={labelClass}>
+          District *
+        </label>
+
+        <select
+          name="district"
+          value={formData.district}
+          onChange={handleDistrictChange}
+          required
+          className={getInputClass("district")}
+        >
+          <option value="">
+            Select District
+          </option>
+
+          {districtList.map((district) => (
+            <option
+              key={district}
+              value={district}
+            >
+              {district.replaceAll("_", " ")}
+            </option>
+          ))}
+        </select>
+
+        <ErrorMessage field="district" />
+      </div>
+    )}
+
+    {/* =================================================
+        MANDAL
+        Show for Mandal / Sangham Body
+    ================================================= */}
+
+    {[
+      "Mandal Body",
+      "Sangham Body",
+    ].includes(formData.executive_body) && (
+      <div>
+        <label className={labelClass}>
+          Mandal *
+        </label>
+
+        <select
+          name="mandal"
+          value={formData.mandal}
+          onChange={handleMandalChange}
+          required
+          disabled={
+            !formData.district ||
+            !selectedDistrict
+          }
+          className={`${getInputClass(
+            "mandal"
+          )} ${
+            !formData.district
+              ? "cursor-not-allowed bg-gray-100"
+              : ""
+          }`}
+        >
+          <option value="">
+            {!formData.district
+              ? "Select District First"
+              : selectedDistrict.mandals.length
+              ? "Select Mandal"
+              : "No Mandals Available"}
+          </option>
+
+          {selectedDistrict?.mandals.map(
+            (mandal) => (
+              <option
+                key={mandal}
+                value={mandal}
+              >
+                {mandal}
+              </option>
+            )
+          )}
+        </select>
+
+        <ErrorMessage field="mandal" />
+      </div>
+    )}
+
+    {/* =================================================
+        SANGHAM
+        Show only for Sangham Body
+    ================================================= */}
+
+    {formData.executive_body ===
+      "Sangham Body" && (
+      <div>
+        <label className={labelClass}>
+          Sangham *
+        </label>
+
+        <select
+          name="sangham"
+          value={formData.sangham}
+          onChange={(e) => {
+            const sangham =
+              e.target.value;
+
+            setFormData((prev) => ({
+              ...prev,
+              sangham,
+            }));
+
+            if (sangham) {
+              clearFieldError("sangham");
+            }
+          }}
+          required
+          disabled={
+            !formData.district ||
+            !formData.mandal ||
+            !selectedDistrict
+          }
+          className={`${getInputClass(
+            "sangham"
+          )} ${
+            !formData.district ||
+            !formData.mandal
+              ? "cursor-not-allowed bg-gray-100"
+              : ""
+          }`}
+        >
+          <option value="">
+            {!formData.district
+              ? "Select District First"
+              : !formData.mandal
+              ? "Select Mandal First"
+              : selectedDistrict.sanghams.length
+              ? "Select Sangham"
+              : "No Sanghams Available"}
+          </option>
+
+          {selectedDistrict?.sanghams.map(
+            (sangham) => (
+              <option
+                key={sangham}
+                value={sangham}
+              >
+                {sangham}
+              </option>
+            )
+          )}
+        </select>
+
+        <ErrorMessage field="sangham" />
+      </div>
+    )}
+
+    {/* =================================================
+        DESIGNATION
+    ================================================= */}
+
+    <div>
+      <label className={labelClass}>
+        Designation *
+      </label>
+
+      <select
+        name="designation"
+        value={formData.designation}
+        onChange={handleChange}
+        required
+        className={getInputClass("designation")}
+      >
+        <option value="">
+          Select Designation
+        </option>
+
+        {designations.map(
+          (designation) => (
+            <option
+              key={designation}
+              value={designation}
+            >
+              {designation}
+            </option>
+          )
+        )}
+      </select>
+
+      <ErrorMessage field="designation" />
+    </div>
+  </div>
+</section>
+
+              {/* =================================================
+                  MAHASHABA PAYMENT
+              ================================================= */}
 
               {renderPaymentSection(
                 "Payment Details Of Mahashaba",
@@ -1951,7 +3304,9 @@ const handleSubmit = async (
                 "mahashaba_payment_date"
               )}
 
-              {/* SANGAM PAYMENT */}
+              {/* =================================================
+                  SANGAM PAYMENT
+              ================================================= */}
 
               {renderPaymentSection(
                 "Payment Details Of Sangam",
@@ -1962,27 +3317,114 @@ const handleSubmit = async (
                 "sangam_payment_date"
               )}
 
-              {/* SUBMIT */}
+              {/* =================================================
+                  DECLARATION & DIVINE BLESSINGS
+              ================================================= */}
 
-              <div className="flex justify-end border-t border-gray-100 pt-6">
+              <section className="rounded-3xl border border-rose-200 bg-rose-50/50 p-5 sm:p-6">
+                <div className="mb-4">
+                  <h2 className="text-lg font-bold text-rose-700 sm:text-xl">
+                    Declaration & Divine Blessings
+                  </h2>
+                </div>
+
+                <div className="rounded-2xl border border-rose-100 bg-white p-5">
+                  <p className="text-sm leading-7 text-gray-700 sm:text-base">
+                    I/We solemnly declare that the
+                    information/data provided by me/us in
+                    this Matrimonial Biodata is true and
+                    correct to the best of my/our knowledge
+                    and belief. I/We seek the divine blessings
+                    of our Arya Vysya Goddess{" "}
+                    <span className="font-bold text-rose-700">
+                      Sri Vasavi Kanyaka Parameshwari Ammavaru
+                    </span>{" "}
+                    for a happy, successful and prosperous
+                    matrimonial alliance.
+                  </p>
+                </div>
+
+                {/* CONSENT */}
+                <div
+                  className={`mt-5 rounded-2xl border p-4 transition ${
+                    errors.consent
+                      ? "border-red-400 bg-red-50"
+                      : "border-gray-200 bg-white"
+                  }`}
+                >
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={
+                        consent
+                      }
+                      onChange={(e) => {
+                        const checked =
+                          e.target.checked;
+
+                        setConsent(
+                          checked
+                        );
+
+                        if (checked) {
+                          clearFieldError(
+                            "consent"
+                          );
+                        } else {
+                          setFieldError(
+                            "consent",
+                            "Please agree to the declaration before submitting"
+                          );
+                        }
+                      }}
+                      className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-600"
+                    />
+
+                    <span className="text-sm leading-6 text-gray-700">
+                      I agree that the information provided by
+                      me/us is true and correct, and I give my
+                      consent to use this information for the
+                      purpose of matrimonial and community
+                      services.
+                      <span className="ml-1 font-semibold text-rose-600">
+                        *
+                      </span>
+                    </span>
+                  </label>
+
+                  <ErrorMessage field="consent" />
+                </div>
+              </section>
+
+              {/* =================================================
+                  SUBMIT
+              ================================================= */}
+
+              <div className="flex flex-col items-center justify-center gap-3 border-t border-gray-100 pt-7">
+
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`h-11 rounded-xl px-7 text-sm font-semibold text-white shadow-sm transition ${
+                  className={`h-12 w-full rounded-xl px-8 text-sm font-semibold text-white shadow-md transition sm:w-auto sm:min-w-[220px] ${
                     loading
                       ? "cursor-not-allowed bg-gray-400"
-                      : "bg-rose-600 hover:bg-rose-700"
+                      : "bg-rose-600 hover:bg-rose-700 hover:shadow-lg"
                   }`}
                 >
                   {loading
                     ? "Registering..."
                     : "Register Now"}
                 </button>
+
+                <p className="text-center text-xs text-gray-500">
+                  By submitting this registration, you
+                  confirm that the information provided is
+                  true and correct.
+                </p>
               </div>
             </form>
 
-            {/* EXISTING MEMBER */}
-
+            {/* EXISTING MEMBERS */}
             <p className="mt-7 text-center text-sm text-gray-600">
               Already registered?
 
