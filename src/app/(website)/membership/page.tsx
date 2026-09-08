@@ -7,7 +7,6 @@ import {
   type FormEvent,
 } from "react";
 
-import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 
 /* =========================================================
@@ -17,6 +16,13 @@ import toast, { Toaster } from "react-hot-toast";
 type DistrictData = {
   mandals: string[];
   sanghams: string[];
+};
+
+type Sibling = {
+  name: string;
+  age: string;
+  marital_status: string;
+  occupation: string;
 };
 
 type FormData = {
@@ -53,688 +59,284 @@ type FormData = {
   designation: string;
 };
 
-type Sibling = {
-  name: string;
-  age: string;
-  marital_status: string;
-  occupation: string;
-};
+type ErrorState = Record<string, string>;
 
 /* =========================================================
-   TELANGANA DISTRICT DATA
+   TELANGANA DATA
 ========================================================= */
 
 const telanganaData: Record<string, DistrictData> = {
-  Adilabad: {
-    mandals: [
-      "Adilabad",
-      "Bela",
-      "Bheempur",
-      "Boath",
-      "Gudihathnur",
-      "Ichoda",
-      "Indervelly",
-      "Jainad",
-      "Mavala",
-      "Narnoor",
-      "Neradigonda",
-      "Sirikonda",
-      "Talamadugu",
-      "Tamsi",
-      "Utnoor",
-    ],
-    sanghams: [],
-  },
-
-  Bhadradri_Kothagudem: {
-    mandals: [
-      "Aswaraopeta",
-      "Burgampahad",
-      "Chandrugonda",
-      "Chunchupally",
-      "Dummugudem",
-      "Gundala",
-      "Kothagudem",
-      "Manuguru",
-      "Mulakalapally",
-      "Palvancha",
-      "Sujathanagar",
-      "Tekulapalle",
-      "Yellandu",
-    ],
-    sanghams: [],
-  },
-
-  Hanamkonda: {
-    mandals: [
-      "Hanamkonda",
-      "Hasanparthy",
-      "Kazipet",
-      "Khila Warangal",
-      "Nadikuda",
-      "Parkal",
-      "Shayampet",
-    ],
-    sanghams: [],
-  },
-
   Hyderabad: {
     mandals: [
       "Amberpet",
       "Asifnagar",
       "Bahadurpura",
-      "Bandlaguda",
       "Charminar",
-      "Golconda",
-      "Himayatnagar",
       "Khairatabad",
-      "Musheerabad",
       "Nampally",
-      "Saidabad",
       "Secunderabad",
+      "Shaikpet",
+      "Musheerabad",
     ],
-    sanghams: [],
-  },
-
-  Jagtial: {
-    mandals: [
-      "Beerpur",
-      "Buggaram",
-      "Dharmapuri",
-      "Gollapalli",
-      "Ibrahimpatnam",
-      "Jagitial",
-      "Kathlapur",
-      "Korutla",
-      "Mallapur",
-      "Mallial",
-      "Medipalli",
-      "Metpalli",
-      "Pegadapalli",
-      "Raikal",
-      "Sarangapur",
-      "Velgatur",
+    sanghams: [
+      "Hyderabad Arya Vysya Sangham",
+      "Secunderabad Arya Vysya Sangham",
+      "Charminar Arya Vysya Sangham",
     ],
-    sanghams: [],
-  },
-
-  Jangaon: {
-    mandals: [
-      "Bachannapet",
-      "Devaruppula",
-      "Ghanpur",
-      "Jangaon",
-      "Kodakandla",
-      "Lingalaghanpur",
-      "Narmetta",
-      "Palakurthi",
-      "Raghunathpalle",
-      "Station Ghanpur",
-      "Zaffergadh",
-    ],
-    sanghams: [],
-  },
-
-  Jayashankar_Bhupalpally: {
-    mandals: [
-      "Bhupalpally",
-      "Chityal",
-      "Ghanpur Mulug",
-      "Kataram",
-      "Mahadevpur",
-      "Malharrao",
-      "Mogullapalle",
-      "Palimela",
-      "Regonda",
-      "Tekumatla",
-    ],
-    sanghams: [],
-  },
-
-  Jogulamba_Gadwal: {
-    mandals: [
-      "Alampur",
-      "Dharur",
-      "Gadwal",
-      "Ghattu",
-      "Ieeja",
-      "Itikyal",
-      "Kaloor Timmanadoddi",
-      "Maldakal",
-      "Manopad",
-      "Rajoli",
-      "Undavelly",
-      "Waddepally",
-    ],
-    sanghams: [],
-  },
-
-  Kamareddy: {
-    mandals: [
-      "Banswada",
-      "Bhiknoor",
-      "Bichkunda",
-      "Bibipet",
-      "Domakonda",
-      "Gandhari",
-      "Jukkal",
-      "Kamareddy",
-      "Lingampet",
-      "Machareddy",
-      "Madnur",
-      "Nagireddypet",
-      "Nizamsagar",
-      "Pedda Kodapgal",
-      "Rajampet",
-      "Ramareddy",
-      "Tadwai",
-      "Yellareddy",
-    ],
-    sanghams: [],
-  },
-
-  Karimnagar: {
-    mandals: [
-      "Chigurumamidi",
-      "Choppadandi",
-      "Gangadhara",
-      "Ganneruvaram",
-      "Huzurabad",
-      "Jammikunta",
-      "Karimnagar",
-      "Keshavapatnam",
-      "Manakondur",
-      "Ramadugu",
-      "Shankarapatnam",
-      "Thimmapur",
-      "Veenavanka",
-    ],
-    sanghams: [],
-  },
-
-  Khammam: {
-    mandals: [
-      "Bonakal",
-      "Chinthakani",
-      "Enkoor",
-      "Kallur",
-      "Khammam Rural",
-      "Khammam Urban",
-      "Konijerla",
-      "Kusumanchi",
-      "Madhira",
-      "Mudigonda",
-      "Nelakondapalle",
-      "Penuballi",
-      "Raghunathapalem",
-      "Sathupalli",
-      "Singareddypalem",
-      "Thallada",
-      "Vemsoor",
-      "Wyra",
-      "Yerrupalem",
-    ],
-    sanghams: [],
-  },
-
-  Komaram_Bheem_Asifabad: {
-    mandals: [
-      "Asifabad",
-      "Bejjur",
-      "Chintalamanepally",
-      "Dahegaon",
-      "Jainoor",
-      "Kagaznagar",
-      "Kerameri",
-      "Koutala",
-      "Lingapur",
-      "Rebbena",
-      "Sirpur",
-      "Sirpur U",
-      "Tiryani",
-      "Wankidi",
-    ],
-    sanghams: [],
-  },
-
-  Mahabubabad: {
-    mandals: [
-      "Bayyaram",
-      "Chinnagudur",
-      "Danthalapalle",
-      "Dornakal",
-      "Garla",
-      "Gudur",
-      "Kesamudram",
-      "Kuravi",
-      "Mahabubabad",
-      "Maripeda",
-      "Narsimhulapet",
-      "Nellikudur",
-      "Peddavangara",
-      "Thorrur",
-    ],
-    sanghams: [],
-  },
-
-  Mahbubnagar: {
-    mandals: [
-      "Addakal",
-      "Balanagar",
-      "Bhoothpur",
-      "Chinna Chintakunta",
-      "Devarakadra",
-      "Gandeed",
-      "Hanwada",
-      "Jadcherla",
-      "Koilkonda",
-      "Mahbubnagar",
-      "Midjil",
-      "Moosapet",
-      "Nawabpet",
-    ],
-    sanghams: [],
-  },
-
-  Mancherial: {
-    mandals: [
-      "Bellampalle",
-      "Bheemaram",
-      "Bheemini",
-      "Chennur",
-      "Dandepally",
-      "Hajipur",
-      "Jaipur",
-      "Jannaram",
-      "Kannepalli",
-      "Kasipet",
-      "Kotapalle",
-      "Luxettipet",
-      "Mancherial",
-      "Mandamarri",
-      "Naspur",
-      "Vemanpalle",
-    ],
-    sanghams: [],
-  },
-
-  Medchal_Malkajgiri: {
-    mandals: [
-      "Alwal",
-      "Bachupally",
-      "Dundigal",
-      "Ghatkesar",
-      "Kapra",
-      "Keesara",
-      "Kukatpally",
-      "Medchal",
-      "Malkajgiri",
-      "Quthbullapur",
-      "Shamirpet",
-      "Uppal",
-    ],
-    sanghams: [],
-  },
-
-  Mulugu: {
-    mandals: [
-      "Eturnagaram",
-      "Govindaraopet",
-      "Kannaigudem",
-      "Mangapet",
-      "Mulugu",
-      "Tadvai",
-      "Venkatapur",
-      "Venkatapuram",
-      "Wazeed",
-    ],
-    sanghams: [],
-  },
-
-  Nagarkurnool: {
-    mandals: [
-      "Achampet",
-      "Amrabad",
-      "Bijinepally",
-      "Charakonda",
-      "Kalwakurthy",
-      "Kodair",
-      "Lingal",
-      "Nagarkurnool",
-      "Padara",
-      "Peddakothapally",
-      "Pentlavelli",
-      "Telkapalle",
-      "Tadoor",
-      "Uppununthala",
-      "Vangoor",
-      "Veldanda",
-      "Thimmajipet",
-    ],
-    sanghams: [],
-  },
-
-  Nalgonda: {
-    mandals: [
-      "Chandur",
-      "Chityal",
-      "Choutuppal",
-      "Damaracherla",
-      "Devarakonda",
-      "Kattangur",
-      "Kethepalle",
-      "Marriguda",
-      "Miryalaguda",
-      "Munugode",
-      "Nakrekal",
-      "Nalgonda",
-      "Nampally",
-      "Narketpally",
-      "Nidamanur",
-      "Peddavoora",
-      "Shaligouraram",
-      "Tipparthi",
-      "Vemulapally",
-    ],
-    sanghams: [],
-  },
-
-  Narayanpet: {
-    mandals: [
-      "Damaragidda",
-      "Dhanwada",
-      "Kosgi",
-      "Krishna",
-      "Maddur",
-      "Maganoor",
-      "Makthal",
-      "Marikal",
-      "Narayanpet",
-      "Narwa",
-      "Utkoor",
-    ],
-    sanghams: [],
-  },
-
-  Nirmal: {
-    mandals: [
-      "Basar",
-      "Bhainsa",
-      "Dilawarpur",
-      "Kaddam Peddur",
-      "Khanapur",
-      "Kubeer",
-      "Kuntala",
-      "Laxmanchanda",
-      "Lokeshwaram",
-      "Mamada",
-      "Mudhole",
-      "Narsapur",
-      "Nirmal",
-      "Sarangapur",
-      "Soan",
-      "Tanoor",
-    ],
-    sanghams: [],
-  },
-
-  Nizamabad: {
-    mandals: [
-      "Armoor",
-      "Balkonda",
-      "Bheemgal",
-      "Bodhan",
-      "Dichpally",
-      "Jakranpally",
-      "Kammarpalle",
-      "Kotgiri",
-      "Makloor",
-      "Mendora",
-      "Mortad",
-      "Mugpal",
-      "Nandipet",
-      "Navipet",
-      "Nizamabad",
-      "Ranjal",
-      "Rudrur",
-      "Sirikonda",
-      "Varni",
-      "Yergatla",
-    ],
-    sanghams: [],
-  },
-
-  Peddapalli: {
-    mandals: [
-      "Anthargaon",
-      "Dharmaram",
-      "Eligaid",
-      "Julapalli",
-      "Kamanpur",
-      "Manthani",
-      "Odela",
-      "Peddapalli",
-      "Ramagiri",
-      "Ramagundam",
-      "Sultanabad",
-      "Srirampur",
-    ],
-    sanghams: [],
-  },
-
-  Rajanna_Sircilla: {
-    mandals: [
-      "Boinpally",
-      "Chandurthi",
-      "Ellanthakunta",
-      "Gambhiraopet",
-      "Illanthakunta",
-      "Konaraopet",
-      "Mustabad",
-      "Rudrangi",
-      "Sircilla",
-      "Thangallapalli",
-      "Vemulawada",
-      "Yellareddypet",
-    ],
-    sanghams: [],
   },
 
   Rangareddy: {
     mandals: [
-      "Abdullapurmet",
-      "Chevella",
-      "Farooqnagar",
-      "Gandipet",
-      "Hayathnagar",
-      "Ibrahimpatnam",
-      "Kandukur",
-      "Maheshwaram",
-      "Manchal",
-      "Moinabad",
       "Rajendranagar",
-      "Saroornagar",
       "Serilingampally",
-      "Shabad",
       "Shamshabad",
-      "Shankarpalle",
-      "Yacharam",
+      "Maheshwaram",
+      "Ibrahimpatnam",
+      "Hayathnagar",
     ],
-    sanghams: [],
+    sanghams: [
+      "Rangareddy Arya Vysya Sangham",
+      "Shamshabad Arya Vysya Sangham",
+      "Rajendranagar Arya Vysya Sangham",
+    ],
+  },
+
+  Medchal_Malkajgiri: {
+    mandals: [
+      "Medchal",
+      "Malkajgiri",
+      "Keesara",
+      "Kapra",
+      "Quthbullapur",
+      "Shamirpet",
+    ],
+    sanghams: [
+      "Medchal Arya Vysya Sangham",
+      "Malkajgiri Arya Vysya Sangham",
+      "Keesara Arya Vysya Sangham",
+    ],
   },
 
   Sangareddy: {
     mandals: [
-      "Ameenpur",
-      "Andole",
-      "Gummadidala",
-      "Hathnoora",
-      "Jharasangam",
-      "Jinnaram",
-      "Kandi",
-      "Kangti",
-      "Kohir",
-      "Manoor",
-      "Munipally",
-      "Narayankhed",
-      "Nyalkal",
-      "Patancheru",
-      "Pulkal",
-      "Raikode",
-      "Ramchandrapuram",
-      "Sadasivpet",
       "Sangareddy",
-      "Sirgapur",
-      "Vatpally",
+      "Patancheru",
+      "Ameenpur",
       "Zaheerabad",
+      "Jinnaram",
+      "Narayankhed",
     ],
-    sanghams: [],
-  },
-
-  Suryapet: {
-    mandals: [
-      "Atmakur",
-      "Chilkur",
-      "Chivvemla",
-      "Garidepally",
-      "Huzurnagar",
-      "Jajireddygudem",
-      "Kodad",
-      "Mattampally",
-      "Mella Cheruvu",
-      "Mothey",
-      "Munagala",
-      "Nadigudem",
-      "Nagaram",
-      "Nereducherla",
-      "Nuthankal",
-      "Palakeedu",
-      "Penpahad",
-      "Suryapet",
-      "Thirumalagiri",
+    sanghams: [
+      "Sangareddy Arya Vysya Sangham",
+      "Patancheru Arya Vysya Sangham",
+      "Zaheerabad Arya Vysya Sangham",
     ],
-    sanghams: [],
-  },
-
-  Vikarabad: {
-    mandals: [
-      "Bantwaram",
-      "Basheerabad",
-      "Bomraspet",
-      "Dharur",
-      "Doma",
-      "Doulatabad",
-      "Kodangal",
-      "Kotepally",
-      "Kulkacharla",
-      "Marpalle",
-      "Mominpet",
-      "Nawabpet",
-      "Pargi",
-      "Peddemul",
-      "Tandur",
-      "Vikarabad",
-      "Yelal",
-    ],
-    sanghams: [],
-  },
-
-  Wanaparthy: {
-    mandals: [
-      "Amarchinta",
-      "Atmakur",
-      "Chinnambavi",
-      "Ghanpur",
-      "Gopalpet",
-      "Kothakota",
-      "Madanapur",
-      "Pangal",
-      "Pebbair",
-      "Peddamandadi",
-      "Revally",
-      "Srirangapur",
-      "Wanaparthy",
-    ],
-    sanghams: [],
   },
 
   Warangal: {
     mandals: [
-      "Atmakur",
-      "Chennaraopet",
-      "Duggondi",
-      "Geesugonda",
-      "Ghanpur",
-      "Khanapur",
-      "Nallabelly",
-      "Narsampet",
-      "Nekkonda",
-      "Parvathagiri",
-      "Rayaparthy",
-      "Sangem",
-      "Wardhannapet",
+      "Hanamkonda",
+      "Kazipet",
       "Warangal",
-    ],
-    sanghams: [],
-  },
-
-  Yadadri_Bhuvanagiri: {
-    mandals: [
-      "Addaguduru",
-      "Alair",
       "Atmakur",
-      "Bhongir",
-      "Bommalaramaram",
-      "Motakondur",
-      "Mothkur",
-      "Pochampally",
-      "Rajapet",
-      "Ramannapeta",
-      "Turkapally",
-      "Valigonda",
-      "Yadagirigutta",
+      "Dharmasagar",
+      "Parkal",
     ],
-    sanghams: [],
+    sanghams: [
+      "Warangal Arya Vysya Sangham",
+      "Hanamkonda Arya Vysya Sangham",
+      "Kazipet Arya Vysya Sangham",
+    ],
   },
 
-  Siddipet: {
+  Karimnagar: {
     mandals: [
-      "Akkannapet",
-      "Bejjanki",
-      "Cherial",
-      "Chinnakodur",
-      "Dubbak",
-      "Gajwel",
-      "Husnabad",
-      "Jagdevpur",
-      "Koheda",
-      "Komuravelli",
-      "Kondapak",
-      "Maddur",
-      "Markook",
-      "Mulugu",
-      "Nangnoor",
-      "Raipole",
-      "Siddipet",
-      "Thoguta",
-      "Wargal",
+      "Karimnagar",
+      "Manakondur",
+      "Huzurabad",
+      "Choppadandi",
+      "Gangadhara",
+      "Veenavanka",
     ],
-    sanghams: [],
+    sanghams: [
+      "Karimnagar Arya Vysya Sangham",
+      "Huzurabad Arya Vysya Sangham",
+      "Manakondur Arya Vysya Sangham",
+    ],
   },
 
-  Jangaon_2: {
+  Nizamabad: {
+    mandals: [
+      "Nizamabad",
+      "Bodhan",
+      "Armoor",
+      "Balkonda",
+      "Dichpally",
+      "Navipet",
+    ],
+    sanghams: [
+      "Nizamabad Arya Vysya Sangham",
+      "Bodhan Arya Vysya Sangham",
+      "Armoor Arya Vysya Sangham",
+    ],
+  },
+
+  Khammam: {
+    mandals: [
+      "Khammam",
+      "Madhira",
+      "Wyra",
+      "Kusumanchi",
+      "Kallur",
+      "Sathupalli",
+    ],
+    sanghams: [
+      "Khammam Arya Vysya Sangham",
+      "Madhira Arya Vysya Sangham",
+      "Sathupalli Arya Vysya Sangham",
+    ],
+  },
+
+  Nalgonda: {
+    mandals: [
+      "Nalgonda",
+      "Miryalaguda",
+      "Devarakonda",
+      "Chandur",
+      "Nakrekal",
+      "Munugode",
+    ],
+    sanghams: [
+      "Nalgonda Arya Vysya Sangham",
+      "Miryalaguda Arya Vysya Sangham",
+      "Devarakonda Arya Vysya Sangham",
+    ],
+  },
+
+  Mahbubnagar: {
+    mandals: [
+      "Mahbubnagar",
+      "Jadcherla",
+      "Bhoothpur",
+      "Devarkadra",
+      "Narayanpet",
+      "Makthal",
+    ],
+    sanghams: [
+      "Mahbubnagar Arya Vysya Sangham",
+      "Jadcherla Arya Vysya Sangham",
+      "Narayanpet Arya Vysya Sangham",
+    ],
+  },
+
+  Adilabad: {
     mandals: [],
     sanghams: [],
   },
 
-  Kamareddy_2: {
+  Bhadradri_Kothagudem: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Hanamkonda: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jagtial: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jangaon: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jayashankar_Bhupalpally: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Jogulamba_Gadwal: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Kamareddy: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Komaram_Bheem_Asifabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Mahabubabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Mancherial: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Mulugu: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Nagarkurnool: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Narayanpet: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Nirmal: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Peddapalli: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Rajanna_Sircilla: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Suryapet: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Vikarabad: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Wanaparthy: {
+    mandals: [],
+    sanghams: [],
+  },
+
+  Yadadri_Bhuvanagiri: {
     mandals: [],
     sanghams: [],
   },
 };
 
 /* =========================================================
-   DISTRICT LIST
+   DISTRICTS
 ========================================================= */
 
 const districtList = [
@@ -764,7 +366,6 @@ const districtList = [
   "Rajanna_Sircilla",
   "Rangareddy",
   "Sangareddy",
-  "Siddipet",
   "Suryapet",
   "Vikarabad",
   "Wanaparthy",
@@ -773,7 +374,7 @@ const districtList = [
 ];
 
 /* =========================================================
-   EXECUTIVE BODY / DESIGNATION
+   EXECUTIVE BODY
 ========================================================= */
 
 const executiveBodies = [
@@ -783,6 +384,10 @@ const executiveBodies = [
   "Sangham Body",
 ];
 
+/* =========================================================
+   DESIGNATIONS
+========================================================= */
+
 const designations = [
   "Member",
   "General Secretary",
@@ -791,6 +396,17 @@ const designations = [
   "Treasurer",
   "Media",
 ];
+
+/* =========================================================
+   INITIAL SIBLING
+========================================================= */
+
+const emptySibling = (): Sibling => ({
+  name: "",
+  age: "",
+  marital_status: "",
+  occupation: "",
+});
 
 /* =========================================================
    INITIAL FORM
@@ -827,36 +443,102 @@ const initialFormData: FormData = {
 };
 
 /* =========================================================
-   COMPONENT
+   STYLES
+========================================================= */
+
+const inputClass =
+  "w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-50";
+
+const labelClass =
+  "mb-2 block text-sm font-medium text-gray-700";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const calculateAge = (dob: string) => {
+  if (!dob) return 0;
+
+  const birthDate = new Date(dob);
+  const today = new Date();
+
+  let age =
+    today.getFullYear() -
+    birthDate.getFullYear();
+
+  const monthDifference =
+    today.getMonth() -
+    birthDate.getMonth();
+
+  if (
+    monthDifference < 0 ||
+    (monthDifference === 0 &&
+      today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age;
+};
+
+const getTodayDate = () => {
+  const today = new Date();
+
+  const year = today.getFullYear();
+
+  const month = String(
+    today.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    today.getDate()
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+/* =========================================================
+   PAGE
 ========================================================= */
 
 export default function MembershipPage() {
   const [formData, setFormData] =
-    useState<FormData>(initialFormData);
+    useState<FormData>({
+      ...initialFormData,
+    });
 
-  const [consent, setConsent] = useState(false);
+  const [errors, setErrors] =
+    useState<ErrorState>({});
 
+  const [loading, setLoading] =
+    useState(false);
+
+  /* PHOTO */
   const [photo, setPhoto] =
     useState<File | null>(null);
 
   const [photoPreview, setPhotoPreview] =
     useState<string>("");
 
-  const [errors, setErrors] =
-    useState<Record<string, string>>({});
-
-  const [isSubmitting, setIsSubmitting] =
+  /* CONSENT */
+  const [consent, setConsent] =
     useState(false);
 
-  const [mahashabaCount, setMahashabaCount] =
+  /* SIBLING COUNTS */
+  const [brotherCount, setBrotherCount] =
     useState(0);
 
-  const [sangamCount, setSangamCount] =
+  const [sisterCount, setSisterCount] =
     useState(0);
 
-  /* =======================================================
-     SELECTED DISTRICT
-  ======================================================= */
+  /* =========================================================
+     LOCATION
+
+     FIX:
+     selectedDistrict is NEVER null.
+     This removes TS18047:
+     "'selectedDistrict' is possibly 'null'"
+  ========================================================= */
 
   const selectedDistrict: DistrictData =
     formData.district &&
@@ -867,23 +549,39 @@ export default function MembershipPage() {
           sanghams: [],
         };
 
-  /* =======================================================
-     INPUT CLASS
-  ======================================================= */
+  /* =========================================================
+     ERROR HELPERS
+  ========================================================= */
+
+  const setFieldError = (
+    field: string,
+    message: string
+  ) => {
+    setErrors((prev) => ({
+      ...prev,
+      [field]: message,
+    }));
+  };
+
+  const clearFieldError = (
+    field: string
+  ) => {
+    setErrors((prev) => {
+      const updated = { ...prev };
+      delete updated[field];
+      return updated;
+    });
+  };
 
   const getInputClass = (
     field: string
   ) => {
-    return `w-full rounded-lg border px-4 py-3 text-sm outline-none transition ${
+    return `${inputClass} ${
       errors[field]
-        ? "border-red-500 bg-red-50 focus:ring-2 focus:ring-red-200"
-        : "border-gray-300 bg-white focus:border-[#800018] focus:ring-2 focus:ring-[#800018]/20"
+        ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+        : ""
     }`;
   };
-
-  /* =======================================================
-     ERROR MESSAGE
-  ======================================================= */
 
   const ErrorMessage = ({
     field,
@@ -899,39 +597,376 @@ export default function MembershipPage() {
     );
   };
 
-  /* =======================================================
-     HANDLE INPUT
-  ======================================================= */
+  /* =========================================================
+     PHOTO CHANGE
+  ========================================================= */
+
+  const handlePhotoChange = (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setPhoto(null);
+      setPhotoPreview("");
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setPhoto(null);
+      setPhotoPreview("");
+      e.target.value = "";
+
+      setFieldError(
+        "photo",
+        "Only JPG, JPEG, PNG and WEBP images are allowed"
+      );
+
+      toast.error("Invalid photo format");
+      return;
+    }
+
+    const maxSize =
+      5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      setPhoto(null);
+      setPhotoPreview("");
+      e.target.value = "";
+
+      setFieldError(
+        "photo",
+        "Photo size must be less than 5 MB"
+      );
+
+      toast.error(
+        "Photo must be less than 5 MB"
+      );
+
+      return;
+    }
+
+    setPhoto(file);
+
+    setPhotoPreview(
+      URL.createObjectURL(file)
+    );
+
+    clearFieldError("photo");
+  };
+
+  /* =========================================================
+     NORMAL CHANGE
+  ========================================================= */
 
   const handleChange = (
     e: ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
+
+    /* MOBILE */
+    if (name === "mobile") {
+      const onlyNumbers =
+        value.replace(/\D/g, "");
+
+      if (onlyNumbers.length > 10) {
+        return;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        mobile: onlyNumbers,
+      }));
+
+      if (!onlyNumbers) {
+        setFieldError(
+          "mobile",
+          "Mobile number is required"
+        );
+      } else if (
+        !/^[6-9]\d{9}$/.test(
+          onlyNumbers
+        )
+      ) {
+        setFieldError(
+          "mobile",
+          "Enter a valid 10-digit Indian mobile number"
+        );
+      } else {
+        clearFieldError("mobile");
+      }
+
+      return;
+    }
+
+    /* FULL NAME */
+    if (name === "full_name") {
+      setFormData((prev) => ({
+        ...prev,
+        full_name: value,
+      }));
+
+      const nameValue =
+        value.trim();
+
+      if (!nameValue) {
+        setFieldError(
+          "full_name",
+          "Full name is required"
+        );
+      } else if (
+        nameValue.length < 3
+      ) {
+        setFieldError(
+          "full_name",
+          "Minimum 3 characters required"
+        );
+      } else if (
+        !/^[A-Za-z\s.'-]+$/.test(
+          nameValue
+        )
+      ) {
+        setFieldError(
+          "full_name",
+          "Only letters and spaces are allowed"
+        );
+      } else {
+        clearFieldError(
+          "full_name"
+        );
+      }
+
+      return;
+    }
+
+    /* SURNAME */
+    if (name === "surname") {
+      setFormData((prev) => ({
+        ...prev,
+        surname: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "surname",
+          "Surname is required"
+        );
+      } else {
+        clearFieldError(
+          "surname"
+        );
+      }
+
+      return;
+    }
+
+    /* EMAIL */
+    if (name === "email") {
+      setFormData((prev) => ({
+        ...prev,
+        email: value,
+      }));
+
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!value.trim()) {
+        setFieldError(
+          "email",
+          "Email address is required"
+        );
+      } else if (
+        !emailRegex.test(value)
+      ) {
+        setFieldError(
+          "email",
+          "Enter a valid email address"
+        );
+      } else {
+        clearFieldError("email");
+      }
+
+      return;
+    }
+
+    /* LOCATION */
+    if (name === "location") {
+      setFormData((prev) => ({
+        ...prev,
+        location: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "location",
+          "Location is required"
+        );
+      } else {
+        clearFieldError("location");
+      }
+
+      return;
+    }
+
+    /* DOB */
+    if (name === "date_of_birth") {
+      setFormData((prev) => ({
+        ...prev,
+        date_of_birth: value,
+      }));
+
+      if (!value) {
+        setFieldError(
+          "date_of_birth",
+          "Date of birth is required"
+        );
+
+        return;
+      }
+
+      const age =
+        calculateAge(value);
+
+      if (age < 18) {
+        setFieldError(
+          "date_of_birth",
+          "Member must be 18 years or above"
+        );
+      } else {
+        clearFieldError(
+          "date_of_birth"
+        );
+      }
+
+      return;
+    }
+
+    /* PAYMENT DATE */
+    if (
+      name ===
+        "mahashaba_payment_date" ||
+      name ===
+        "sangam_payment_date"
+    ) {
+      const today =
+        getTodayDate();
+
+      if (value > today) {
+        setFieldError(
+          name,
+          "Payment date cannot be in the future"
+        );
+
+        return;
+      }
+
+      clearFieldError(name);
+    }
+
+    /* AMOUNT */
+    if (
+      name ===
+        "mahashaba_amount_paid" ||
+      name ===
+        "sangam_amount_paid"
+    ) {
+      if (
+        value !== "" &&
+        Number(value) < 0
+      ) {
+        setFieldError(
+          name,
+          "Amount cannot be negative"
+        );
+      } else if (
+        value !== "" &&
+        Number(value) <= 0
+      ) {
+        setFieldError(
+          name,
+          "Amount must be greater than 0"
+        );
+      } else {
+        clearFieldError(name);
+      }
+    }
+
+    /* PAYMENT STATUS */
+    if (
+      name ===
+        "mahashaba_payment_status" &&
+      value === "Free"
+    ) {
+      clearFieldError(
+        "mahashaba_payment_method"
+      );
+
+      clearFieldError(
+        "mahashaba_receipt_number"
+      );
+
+      clearFieldError(
+        "mahashaba_amount_paid"
+      );
+
+      clearFieldError(
+        "mahashaba_payment_date"
+      );
+    }
+
+    if (
+      name ===
+        "sangam_payment_status" &&
+      value === "Free"
+    ) {
+      clearFieldError(
+        "sangam_payment_method"
+      );
+
+      clearFieldError(
+        "sangam_receipt_number"
+      );
+
+      clearFieldError(
+        "sangam_amount_paid"
+      );
+
+      clearFieldError(
+        "sangam_payment_date"
+      );
+    }
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
-    if (errors[name]) {
-      setErrors((prev) => {
-        const updated = { ...prev };
-        delete updated[name];
-        return updated;
-      });
+    if (value.trim()) {
+      clearFieldError(name);
     }
   };
 
-  /* =======================================================
-     DISTRICT CHANGE
-  ======================================================= */
+  /* =========================================================
+     DISTRICT
+  ========================================================= */
 
   const handleDistrictChange = (
     e: ChangeEvent<HTMLSelectElement>
   ) => {
-    const district = e.target.value;
+    const district =
+      e.target.value;
 
     setFormData((prev) => ({
       ...prev,
@@ -940,216 +975,274 @@ export default function MembershipPage() {
       sangham: "",
     }));
 
-    setErrors((prev) => ({
-      ...prev,
-      district: "",
-      mandal: "",
-      sangham: "",
-    }));
+    clearFieldError("district");
+    clearFieldError("mandal");
+    clearFieldError("sangham");
+
+    if (district) {
+      toast.success(
+        `District selected: ${district.replaceAll(
+          "_",
+          " "
+        )}`
+      );
+    }
   };
 
-  /* =======================================================
-     MANDAL CHANGE
-  ======================================================= */
+  /* =========================================================
+     MANDAL
+  ========================================================= */
 
   const handleMandalChange = (
     e: ChangeEvent<HTMLSelectElement>
   ) => {
+    const mandal =
+      e.target.value;
+
     setFormData((prev) => ({
       ...prev,
-      mandal: e.target.value,
+      mandal,
       sangham: "",
     }));
 
-    setErrors((prev) => ({
-      ...prev,
-      mandal: "",
-      sangham: "",
-    }));
+    clearFieldError("mandal");
+    clearFieldError("sangham");
   };
 
-  /* =======================================================
-     PHOTO
-  ======================================================= */
+  /* =========================================================
+     EXECUTIVE BODY
+  ========================================================= */
 
-  const handlePhotoChange = (
-    e: ChangeEvent<HTMLInputElement>
+  const handleExecutiveBodyChange = (
+    e: ChangeEvent<HTMLSelectElement>
   ) => {
-    const file = e.target.files?.[0];
+    const executive_body =
+      e.target.value;
 
-    if (!file) return;
+    setFormData((prev) => {
+      if (
+        executive_body ===
+        "State Body"
+      ) {
+        return {
+          ...prev,
+          executive_body,
+          district: "",
+          mandal: "",
+          sangham: "",
+        };
+      }
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file.");
-      return;
-    }
+      if (
+        executive_body ===
+        "District Body"
+      ) {
+        return {
+          ...prev,
+          executive_body,
+          mandal: "",
+          sangham: "",
+        };
+      }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Photo size must be below 5 MB.");
-      return;
-    }
+      if (
+        executive_body ===
+        "Mandal Body"
+      ) {
+        return {
+          ...prev,
+          executive_body,
+          sangham: "",
+        };
+      }
 
-    setPhoto(file);
+      return {
+        ...prev,
+        executive_body,
+      };
+    });
 
-    const previewUrl =
-      URL.createObjectURL(file);
+    clearFieldError(
+      "executive_body"
+    );
 
-    setPhotoPreview(previewUrl);
+    clearFieldError("district");
+    clearFieldError("mandal");
+    clearFieldError("sangham");
 
-    setErrors((prev) => ({
-      ...prev,
-      photo: "",
-    }));
+    toast.success(
+      `${executive_body} selected`
+    );
   };
 
-  /* =======================================================
-     AGE VALIDATION
-  ======================================================= */
-
-  const calculateAge = (
-    dob: string
-  ): number => {
-    if (!dob) return 0;
-
-    const birthDate = new Date(dob);
-    const today = new Date();
-
-    let age =
-      today.getFullYear() -
-      birthDate.getFullYear();
-
-    const monthDifference =
-      today.getMonth() -
-      birthDate.getMonth();
-
-    if (
-      monthDifference < 0 ||
-      (monthDifference === 0 &&
-        today.getDate() <
-          birthDate.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  };
-
-  /* =======================================================
+  /* =========================================================
      VALIDATION
-  ======================================================= */
+  ========================================================= */
 
-  const validateForm = () => {
-    const newErrors: Record<
-      string,
-      string
-    > = {};
+  const validateForm = (): boolean => {
+    const newErrors: ErrorState =
+      {};
 
-    if (!formData.full_name.trim()) {
+    /* FULL NAME */
+    const name =
+      formData.full_name.trim();
+
+    if (!name) {
       newErrors.full_name =
-        "Please enter full name.";
-    }
-
-    if (!formData.surname.trim()) {
-      newErrors.surname =
-        "Please enter surname.";
-    }
-
-    if (!formData.mobile.trim()) {
-      newErrors.mobile =
-        "Please enter mobile number.";
+        "Full name is required";
     } else if (
+      name.length < 3
+    ) {
+      newErrors.full_name =
+        "Minimum 3 characters required";
+    } else if (
+      !/^[A-Za-z\s.'-]+$/.test(name)
+    ) {
+      newErrors.full_name =
+        "Only letters and spaces are allowed";
+    }
+
+    /* SURNAME */
+    if (
+      !formData.surname.trim()
+    ) {
+      newErrors.surname =
+        "Surname is required";
+    }
+
+    /* MOBILE */
+    if (
       !/^[6-9]\d{9}$/.test(
-        formData.mobile.trim()
+        formData.mobile
       )
     ) {
       newErrors.mobile =
-        "Please enter a valid 10-digit mobile number.";
+        "Enter a valid 10-digit Indian mobile number";
     }
 
-    if (!formData.email.trim()) {
+    /* EMAIL */
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (
+      !formData.email.trim()
+    ) {
       newErrors.email =
-        "Please enter email address.";
+        "Email address is required";
     } else if (
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      !emailRegex.test(
         formData.email.trim()
       )
     ) {
       newErrors.email =
-        "Please enter a valid email address.";
+        "Enter a valid email address";
     }
 
-    if (!formData.occupation.trim()) {
+    /* OCCUPATION */
+    if (
+      !formData.occupation.trim()
+    ) {
       newErrors.occupation =
-        "Please enter occupation.";
+        "Occupation is required";
     }
 
+    /* LOCATION */
+    if (
+      !formData.location.trim()
+    ) {
+      newErrors.location =
+        "Location is required";
+    }
+
+    /* GENDER */
     if (!formData.gender) {
       newErrors.gender =
-        "Please select gender.";
+        "Please select gender";
     }
 
-    if (!formData.date_of_birth) {
+    /* DOB */
+    if (
+      !formData.date_of_birth
+    ) {
       newErrors.date_of_birth =
-        "Please select date of birth.";
+        "Date of birth is required";
     } else if (
       calculateAge(
         formData.date_of_birth
       ) < 18
     ) {
       newErrors.date_of_birth =
-        "Member must be at least 18 years old.";
+        "Member must be 18 years or above";
     }
 
-    if (!formData.location.trim()) {
-      newErrors.location =
-        "Please enter location.";
+    /* PHOTO */
+    if (!photo) {
+      newErrors.photo =
+        "Member photo is required";
     }
 
-    if (!formData.district) {
-      newErrors.district =
-        "Please select district.";
-    }
-
+    /* EXECUTIVE BODY */
     if (
-      selectedDistrict.mandals.length > 0 &&
+      !formData.executive_body
+    ) {
+      newErrors.executive_body =
+        "Please select Executive Body";
+    }
+
+    /* DESIGNATION */
+    if (!formData.designation) {
+      newErrors.designation =
+        "Please select Designation";
+    }
+
+    /* DISTRICT */
+    if (
+      [
+        "District Body",
+        "Mandal Body",
+        "Sangham Body",
+      ].includes(
+        formData.executive_body
+      ) &&
+      !formData.district
+    ) {
+      newErrors.district =
+        "Please select District";
+    }
+
+    /* MANDAL */
+    if (
+      [
+        "Mandal Body",
+        "Sangham Body",
+      ].includes(
+        formData.executive_body
+      ) &&
       !formData.mandal
     ) {
       newErrors.mandal =
-        "Please select mandal.";
+        "Please select Mandal";
     }
 
+    /* SANGHAM */
     if (
-      selectedDistrict.sanghams.length > 0 &&
+      formData.executive_body ===
+        "Sangham Body" &&
       !formData.sangham
     ) {
       newErrors.sangham =
-        "Please select sangham.";
+        "Please select Sangham";
     }
 
-    if (!formData.executive_body) {
-      newErrors.executive_body =
-        "Please select executive body.";
-    }
-
-    if (!formData.designation) {
-      newErrors.designation =
-        "Please select designation.";
-    }
-
-    if (!photo) {
-      newErrors.photo =
-        "Please upload member photo.";
-    }
-
-    /* MAHASHABA */
-
+    /* MAHASHABA STATUS */
     if (
       !formData.mahashaba_payment_status
     ) {
       newErrors.mahashaba_payment_status =
-        "Please select payment status.";
+        "Please select Mahashaba payment status";
     }
 
+    /* MAHASHABA PAID */
     if (
       formData.mahashaba_payment_status ===
       "Paid"
@@ -1158,40 +1251,49 @@ export default function MembershipPage() {
         !formData.mahashaba_payment_method
       ) {
         newErrors.mahashaba_payment_method =
-          "Please select payment method.";
+          "Please select Mahashaba payment method";
       }
 
       if (
         !formData.mahashaba_receipt_number.trim()
       ) {
         newErrors.mahashaba_receipt_number =
-          "Please enter receipt number.";
+          "Please enter Mahashaba receipt number";
       }
 
       if (
-        !formData.mahashaba_amount_paid
+        !formData.mahashaba_amount_paid ||
+        Number(
+          formData.mahashaba_amount_paid
+        ) <= 0
       ) {
         newErrors.mahashaba_amount_paid =
-          "Please enter amount paid.";
+          "Please enter a valid Mahashaba amount";
       }
 
       if (
         !formData.mahashaba_payment_date
       ) {
         newErrors.mahashaba_payment_date =
-          "Please select payment date.";
+          "Please select Mahashaba payment date";
+      } else if (
+        formData.mahashaba_payment_date >
+        getTodayDate()
+      ) {
+        newErrors.mahashaba_payment_date =
+          "Payment date cannot be in the future";
       }
     }
 
-    /* SANGAM */
-
+    /* SANGAM STATUS */
     if (
       !formData.sangam_payment_status
     ) {
       newErrors.sangam_payment_status =
-        "Please select payment status.";
+        "Please select Sangam payment status";
     }
 
+    /* SANGAM PAID */
     if (
       formData.sangam_payment_status ===
       "Paid"
@@ -1200,272 +1302,107 @@ export default function MembershipPage() {
         !formData.sangam_payment_method
       ) {
         newErrors.sangam_payment_method =
-          "Please select payment method.";
+          "Please select Sangam payment method";
       }
 
       if (
         !formData.sangam_receipt_number.trim()
       ) {
         newErrors.sangam_receipt_number =
-          "Please enter receipt number.";
+          "Please enter Sangam receipt number";
       }
 
       if (
-        !formData.sangam_amount_paid
+        !formData.sangam_amount_paid ||
+        Number(
+          formData.sangam_amount_paid
+        ) <= 0
       ) {
         newErrors.sangam_amount_paid =
-          "Please enter amount paid.";
+          "Please enter a valid Sangam amount";
       }
 
       if (
         !formData.sangam_payment_date
       ) {
         newErrors.sangam_payment_date =
-          "Please select payment date.";
+          "Please select Sangam payment date";
+      } else if (
+        formData.sangam_payment_date >
+        getTodayDate()
+      ) {
+        newErrors.sangam_payment_date =
+          "Payment date cannot be in the future";
       }
     }
 
+    /* CONSENT */
     if (!consent) {
       newErrors.consent =
-        "Please agree to the declaration.";
+        "Please agree to the declaration before submitting";
     }
 
     setErrors(newErrors);
 
-    return (
-      Object.keys(newErrors).length === 0
-    );
+    if (
+      Object.keys(newErrors).length >
+      0
+    ) {
+      toast.error(
+        "Please correct the highlighted fields"
+      );
+
+      return false;
+    }
+
+    return true;
   };
 
-  /* =======================================================
-     PAYMENT SECTION
-  ======================================================= */
-
-  const renderPaymentSection = (
-    title: string,
-    prefix:
-      | "mahashaba"
-      | "sangam"
-  ) => {
-    const isMahashaba =
-      prefix === "mahashaba";
-
-    const statusField =
-      isMahashaba
-        ? "mahashaba_payment_status"
-        : "sangam_payment_status";
-
-    const methodField =
-      isMahashaba
-        ? "mahashaba_payment_method"
-        : "sangam_payment_method";
-
-    const receiptField =
-      isMahashaba
-        ? "mahashaba_receipt_number"
-        : "sangam_receipt_number";
-
-    const amountField =
-      isMahashaba
-        ? "mahashaba_amount_paid"
-        : "sangam_amount_paid";
-
-    const dateField =
-      isMahashaba
-        ? "mahashaba_payment_date"
-        : "sangam_payment_date";
-
-    const statusValue =
-      formData[statusField];
-
-    return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-        <div className="mb-5 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-[#800018]">
-            {title}
-          </h3>
-
-          <span className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-[#800018]">
-            {isMahashaba
-              ? "Membership"
-              : "Sangam"}
-          </span>
-        </div>
-
-        <div className="grid gap-5 md:grid-cols-2">
-          {/* STATUS */}
-
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Payment Status *
-            </label>
-
-            <select
-              name={statusField}
-              value={formData[statusField]}
-              onChange={handleChange}
-              className={getInputClass(
-                statusField
-              )}
-            >
-              <option value="">
-                Select Status
-              </option>
-              <option value="Paid">
-                Paid
-              </option>
-              <option value="Pending">
-                Pending
-              </option>
-              <option value="Not Paid">
-                Not Paid
-              </option>
-            </select>
-
-            <ErrorMessage
-              field={statusField}
-            />
-          </div>
-
-          {/* CONDITIONAL DETAILS */}
-
-          {statusValue === "Paid" && (
-            <>
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Payment Method *
-                </label>
-
-                <select
-                  name={methodField}
-                  value={formData[methodField]}
-                  onChange={handleChange}
-                  className={getInputClass(
-                    methodField
-                  )}
-                >
-                  <option value="">
-                    Select Payment Method
-                  </option>
-                  <option value="Cash">
-                    Cash
-                  </option>
-                  <option value="UPI">
-                    UPI
-                  </option>
-                  <option value="Credit/Debit Card">
-                    Credit/Debit Card
-                  </option>
-                  <option value="Bank Transfer">
-                    Bank Transfer
-                  </option>
-                  <option value="Cheque">
-                    Cheque
-                  </option>
-                </select>
-
-                <ErrorMessage
-                  field={methodField}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Receipt Number *
-                </label>
-
-                <input
-                  type="text"
-                  name={receiptField}
-                  value={formData[receiptField]}
-                  onChange={handleChange}
-                  placeholder="Enter receipt number"
-                  className={getInputClass(
-                    receiptField
-                  )}
-                />
-
-                <ErrorMessage
-                  field={receiptField}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Amount Paid *
-                </label>
-
-                <input
-                  type="number"
-                  min="0"
-                  name={amountField}
-                  value={formData[amountField]}
-                  onChange={handleChange}
-                  placeholder="Enter amount"
-                  className={getInputClass(
-                    amountField
-                  )}
-                />
-
-                <ErrorMessage
-                  field={amountField}
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Payment Date *
-                </label>
-
-                <input
-                  type="date"
-                  name={dateField}
-                  value={formData[dateField]}
-                  onChange={handleChange}
-                  className={getInputClass(
-                    dateField
-                  )}
-                />
-
-                <ErrorMessage
-                  field={dateField}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  /* =======================================================
+  /* =========================================================
      SUBMIT
-  ======================================================= */
+  ========================================================= */
 
   const handleSubmit = async (
     e: FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      toast.error(
-        "Please correct the highlighted fields."
+    if (loading) return;
+
+    if (!consent) {
+      setFieldError(
+        "consent",
+        "Please agree to the declaration before submitting"
       );
+
+      toast.error(
+        "Please agree to the declaration before submitting"
+      );
+
       return;
     }
 
-    if (!photo) {
-      toast.error(
-        "Please upload member photo."
-      );
-      return;
-    }
+    if (!validateForm()) return;
 
-    setIsSubmitting(true);
+    setLoading(true);
+
+    const loadingToast =
+      toast.loading(
+        "Registering membership..."
+      );
 
     try {
-      const body = new window.FormData();
+      const executiveBody =
+        formData.executive_body?.trim() ||
+        "State Body";
 
+      const designation =
+        formData.designation?.trim() ||
+        "Member";
+
+      const body = new FormData();
+
+      /* BASIC */
       body.append(
         "full_name",
         formData.full_name.trim()
@@ -1501,6 +1438,7 @@ export default function MembershipPage() {
         formData.date_of_birth
       );
 
+      /* LOCATION */
       body.append(
         "location",
         formData.location.trim()
@@ -1508,19 +1446,20 @@ export default function MembershipPage() {
 
       body.append(
         "district",
-        formData.district
+        formData.district || ""
       );
 
       body.append(
         "mandal",
-        formData.mandal
+        formData.mandal || ""
       );
 
       body.append(
         "sangham",
-        formData.sangham
+        formData.sangham || ""
       );
 
+      /* MAHASHABA */
       body.append(
         "mahashaba_payment_status",
         formData.mahashaba_payment_status
@@ -1528,24 +1467,25 @@ export default function MembershipPage() {
 
       body.append(
         "mahashaba_payment_method",
-        formData.mahashaba_payment_method
+        formData.mahashaba_payment_method || ""
       );
 
       body.append(
         "mahashaba_receipt_number",
-        formData.mahashaba_receipt_number
+        formData.mahashaba_receipt_number || ""
       );
 
       body.append(
         "mahashaba_amount_paid",
-        formData.mahashaba_amount_paid
+        formData.mahashaba_amount_paid || ""
       );
 
       body.append(
         "mahashaba_payment_date",
-        formData.mahashaba_payment_date
+        formData.mahashaba_payment_date || ""
       );
 
+      /* SANGAM */
       body.append(
         "sangam_payment_status",
         formData.sangam_payment_status
@@ -1553,46 +1493,71 @@ export default function MembershipPage() {
 
       body.append(
         "sangam_payment_method",
-        formData.sangam_payment_method
+        formData.sangam_payment_method || ""
       );
 
       body.append(
         "sangam_receipt_number",
-        formData.sangam_receipt_number
+        formData.sangam_receipt_number || ""
       );
 
       body.append(
         "sangam_amount_paid",
-        formData.sangam_amount_paid
+        formData.sangam_amount_paid || ""
       );
 
       body.append(
         "sangam_payment_date",
-        formData.sangam_payment_date
+        formData.sangam_payment_date || ""
       );
 
+      /* BODY */
       body.append(
         "executive_body",
-        formData.executive_body
+        executiveBody
       );
 
       body.append(
         "designation",
-        formData.designation
+        designation
       );
 
+      /* CONSENT */
       body.append(
         "consent",
         String(consent)
       );
 
-      body.append(
-        "photo",
-        photo
+      /* PHOTO */
+      if (photo) {
+        body.append(
+          "photo",
+          photo
+        );
+      }
+
+      console.log(
+        "Submitting membership registration..."
+      );
+
+      console.log(
+        "Photo:",
+        photo?.name || "No photo"
+      );
+
+      console.log(
+        "Consent:",
+        consent
+      );
+
+      console.log(
+        "Location:",
+        formData.location
       );
 
       const apiUrl = (
-        process.env.NEXT_PUBLIC_BACKEND_URL ||
+        process.env
+          .NEXT_PUBLIC_BACKEND_URL ||
         "http://localhost:5000"
       ).replace(/\/$/, "");
 
@@ -1600,715 +1565,1210 @@ export default function MembershipPage() {
         `${apiUrl}/membership-register`;
 
       console.log(
-        "MEMBERSHIP API:",
+        "Membership API:",
         apiEndpoint
       );
 
-      const response = await fetch(
-        apiEndpoint,
-        {
-          method: "POST",
-          body,
-        }
-      );
+      const response =
+        await fetch(
+          apiEndpoint,
+          {
+            method: "POST",
+            body,
+          }
+        );
 
-      let result: any = {};
+      const contentType =
+        response.headers.get(
+          "content-type"
+        ) || "";
 
-      try {
-        result = await response.json();
-      } catch {
-        result = {};
+      let data: any = null;
+
+      if (
+        contentType.includes(
+          "application/json"
+        )
+      ) {
+        data =
+          await response.json();
+      } else {
+        const text =
+          await response.text();
+
+        data = {
+          message: text,
+        };
       }
 
-      if (!response.ok) {
-        const message =
-          result?.message ||
-          "Registration failed. Please try again.";
+      console.log(
+        "Membership API response:",
+        data
+      );
 
+      if (!response.ok) {
         throw new Error(
-          Array.isArray(message)
-            ? message.join(", ")
-            : message
+          Array.isArray(
+            data?.message
+          )
+            ? data.message.join(
+                ", "
+              )
+            : data?.message ||
+                `Registration failed (${response.status})`
         );
       }
 
+      toast.dismiss(
+        loadingToast
+      );
+
+      const memberId =
+        data?.member_id ||
+        data?.data?.member_id ||
+        "";
+
       toast.success(
-        result?.message ||
-          "Membership registration submitted successfully!"
+        `Membership registration successful!${
+          memberId
+            ? ` Member ID: ${memberId}`
+            : ""
+        }`,
+        {
+          duration: 6000,
+        }
       );
 
       /* RESET */
+      setFormData({
+        ...initialFormData,
+      });
 
-      setFormData(initialFormData);
       setPhoto(null);
       setPhotoPreview("");
-      setConsent(false);
-      setMahashabaCount(0);
-      setSangamCount(0);
-      setErrors({});
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    } catch (error) {
+      setBrotherCount(0);
+      setSisterCount(0);
+
+      setConsent(false);
+
+      setErrors({});
+    } catch (err) {
       console.error(
-        "MEMBERSHIP REGISTER ERROR:",
-        error
+        "MEMBERSHIP REGISTRATION ERROR:",
+        err
+      );
+
+      toast.dismiss(
+        loadingToast
       );
 
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Registration failed."
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again.",
+        {
+          duration: 6000,
+        }
       );
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  /* =======================================================
-     UI
-  ======================================================= */
+  /* =========================================================
+     PAYMENT SECTION
+  ========================================================= */
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 via-white to-white">
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-      />
+  const renderPaymentSection = (
+    title: string,
+    statusName:
+      | "mahashaba_payment_status"
+      | "sangam_payment_status",
+    methodName:
+      | "mahashaba_payment_method"
+      | "sangam_payment_method",
+    receiptName:
+      | "mahashaba_receipt_number"
+      | "sangam_receipt_number",
+    amountName:
+      | "mahashaba_amount_paid"
+      | "sangam_amount_paid",
+    dateName:
+      | "mahashaba_payment_date"
+      | "sangam_payment_date"
+  ) => {
+    const paid =
+      formData[statusName] ===
+      "Paid";
 
-      {/* ===================================================
-          TOP BANNER
-      =================================================== */}
+    return (
+      <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5 sm:p-6">
+        <h2 className="text-lg font-semibold text-gray-900">
+          {title}
+        </h2>
 
-      <section className="border-b border-pink-100 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-8 text-center sm:px-6 lg:px-8">
-          <p className="mb-2 text-sm font-bold tracking-[0.25em] text-[#800018]">
-            SERVICE IS OUR MOTTO
-          </p>
+        <p className="mb-5 mt-1 text-xs text-gray-500">
+          Enter payment details if payment has been made.
+        </p>
 
-          <h1 className="font-serif text-3xl font-bold text-[#800018] sm:text-4xl">
-            Arya Vysya Membership Registration
-          </h1>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div>
+            <label className={labelClass}>
+              Payment Status *
+            </label>
 
-          <p className="mx-auto mt-3 max-w-3xl text-sm leading-6 text-gray-600 sm:text-base">
-            Register as a member and become part of our
-            community service initiatives.
-          </p>
+            <select
+              name={statusName}
+              value={
+                formData[
+                  statusName
+                ]
+              }
+              onChange={handleChange}
+              className={getInputClass(
+                statusName
+              )}
+            >
+              <option value="">
+                Select Payment Status
+              </option>
 
-          <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <span className="rounded-full bg-[#800018] px-4 py-2 text-xs font-semibold text-white">
-              FREE REGISTRATION – 99 DAYS
-            </span>
+              <option value="Paid">
+                Paid
+              </option>
 
-            <span className="rounded-full border border-[#800018] px-4 py-2 text-xs font-semibold text-[#800018]">
-              EXTENSION UP TO 180 DAYS
-            </span>
+              <option value="Free">
+                Free
+              </option>
+            </select>
 
-            <span className="rounded-full bg-pink-100 px-4 py-2 text-xs font-semibold text-[#800018]">
-              COMMUNITY SUPPORT
-            </span>
+            <ErrorMessage
+              field={statusName}
+            />
           </div>
-        </div>
-      </section>
 
-      {/* ===================================================
-          FORM
-      =================================================== */}
-
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          className="space-y-8"
-        >
-          {/* =================================================
-              MEMBER DETAILS
-          ================================================= */}
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
-            <div className="mb-6 border-b border-gray-100 pb-4">
-              <h2 className="font-serif text-2xl font-bold text-[#800018]">
-                Member Details
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Please enter the member's basic information.
-              </p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              {/* FULL NAME */}
-
+          {paid && (
+            <>
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Full Name *
+                <label className={labelClass}>
+                  Payment Method *
                 </label>
 
-                <input
-                  type="text"
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  placeholder="Enter full name"
+                <select
+                  name={methodName}
+                  value={
+                    formData[
+                      methodName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
                   className={getInputClass(
-                    "full_name"
+                    methodName
                   )}
-                />
+                >
+                  <option value="">
+                    Select Payment Method
+                  </option>
 
-                <ErrorMessage field="full_name" />
+                  <option value="UPI">
+                    UPI
+                  </option>
+
+                  <option value="Credit/Debit Card">
+                    Credit/Debit Card
+                  </option>
+
+                  <option value="Net Banking">
+                    Net Banking
+                  </option>
+
+                  <option value="Cash">
+                    Cash
+                  </option>
+                </select>
+
+                <ErrorMessage
+                  field={methodName}
+                />
               </div>
 
-              {/* SURNAME */}
-
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Surname *
+                <label className={labelClass}>
+                  Receipt Number *
                 </label>
 
                 <input
-                  type="text"
-                  name="surname"
-                  value={formData.surname}
-                  onChange={handleChange}
-                  placeholder="Enter surname"
+                  name={receiptName}
+                  value={
+                    formData[
+                      receiptName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  placeholder="Enter Receipt Number"
+                  maxLength={50}
                   className={getInputClass(
-                    "surname"
-                  )}
-                />
-
-                <ErrorMessage field="surname" />
-              </div>
-
-              {/* MOBILE */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Mobile Number *
-                </label>
-
-                <input
-                  type="tel"
-                  name="mobile"
-                  maxLength={10}
-                  value={formData.mobile}
-                  onChange={handleChange}
-                  placeholder="10-digit mobile number"
-                  className={getInputClass(
-                    "mobile"
-                  )}
-                />
-
-                <ErrorMessage field="mobile" />
-              </div>
-
-              {/* EMAIL */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Email *
-                </label>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter email address"
-                  className={getInputClass(
-                    "email"
-                  )}
-                />
-
-                <ErrorMessage field="email" />
-              </div>
-
-              {/* OCCUPATION */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Occupation *
-                </label>
-
-                <input
-                  type="text"
-                  name="occupation"
-                  value={formData.occupation}
-                  onChange={handleChange}
-                  placeholder="Enter occupation"
-                  className={getInputClass(
-                    "occupation"
+                    receiptName
                   )}
                 />
 
                 <ErrorMessage
-                  field="occupation"
+                  field={receiptName}
                 />
               </div>
 
-              {/* GENDER */}
-
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Gender *
+                <label className={labelClass}>
+                  Amount Paid *
                 </label>
 
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  name={amountName}
+                  value={
+                    formData[
+                      amountName
+                    ]
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  placeholder="Enter Amount Paid"
                   className={getInputClass(
-                    "gender"
+                    amountName
                   )}
-                >
-                  <option value="">
-                    Select Gender
-                  </option>
-                  <option value="Male">
-                    Male
-                  </option>
-                  <option value="Female">
-                    Female
-                  </option>
-                  <option value="Other">
-                    Other
-                  </option>
-                </select>
+                />
 
-                <ErrorMessage field="gender" />
+                <ErrorMessage
+                  field={amountName}
+                />
               </div>
 
-              {/* DOB */}
-
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Date of Birth *
+                <label className={labelClass}>
+                  Payment Date *
                 </label>
 
                 <input
                   type="date"
-                  name="date_of_birth"
-                  value={formData.date_of_birth}
-                  onChange={handleChange}
-                  className={getInputClass(
-                    "date_of_birth"
-                  )}
-                />
-
-                {formData.date_of_birth && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Age:{" "}
-                    {calculateAge(
-                      formData.date_of_birth
-                    )}{" "}
-                    years
-                  </p>
-                )}
-
-                <ErrorMessage
-                  field="date_of_birth"
-                />
-              </div>
-
-              {/* LOCATION */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Location *
-                </label>
-
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  placeholder="Village / Town / City"
-                  className={getInputClass(
-                    "location"
-                  )}
-                />
-
-                <ErrorMessage field="location" />
-              </div>
-            </div>
-          </section>
-
-          {/* =================================================
-              PHOTO
-          ================================================= */}
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
-            <div className="mb-6 border-b border-gray-100 pb-4">
-              <h2 className="font-serif text-2xl font-bold text-[#800018]">
-                Member Photo
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Upload a clear passport-size photo.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center gap-5 sm:flex-row">
-              {photoPreview ? (
-                <img
-                  src={photoPreview}
-                  alt="Member preview"
-                  className="h-36 w-36 rounded-xl border-4 border-pink-100 object-cover shadow"
-                />
-              ) : (
-                <div className="flex h-36 w-36 items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-center text-xs text-gray-400">
-                  Photo Preview
-                </div>
-              )}
-
-              <div className="w-full max-w-md">
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Upload Photo *
-                </label>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-sm"
-                />
-
-                <p className="mt-2 text-xs text-gray-500">
-                  JPG, JPEG, PNG. Maximum size 5 MB.
-                </p>
-
-                <ErrorMessage field="photo" />
-              </div>
-            </div>
-          </section>
-
-          {/* =================================================
-              COMMUNITY LOCATION
-          ================================================= */}
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
-            <div className="mb-6 border-b border-gray-100 pb-4">
-              <h2 className="font-serif text-2xl font-bold text-[#800018]">
-                Community Membership Details
-              </h2>
-
-              <p className="mt-1 text-sm text-gray-500">
-                Select your district, mandal and sangham.
-              </p>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-3">
-              {/* DISTRICT */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  District *
-                </label>
-
-                <select
-                  name="district"
-                  value={formData.district}
-                  onChange={handleDistrictChange}
-                  className={getInputClass(
-                    "district"
-                  )}
-                >
-                  <option value="">
-                    Select District
-                  </option>
-
-                  {districtList.map(
-                    (district) => (
-                      <option
-                        key={district}
-                        value={district}
-                      >
-                        {district.replace(
-                          /_/g,
-                          " "
-                        )}
-                      </option>
-                    )
-                  )}
-                </select>
-
-                <ErrorMessage field="district" />
-              </div>
-
-              {/* MANDAL */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Mandal
-                </label>
-
-                <select
-                  name="mandal"
-                  value={formData.mandal}
-                  onChange={handleMandalChange}
-                  disabled={
-                    !formData.district ||
-                    selectedDistrict.mandals
-                      .length === 0
+                  name={dateName}
+                  value={
+                    formData[
+                      dateName
+                    ]
                   }
-                  className={`${getInputClass(
-                    "mandal"
-                  )} disabled:cursor-not-allowed disabled:bg-gray-100`}
-                >
-                  <option value="">
-                    {selectedDistrict.mandals
-                      .length > 0
-                      ? "Select Mandal"
-                      : "Mandal not available"}
-                  </option>
-
-                  {selectedDistrict.mandals.map(
-                    (mandal) => (
-                      <option
-                        key={mandal}
-                        value={mandal}
-                      >
-                        {mandal}
-                      </option>
-                    )
-                  )}
-                </select>
-
-                <ErrorMessage field="mandal" />
-              </div>
-
-              {/* SANGHAM */}
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Sangham
-                </label>
-
-                <select
-                  name="sangham"
-                  value={formData.sangham}
-                  onChange={handleChange}
-                  disabled={
-                    !formData.district ||
-                    selectedDistrict.sanghams
-                      .length === 0
+                  onChange={
+                    handleChange
                   }
-                  className={`${getInputClass(
-                    "sangham"
-                  )} disabled:cursor-not-allowed disabled:bg-gray-100`}
-                >
-                  <option value="">
-                    {selectedDistrict.sanghams
-                      .length > 0
-                      ? "Select Sangham"
-                      : "Sangham not available"}
-                  </option>
-
-                  {selectedDistrict.sanghams.map(
-                    (sangham) => (
-                      <option
-                        key={sangham}
-                        value={sangham}
-                      >
-                        {sangham}
-                      </option>
-                    )
-                  )}
-                </select>
-
-                <ErrorMessage field="sangham" />
-              </div>
-            </div>
-          </section>
-
-          {/* =================================================
-              EXECUTIVE BODY
-          ================================================= */}
-
-          <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-7">
-            <div className="mb-6 border-b border-gray-100 pb-4">
-              <h2 className="font-serif text-2xl font-bold text-[#800018]">
-                Executive Body
-              </h2>
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Executive Body *
-                </label>
-
-                <select
-                  name="executive_body"
-                  value={formData.executive_body}
-                  onChange={handleChange}
+                  max={getTodayDate()}
                   className={getInputClass(
-                    "executive_body"
+                    dateName
                   )}
-                >
-                  <option value="">
-                    Select Executive Body
-                  </option>
-
-                  {executiveBodies.map(
-                    (body) => (
-                      <option
-                        key={body}
-                        value={body}
-                      >
-                        {body}
-                      </option>
-                    )
-                  )}
-                </select>
+                />
 
                 <ErrorMessage
-                  field="executive_body"
+                  field={dateName}
                 />
               </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Designation *
-                </label>
-
-                <select
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleChange}
-                  className={getInputClass(
-                    "designation"
-                  )}
-                >
-                  <option value="">
-                    Select Designation
-                  </option>
-
-                  {designations.map(
-                    (designation) => (
-                      <option
-                        key={designation}
-                        value={designation}
-                      >
-                        {designation}
-                      </option>
-                    )
-                  )}
-                </select>
-
-                <ErrorMessage
-                  field="designation"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* =================================================
-              MAHASHABA PAYMENT
-          ================================================= */}
-
-          {renderPaymentSection(
-            "Mahashaba Payment Details",
-            "mahashaba"
+            </>
           )}
+        </div>
+      </section>
+    );
+  };
 
-          {/* =================================================
-              SANGAM PAYMENT
-          ================================================= */}
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
-          {renderPaymentSection(
-            "Sangam Payment Details",
-            "sangam"
-          )}
+  return (
+    <>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: "12px",
+            fontSize: "14px",
+            fontWeight: "500",
+          },
+          success: {
+            duration: 5000,
+          },
+          error: {
+            duration: 5000,
+          },
+        }}
+      />
 
-          {/* =================================================
-              DECLARATION
-          ================================================= */}
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
-          <section className="rounded-2xl border border-[#800018]/20 bg-pink-50 p-5 shadow-sm sm:p-7">
-            <h2 className="font-serif text-2xl font-bold text-[#800018]">
-              Declaration & Divine Blessings
-            </h2>
+          {/* HEADER */}
 
-            <p className="mt-4 text-sm leading-7 text-gray-700">
-              I/We solemnly declare that the
-              information/data provided by me/us
-              in this Matrimonial Biodata is true
-              and correct to the best of my/our
-              knowledge and belief. I/We seek the
-              divine blessings of our Arya Vysya
-              Goddess{" "}
-              <strong>
-                Sri Vasavi Kanyaka Parameshwari
-                Ammavaru
-              </strong>{" "}
-              for a happy, successful and
-              prosperous matrimonial alliance.
+          <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
+            <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
+              Membership Registration
+            </h1>
+
+            <p className="mt-2 text-sm text-gray-600 sm:text-base">
+              Complete the membership registration form
             </p>
 
-            <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4">
-              <label className="flex cursor-pointer items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={consent}
-                  onChange={(e) => {
-                    setConsent(
-                      e.target.checked
-                    );
-
-                    if (e.target.checked) {
-                      setErrors((prev) => ({
-                        ...prev,
-                        consent: "",
-                      }));
-                    }
-                  }}
-                  className="mt-1 h-5 w-5 accent-[#800018]"
-                />
-
-                <span className="text-sm leading-6 text-gray-700">
-                  I agree that the information
-                  provided by me/us is true and
-                  correct, and I give my consent to
-                  use this information for the
-                  purpose of matrimonial and
-                  community services.
-                  <strong className="ml-1 text-red-600">
-                    *
-                  </strong>
-                </span>
-              </label>
-
-              <ErrorMessage field="consent" />
+            <div className="mt-4 inline-flex rounded-full border border-rose-200 bg-rose-50 px-5 py-2">
+              <span className="text-sm font-semibold text-rose-700">
+                Eligibility: 18 Years & Above — Male & Female
+              </span>
             </div>
-          </section>
-
-          {/* =================================================
-              SUBMIT
-          ================================================= */}
-
-          <div className="flex flex-col items-center gap-4 pb-8">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full max-w-md rounded-xl bg-[#800018] px-8 py-4 text-base font-bold text-white shadow-lg transition hover:bg-[#650014] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting
-                ? "Submitting Registration..."
-                : "Submit Membership Registration"}
-            </button>
-
-            <Link
-              href="/membership/details"
-              className="text-sm font-semibold text-[#800018] underline underline-offset-4 hover:text-[#650014]"
-            >
-              Already a Member? View Member Details
-            </Link>
           </div>
-        </form>
-      </main>
-    </div>
+
+          <div className="space-y-7 p-5 sm:p-8">
+
+            {/* SERVICE */}
+
+            <section className="rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-white p-6 shadow-sm sm:p-8">
+              <div className="text-center">
+                <div className="mb-2 text-3xl">
+                  🙏
+                </div>
+
+                <h2 className="text-xl font-bold uppercase tracking-wide text-rose-700 sm:text-2xl">
+                  SERVICE IS OUR MOTTO
+                </h2>
+
+                <p className="mx-auto mt-4 max-w-4xl text-sm leading-7 text-gray-700 sm:text-base">
+                  This matrimonial website is intended to sustain
+                  and serve our community for a long time with
+                  your wholehearted support. Our aim is to provide
+                  safe, accountable and good connectivity for our
+                  unmarried youth and married couples and to
+                  strengthen the Vysya community.
+                </p>
+              </div>
+
+              <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
+
+                <div className="rounded-2xl border border-green-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mb-3 text-3xl">
+                    🆓
+                  </div>
+
+                  <h3 className="text-base font-bold text-green-700">
+                    FREE REGISTRATION
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-600">
+                    Registration available for 99 days
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-blue-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mb-3 text-3xl">
+                    📅
+                  </div>
+
+                  <h3 className="text-base font-bold text-blue-700">
+                    EXTENSION
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-600">
+                    Can be extended up to 180 days
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-amber-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mb-3 text-3xl">
+                    🤝
+                  </div>
+
+                  <h3 className="text-base font-bold text-amber-700">
+                    COMMUNITY SUPPORT
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
+                    Voluntary three-digit contribution where applicable
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-rose-100 bg-white px-5 py-4 text-center">
+                <p className="text-sm font-semibold leading-6 text-rose-700">
+                  Registration is offered free for the initial
+                  99 days. Extension support up to 180 days may
+                  be facilitated through a voluntary contribution.
+                </p>
+              </div>
+            </section>
+
+            {/* FORM */}
+
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="space-y-7"
+            >
+
+              {/* MEMBER DETAILS */}
+
+              <section>
+                <h2 className="mb-5 text-lg font-semibold text-gray-900">
+                  Member Details
+                </h2>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                  {/* FULL NAME */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Full Name *
+                    </label>
+
+                    <input
+                      name="full_name"
+                      value={
+                        formData.full_name
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Full Name"
+                      minLength={3}
+                      maxLength={100}
+                      className={getInputClass(
+                        "full_name"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="full_name"
+                    />
+                  </div>
+
+                  {/* SURNAME */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Surname *
+                    </label>
+
+                    <input
+                      name="surname"
+                      value={
+                        formData.surname
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Surname"
+                      maxLength={100}
+                      className={getInputClass(
+                        "surname"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="surname"
+                    />
+                  </div>
+
+                  {/* MOBILE */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Mobile Number *
+                    </label>
+
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={
+                        formData.mobile
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter 10 Digit Mobile Number"
+                      inputMode="numeric"
+                      maxLength={10}
+                      className={getInputClass(
+                        "mobile"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="mobile"
+                    />
+                  </div>
+
+                  {/* EMAIL */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Email Address *
+                    </label>
+
+                    <input
+                      type="email"
+                      name="email"
+                      value={
+                        formData.email
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Email Address"
+                      maxLength={150}
+                      className={getInputClass(
+                        "email"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="email"
+                    />
+                  </div>
+
+                  {/* GENDER */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Gender *
+                    </label>
+
+                    <select
+                      name="gender"
+                      value={
+                        formData.gender
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className={getInputClass(
+                        "gender"
+                      )}
+                    >
+                      <option value="">
+                        Select Gender
+                      </option>
+
+                      <option value="Male">
+                        Male
+                      </option>
+
+                      <option value="Female">
+                        Female
+                      </option>
+                    </select>
+
+                    <ErrorMessage
+                      field="gender"
+                    />
+                  </div>
+
+                  {/* DOB */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Date of Birth *
+                    </label>
+
+                    <input
+                      type="date"
+                      name="date_of_birth"
+                      value={
+                        formData.date_of_birth
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      max={getTodayDate()}
+                      className={getInputClass(
+                        "date_of_birth"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="date_of_birth"
+                    />
+
+                    {formData.date_of_birth &&
+                      calculateAge(
+                        formData.date_of_birth
+                      ) >= 0 && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Age:{" "}
+                          {calculateAge(
+                            formData.date_of_birth
+                          )}{" "}
+                          years
+                        </p>
+                      )}
+                  </div>
+
+                  {/* OCCUPATION */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Occupation *
+                    </label>
+
+                    <input
+                      name="occupation"
+                      value={
+                        formData.occupation
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Occupation"
+                      maxLength={100}
+                      className={getInputClass(
+                        "occupation"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="occupation"
+                    />
+                  </div>
+
+                  {/* LOCATION */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Location *
+                    </label>
+
+                    <input
+                      type="text"
+                      name="location"
+                      value={
+                        formData.location
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Location"
+                      maxLength={100}
+                      className={getInputClass(
+                        "location"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="location"
+                    />
+                  </div>
+
+                  {/* PHOTO */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Member Photo *
+                    </label>
+
+                    <div className="flex flex-col gap-3 sm:flex-row">
+
+                      {/* CAMERA */}
+
+                      <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
+                        📷 Take Photo
+
+                        <input
+                          type="file"
+                          name="photo"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          capture="environment"
+                          onChange={
+                            handlePhotoChange
+                          }
+                          className="hidden"
+                        />
+                      </label>
+
+                      {/* GALLERY */}
+
+                      <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
+                        🖼️ Choose Photo
+
+                        <input
+                          type="file"
+                          name="photo"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={
+                            handlePhotoChange
+                          }
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    {photoPreview && (
+                      <div className="mt-4">
+                        <img
+                          src={photoPreview}
+                          alt="Selected member"
+                          className="h-32 w-32 rounded-2xl object-cover border border-rose-200 shadow-sm"
+                        />
+                      </div>
+                    )}
+
+                    <ErrorMessage
+                      field="photo"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* COMMUNITY MEMBERSHIP DETAILS */}
+
+              <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+
+                <div className="mb-5">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Community Membership Details
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Select the body in which the member is associated.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+
+                  {/* STATE BODY */}
+
+                  <div>
+                    <label className={labelClass}>
+                      State Body
+                    </label>
+
+                    <input
+                      type="text"
+                      value="Telangana State Arya Vysya Mahasabha"
+                      readOnly
+                      className={`${inputClass} cursor-not-allowed bg-gray-100`}
+                    />
+                  </div>
+
+                  {/* EXECUTIVE BODY */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Executive Body *
+                    </label>
+
+                    <select
+                      name="executive_body"
+                      value={
+                        formData.executive_body
+                      }
+                      onChange={
+                        handleExecutiveBodyChange
+                      }
+                      className={getInputClass(
+                        "executive_body"
+                      )}
+                    >
+                      <option value="">
+                        Select Executive Body
+                      </option>
+
+                      {executiveBodies.map(
+                        (body) => (
+                          <option
+                            key={body}
+                            value={body}
+                          >
+                            {body}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                    <ErrorMessage
+                      field="executive_body"
+                    />
+                  </div>
+
+                  {/* DISTRICT */}
+
+                  {[
+                    "District Body",
+                    "Mandal Body",
+                    "Sangham Body",
+                  ].includes(
+                    formData.executive_body
+                  ) && (
+                    <div>
+                      <label className={labelClass}>
+                        District *
+                      </label>
+
+                      <select
+                        name="district"
+                        value={
+                          formData.district
+                        }
+                        onChange={
+                          handleDistrictChange
+                        }
+                        className={getInputClass(
+                          "district"
+                        )}
+                      >
+                        <option value="">
+                          Select District
+                        </option>
+
+                        {districtList.map(
+                          (district) => (
+                            <option
+                              key={district}
+                              value={district}
+                            >
+                              {district.replaceAll(
+                                "_",
+                                " "
+                              )}
+                            </option>
+                          )
+                        )}
+                      </select>
+
+                      <ErrorMessage
+                        field="district"
+                      />
+                    </div>
+                  )}
+
+                  {/* MANDAL */}
+
+                  {[
+                    "Mandal Body",
+                    "Sangham Body",
+                  ].includes(
+                    formData.executive_body
+                  ) && (
+                    <div>
+                      <label className={labelClass}>
+                        Mandal *
+                      </label>
+
+                      <select
+                        name="mandal"
+                        value={
+                          formData.mandal
+                        }
+                        onChange={
+                          handleMandalChange
+                        }
+                        disabled={
+                          !formData.district
+                        }
+                        className={`${getInputClass(
+                          "mandal"
+                        )} ${
+                          !formData.district
+                            ? "cursor-not-allowed bg-gray-100"
+                            : ""
+                        }`}
+                      >
+                        <option value="">
+                          {!formData.district
+                            ? "Select District First"
+                            : selectedDistrict.mandals.length
+                            ? "Select Mandal"
+                            : "No Mandals Available"}
+                        </option>
+
+                        {selectedDistrict.mandals.map(
+                          (mandal) => (
+                            <option
+                              key={mandal}
+                              value={mandal}
+                            >
+                              {mandal}
+                            </option>
+                          )
+                        )}
+                      </select>
+
+                      <ErrorMessage
+                        field="mandal"
+                      />
+                    </div>
+                  )}
+
+                  {/* SANGHAM */}
+
+                  {formData.executive_body ===
+                    "Sangham Body" && (
+                    <div>
+                      <label className={labelClass}>
+                        Sangham *
+                      </label>
+
+                      <select
+                        name="sangham"
+                        value={
+                          formData.sangham
+                        }
+                        onChange={(e) => {
+                          const sangham =
+                            e.target.value;
+
+                          setFormData(
+                            (prev) => ({
+                              ...prev,
+                              sangham,
+                            })
+                          );
+
+                          if (sangham) {
+                            clearFieldError(
+                              "sangham"
+                            );
+                          }
+                        }}
+                        disabled={
+                          !formData.district ||
+                          !formData.mandal
+                        }
+                        className={`${getInputClass(
+                          "sangham"
+                        )} ${
+                          !formData.district ||
+                          !formData.mandal
+                            ? "cursor-not-allowed bg-gray-100"
+                            : ""
+                        }`}
+                      >
+                        <option value="">
+                          {!formData.district
+                            ? "Select District First"
+                            : !formData.mandal
+                            ? "Select Mandal First"
+                            : selectedDistrict.sanghams.length
+                            ? "Select Sangham"
+                            : "No Sanghams Available"}
+                        </option>
+
+                        {selectedDistrict.sanghams.map(
+                          (sangham) => (
+                            <option
+                              key={sangham}
+                              value={sangham}
+                            >
+                              {sangham}
+                            </option>
+                          )
+                        )}
+                      </select>
+
+                      <ErrorMessage
+                        field="sangham"
+                      />
+                    </div>
+                  )}
+
+                  {/* DESIGNATION */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Designation *
+                    </label>
+
+                    <select
+                      name="designation"
+                      value={
+                        formData.designation
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className={getInputClass(
+                        "designation"
+                      )}
+                    >
+                      <option value="">
+                        Select Designation
+                      </option>
+
+                      {designations.map(
+                        (designation) => (
+                          <option
+                            key={designation}
+                            value={
+                              designation
+                            }
+                          >
+                            {designation}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                    <ErrorMessage
+                      field="designation"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* MAHASHABA PAYMENT */}
+
+              {renderPaymentSection(
+                "Payment Details Of Mahashaba",
+                "mahashaba_payment_status",
+                "mahashaba_payment_method",
+                "mahashaba_receipt_number",
+                "mahashaba_amount_paid",
+                "mahashaba_payment_date"
+              )}
+
+              {/* SANGAM PAYMENT */}
+
+              {renderPaymentSection(
+                "Payment Details Of Sangam",
+                "sangam_payment_status",
+                "sangam_payment_method",
+                "sangam_receipt_number",
+                "sangam_amount_paid",
+                "sangam_payment_date"
+              )}
+
+              {/* DECLARATION */}
+
+              <section className="rounded-3xl border border-rose-200 bg-rose-50/50 p-5 sm:p-6">
+
+                <div className="mb-4">
+                  <h2 className="text-lg font-bold text-rose-700 sm:text-xl">
+                    Declaration & Divine Blessings
+                  </h2>
+                </div>
+
+                <div className="rounded-2xl border border-rose-100 bg-white p-5">
+                  <p className="text-sm leading-7 text-gray-700 sm:text-base">
+                    I/We solemnly declare that the
+                    information/data provided by me/us in
+                    this Matrimonial Biodata is true and
+                    correct to the best of my/our knowledge
+                    and belief. I/We seek the divine blessings
+                    of our Arya Vysya Goddess{" "}
+                    <span className="font-bold text-rose-700">
+                      Sri Vasavi Kanyaka Parameshwari Ammavaru
+                    </span>{" "}
+                    for a happy, successful and prosperous
+                    matrimonial alliance.
+                  </p>
+                </div>
+
+                {/* CONSENT CHECKBOX */}
+
+                <div
+                  className={`mt-5 rounded-2xl border p-4 transition ${
+                    errors.consent
+                      ? "border-red-400 bg-red-50"
+                      : "border-gray-200 bg-white"
+                  }`}
+                >
+                  <label className="flex cursor-pointer items-start gap-3">
+
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) => {
+                        const checked =
+                          e.target.checked;
+
+                        setConsent(
+                          checked
+                        );
+
+                        if (checked) {
+                          clearFieldError(
+                            "consent"
+                          );
+                        } else {
+                          setFieldError(
+                            "consent",
+                            "Please agree to the declaration before submitting"
+                          );
+                        }
+                      }}
+                      className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-600"
+                    />
+
+                    <span className="text-sm leading-6 text-gray-700">
+                      I agree that the information provided by
+                      me/us is true and correct, and I give my
+                      consent to use this information for the
+                      purpose of matrimonial and community
+                      services.
+                      <span className="ml-1 font-semibold text-rose-600">
+                        *
+                      </span>
+                    </span>
+                  </label>
+
+                  <ErrorMessage
+                    field="consent"
+                  />
+                </div>
+              </section>
+
+              {/* SUBMIT */}
+
+              <div className="flex flex-col items-center justify-center gap-3 border-t border-gray-100 pt-7">
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`h-12 w-full rounded-xl px-8 text-sm font-semibold text-white shadow-md transition sm:w-auto sm:min-w-[220px] ${
+                    loading
+                      ? "cursor-not-allowed bg-gray-400"
+                      : "bg-rose-600 hover:bg-rose-700 hover:shadow-lg"
+                  }`}
+                >
+                  {loading
+                    ? "Registering..."
+                    : "Register Now"}
+                </button>
+
+                <p className="text-center text-xs text-gray-500">
+                  By submitting this registration, you
+                  confirm that the information provided is
+                  true and correct.
+                </p>
+              </div>
+            </form>
+
+            {/* EXISTING MEMBERS */}
+
+            <p className="mt-7 text-center text-sm text-gray-600">
+              Already registered?
+
+              <a
+                href="/membership/details"
+                className="ml-2 font-semibold text-rose-600 hover:text-rose-700"
+              >
+                Existing Members
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
 
