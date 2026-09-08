@@ -1,7 +1,7 @@
-
 "use client";
 
 import {
+  useEffect,
   useState,
   type ChangeEvent,
   type FormEvent,
@@ -13,9 +13,11 @@ import toast, { Toaster } from "react-hot-toast";
    TYPES
 ========================================================= */
 
-type DistrictData = {
-  mandals: string[];
-  sanghams: string[];
+type LocationItem = {
+  id: number;
+  name: string;
+  type?: "district" | "mandal" | "sangham";
+  parent_id?: number | null;
 };
 
 type Sibling = {
@@ -34,6 +36,7 @@ type FormData = {
   occupation: string;
   gender: string;
   date_of_birth: string;
+  gotram: string;
 
   /* LOCATION */
   location: string;
@@ -62,315 +65,111 @@ type FormData = {
 type ErrorState = Record<string, string>;
 
 /* =========================================================
-   TELANGANA DATA
+   GOTRAM LIST
 ========================================================= */
 
-const telanganaData: Record<string, DistrictData> = {
-  Hyderabad: {
-    mandals: [
-      "Amberpet",
-      "Asifnagar",
-      "Bahadurpura",
-      "Charminar",
-      "Khairatabad",
-      "Nampally",
-      "Secunderabad",
-      "Shaikpet",
-      "Musheerabad",
-    ],
-    sanghams: [
-      "Hyderabad Arya Vysya Sangham",
-      "Secunderabad Arya Vysya Sangham",
-      "Charminar Arya Vysya Sangham",
-    ],
-  },
-
-  Rangareddy: {
-    mandals: [
-      "Rajendranagar",
-      "Serilingampally",
-      "Shamshabad",
-      "Maheshwaram",
-      "Ibrahimpatnam",
-      "Hayathnagar",
-    ],
-    sanghams: [
-      "Rangareddy Arya Vysya Sangham",
-      "Shamshabad Arya Vysya Sangham",
-      "Rajendranagar Arya Vysya Sangham",
-    ],
-  },
-
-  Medchal_Malkajgiri: {
-    mandals: [
-      "Medchal",
-      "Malkajgiri",
-      "Keesara",
-      "Kapra",
-      "Quthbullapur",
-      "Shamirpet",
-    ],
-    sanghams: [
-      "Medchal Arya Vysya Sangham",
-      "Malkajgiri Arya Vysya Sangham",
-      "Keesara Arya Vysya Sangham",
-    ],
-  },
-
-  Sangareddy: {
-    mandals: [
-      "Sangareddy",
-      "Patancheru",
-      "Ameenpur",
-      "Zaheerabad",
-      "Jinnaram",
-      "Narayankhed",
-    ],
-    sanghams: [
-      "Sangareddy Arya Vysya Sangham",
-      "Patancheru Arya Vysya Sangham",
-      "Zaheerabad Arya Vysya Sangham",
-    ],
-  },
-
-  Warangal: {
-    mandals: [
-      "Hanamkonda",
-      "Kazipet",
-      "Warangal",
-      "Atmakur",
-      "Dharmasagar",
-      "Parkal",
-    ],
-    sanghams: [
-      "Warangal Arya Vysya Sangham",
-      "Hanamkonda Arya Vysya Sangham",
-      "Kazipet Arya Vysya Sangham",
-    ],
-  },
-
-  Karimnagar: {
-    mandals: [
-      "Karimnagar",
-      "Manakondur",
-      "Huzurabad",
-      "Choppadandi",
-      "Gangadhara",
-      "Veenavanka",
-    ],
-    sanghams: [
-      "Karimnagar Arya Vysya Sangham",
-      "Huzurabad Arya Vysya Sangham",
-      "Manakondur Arya Vysya Sangham",
-    ],
-  },
-
-  Nizamabad: {
-    mandals: [
-      "Nizamabad",
-      "Bodhan",
-      "Armoor",
-      "Balkonda",
-      "Dichpally",
-      "Navipet",
-    ],
-    sanghams: [
-      "Nizamabad Arya Vysya Sangham",
-      "Bodhan Arya Vysya Sangham",
-      "Armoor Arya Vysya Sangham",
-    ],
-  },
-
-  Khammam: {
-    mandals: [
-      "Khammam",
-      "Madhira",
-      "Wyra",
-      "Kusumanchi",
-      "Kallur",
-      "Sathupalli",
-    ],
-    sanghams: [
-      "Khammam Arya Vysya Sangham",
-      "Madhira Arya Vysya Sangham",
-      "Sathupalli Arya Vysya Sangham",
-    ],
-  },
-
-  Nalgonda: {
-    mandals: [
-      "Nalgonda",
-      "Miryalaguda",
-      "Devarakonda",
-      "Chandur",
-      "Nakrekal",
-      "Munugode",
-    ],
-    sanghams: [
-      "Nalgonda Arya Vysya Sangham",
-      "Miryalaguda Arya Vysya Sangham",
-      "Devarakonda Arya Vysya Sangham",
-    ],
-  },
-
-  Mahbubnagar: {
-    mandals: [
-      "Mahbubnagar",
-      "Jadcherla",
-      "Bhoothpur",
-      "Devarkadra",
-      "Narayanpet",
-      "Makthal",
-    ],
-    sanghams: [
-      "Mahbubnagar Arya Vysya Sangham",
-      "Jadcherla Arya Vysya Sangham",
-      "Narayanpet Arya Vysya Sangham",
-    ],
-  },
-
-  Adilabad: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Bhadradri_Kothagudem: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Hanamkonda: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Jagtial: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Jangaon: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Jayashankar_Bhupalpally: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Jogulamba_Gadwal: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Kamareddy: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Komaram_Bheem_Asifabad: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Mahabubabad: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Mancherial: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Mulugu: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Nagarkurnool: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Narayanpet: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Nirmal: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Peddapalli: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Rajanna_Sircilla: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Suryapet: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Vikarabad: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Wanaparthy: {
-    mandals: [],
-    sanghams: [],
-  },
-
-  Yadadri_Bhuvanagiri: {
-    mandals: [],
-    sanghams: [],
-  },
-};
-
-/* =========================================================
-   DISTRICTS
-========================================================= */
-
-const districtList = [
-  "Adilabad",
-  "Bhadradri_Kothagudem",
-  "Hanamkonda",
-  "Hyderabad",
-  "Jagtial",
-  "Jangaon",
-  "Jayashankar_Bhupalpally",
-  "Jogulamba_Gadwal",
-  "Kamareddy",
-  "Karimnagar",
-  "Khammam",
-  "Komaram_Bheem_Asifabad",
-  "Mahabubabad",
-  "Mahbubnagar",
-  "Mancherial",
-  "Medchal_Malkajgiri",
-  "Mulugu",
-  "Nagarkurnool",
-  "Nalgonda",
-  "Narayanpet",
-  "Nirmal",
-  "Nizamabad",
-  "Peddapalli",
-  "Rajanna_Sircilla",
-  "Rangareddy",
-  "Sangareddy",
-  "Suryapet",
-  "Vikarabad",
-  "Wanaparthy",
-  "Warangal",
-  "Yadadri_Bhuvanagiri",
+const gotramList = [
+  "Aathreya",
+  "Aswalayana",
+  "Agasthya",
+  "Bruhadashwah",
+  "Bodayanah",
+  "Baradwaja",
+  "Bargava",
+  "Chakrapani",
+  "Chamarsanah",
+  "Daalbyah",
+  "Durvasah",
+  "Devarathah",
+  "Devavalkyah",
+  "Gargyah",
+  "Gruthsna Madah",
+  "Gopakah",
+  "Gowthama",
+  "Harivalkya",
+  "JadaBharatha",
+  "Jatukarnah",
+  "Jambasudhana",
+  "Jarathaarkha",
+  "Jaabilih",
+  "Jabrih",
+  "Jeevanthi",
+  "Kanvah",
+  "Kandarpa",
+  "Kapila",
+  "Kapeetha",
+  "Kasyapa",
+  "Kuthsah",
+  "Koundinya",
+  "Koushika",
+  "Krishna",
+  "Mandapala",
+  "Manava",
+  "Mareechi",
+  "Markandeya",
+  "Muniraja",
+  "Mythreyah",
+  "Mounala",
+  "Mounjayanah",
+  "Moudgalya",
+  "Nanaka",
+  "Naradah",
+  "Netrapadah",
+  "Ouchithya",
+  "Parasparayanah",
+  "Pallavah",
+  "PavithraPranih",
+  "Parasharya",
+  "Pingala",
+  "Pundareeka",
+  "Poothimava",
+  "Poundraka",
+  "Poulasthya",
+  "Pracheena",
+  "Prabhatha",
+  "RushyaSrunga",
+  "Sharabangah",
+  "Sharjgaravah",
+  "Sandilya",
+  "Sreevathsah",
+  "Sreedharah",
+  "Suklarushi",
+  "Sowcheyah",
+  "Sownaka",
+  "Sathyah",
+  "Sanathkumara",
+  "Sanadanath",
+  "Samvarthaka",
+  "Sukanchana",
+  "Sutheekshah",
+  "Sundarah",
+  "Suvarna",
+  "Subramanyah",
+  "Sowbarna",
+  "Sowmyah",
+  "Sowvarna",
+  "Tharanih",
+  "Thittirih",
+  "Thaithrevah",
+  "Uthkrushta",
+  "Uttamouja",
+  "Ugrasena",
+  "Vatuka",
+  "Vaarathanthu",
+  "Varuna",
+  "Vasista",
+  "Vamadeva",
+  "Vasudeva",
+  "Vaayuvya",
+  "Valmika",
+  "Vishwaksenah",
+  "Viswamithra",
+  "Vishnuvrudha",
+  "Virohithyah",
+  "Vyana",
+  "Yaskah",
+  "Yagnavalkya",
+  "Othar",
 ];
 
 /* =========================================================
@@ -420,6 +219,7 @@ const initialFormData: FormData = {
   occupation: "",
   gender: "",
   date_of_birth: "",
+  gotram: "",
 
   location: "",
   district: "",
@@ -520,10 +320,6 @@ export default function MembershipPage() {
   const [photoPreview, setPhotoPreview] =
     useState<string>("");
 
-  /* CONSENT */
-  const [consent, setConsent] =
-    useState(false);
-
   /* SIBLING COUNTS */
   const [brotherCount, setBrotherCount] =
     useState(0);
@@ -532,22 +328,141 @@ export default function MembershipPage() {
     useState(0);
 
   /* =========================================================
-     LOCATION
-
-     FIX:
-     selectedDistrict is NEVER null.
-     This removes TS18047:
-     "'selectedDistrict' is possibly 'null'"
+     LOCATION DATA
+     District + Mandal are loaded from locations table.
+     Sangham is entered manually.
   ========================================================= */
 
-  const selectedDistrict: DistrictData =
-    formData.district &&
-    telanganaData[formData.district]
-      ? telanganaData[formData.district]
-      : {
-          mandals: [],
-          sanghams: [],
-        };
+  const [districts, setDistricts] =
+    useState<LocationItem[]>([]);
+
+  const [mandals, setMandals] =
+    useState<LocationItem[]>([]);
+
+  const [locationLoading, setLocationLoading] =
+    useState(false);
+
+  /* =========================================================
+     API URL
+  ========================================================= */
+
+  const apiUrl = (
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "http://localhost:5000"
+  ).replace(/\/$/, "");
+
+  /* =========================================================
+     LOAD DISTRICTS FROM LOCATIONS TABLE
+  ========================================================= */
+
+  useEffect(() => {
+    const loadDistricts = async () => {
+      setLocationLoading(true);
+
+      try {
+        const response = await fetch(
+          `${apiUrl}/locations/districts`
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load districts (${response.status})`
+          );
+        }
+
+        const result =
+          await response.json();
+
+        const data = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+          ? result.data
+          : [];
+
+        setDistricts(data);
+      } catch (error) {
+        console.error(
+          "District loading error:",
+          error
+        );
+
+        toast.error(
+          "Unable to load districts"
+        );
+
+        setDistricts([]);
+      } finally {
+        setLocationLoading(false);
+      }
+    };
+
+    loadDistricts();
+  }, [apiUrl]);
+
+  /* =========================================================
+     LOAD MANDALS FROM LOCATIONS TABLE
+  ========================================================= */
+
+  useEffect(() => {
+    const selectedDistrict = districts.find(
+      (district) =>
+        district.name === formData.district
+    );
+
+    if (
+      !formData.district ||
+      !selectedDistrict?.id
+    ) {
+      setMandals([]);
+      return;
+    }
+
+    const loadMandals = async () => {
+      setLocationLoading(true);
+
+      try {
+        const response = await fetch(
+          `${apiUrl}/locations/districts/${selectedDistrict.id}/mandals`
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load mandals (${response.status})`
+          );
+        }
+
+        const result =
+          await response.json();
+
+        const data = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+          ? result.data
+          : [];
+
+        setMandals(data);
+      } catch (error) {
+        console.error(
+          "Mandal loading error:",
+          error
+        );
+
+        toast.error(
+          "Unable to load mandals"
+        );
+
+        setMandals([]);
+      } finally {
+        setLocationLoading(false);
+      }
+    };
+
+    loadMandals();
+  }, [
+    apiUrl,
+    districts,
+    formData.district,
+  ]);
 
   /* =========================================================
      ERROR HELPERS
@@ -622,6 +537,7 @@ export default function MembershipPage() {
     if (!allowedTypes.includes(file.type)) {
       setPhoto(null);
       setPhotoPreview("");
+
       e.target.value = "";
 
       setFieldError(
@@ -629,7 +545,10 @@ export default function MembershipPage() {
         "Only JPG, JPEG, PNG and WEBP images are allowed"
       );
 
-      toast.error("Invalid photo format");
+      toast.error(
+        "Invalid photo format"
+      );
+
       return;
     }
 
@@ -639,6 +558,7 @@ export default function MembershipPage() {
     if (file.size > maxSize) {
       setPhoto(null);
       setPhotoPreview("");
+
       e.target.value = "";
 
       setFieldError(
@@ -668,7 +588,9 @@ export default function MembershipPage() {
 
   const handleChange = (
     e: ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      HTMLInputElement |
+        HTMLSelectElement |
+        HTMLTextAreaElement
     >
   ) => {
     const {
@@ -681,7 +603,9 @@ export default function MembershipPage() {
       const onlyNumbers =
         value.replace(/\D/g, "");
 
-      if (onlyNumbers.length > 10) {
+      if (
+        onlyNumbers.length > 10
+      ) {
         return;
       }
 
@@ -815,6 +739,25 @@ export default function MembershipPage() {
         );
       } else {
         clearFieldError("location");
+      }
+
+      return;
+    }
+
+    /* GOTRAM */
+    if (name === "gotram") {
+      setFormData((prev) => ({
+        ...prev,
+        gotram: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "gotram",
+          "Gotram is required"
+        );
+      } else {
+        clearFieldError("gotram");
       }
 
       return;
@@ -975,6 +918,8 @@ export default function MembershipPage() {
       sangham: "",
     }));
 
+    setMandals([]);
+
     clearFieldError("district");
     clearFieldError("mandal");
     clearFieldError("sangham");
@@ -1007,6 +952,31 @@ export default function MembershipPage() {
 
     clearFieldError("mandal");
     clearFieldError("sangham");
+  };
+
+  /* =========================================================
+     SANGHAM MANUAL CHANGE
+  ========================================================= */
+
+  const handleSanghamChange = (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const sangham =
+      e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      sangham,
+    }));
+
+    if (sangham.trim()) {
+      clearFieldError("sangham");
+    } else {
+      setFieldError(
+        "sangham",
+        "Please enter Sangham"
+      );
+    }
   };
 
   /* =========================================================
@@ -1061,6 +1031,13 @@ export default function MembershipPage() {
         executive_body,
       };
     });
+
+    if (
+      executive_body ===
+      "State Body"
+    ) {
+      setMandals([]);
+    }
 
     clearFieldError(
       "executive_body"
@@ -1154,6 +1131,14 @@ export default function MembershipPage() {
         "Location is required";
     }
 
+    /* GOTRAM */
+    if (
+      !formData.gotram.trim()
+    ) {
+      newErrors.gotram =
+        "Gotram is required";
+    }
+
     /* GENDER */
     if (!formData.gender) {
       newErrors.gender =
@@ -1228,10 +1213,10 @@ export default function MembershipPage() {
     if (
       formData.executive_body ===
         "Sangham Body" &&
-      !formData.sangham
+      !formData.sangham.trim()
     ) {
       newErrors.sangham =
-        "Please select Sangham";
+        "Please enter Sangham";
     }
 
     /* MAHASHABA STATUS */
@@ -1336,12 +1321,6 @@ export default function MembershipPage() {
       }
     }
 
-    /* CONSENT */
-    if (!consent) {
-      newErrors.consent =
-        "Please agree to the declaration before submitting";
-    }
-
     setErrors(newErrors);
 
     if (
@@ -1368,19 +1347,6 @@ export default function MembershipPage() {
     e.preventDefault();
 
     if (loading) return;
-
-    if (!consent) {
-      setFieldError(
-        "consent",
-        "Please agree to the declaration before submitting"
-      );
-
-      toast.error(
-        "Please agree to the declaration before submitting"
-      );
-
-      return;
-    }
 
     if (!validateForm()) return;
 
@@ -1438,6 +1404,12 @@ export default function MembershipPage() {
         formData.date_of_birth
       );
 
+      /* GOTRAM */
+      body.append(
+        "gotram",
+        formData.gotram.trim()
+      );
+
       /* LOCATION */
       body.append(
         "location",
@@ -1456,7 +1428,7 @@ export default function MembershipPage() {
 
       body.append(
         "sangham",
-        formData.sangham || ""
+        formData.sangham.trim()
       );
 
       /* MAHASHABA */
@@ -1522,12 +1494,6 @@ export default function MembershipPage() {
         designation
       );
 
-      /* CONSENT */
-      body.append(
-        "consent",
-        String(consent)
-      );
-
       /* PHOTO */
       if (photo) {
         body.append(
@@ -1546,8 +1512,8 @@ export default function MembershipPage() {
       );
 
       console.log(
-        "Consent:",
-        consent
+        "Gotram:",
+        formData.gotram
       );
 
       console.log(
@@ -1555,11 +1521,20 @@ export default function MembershipPage() {
         formData.location
       );
 
-      const apiUrl = (
-        process.env
-          .NEXT_PUBLIC_BACKEND_URL ||
-        "http://localhost:5000"
-      ).replace(/\/$/, "");
+      console.log(
+        "District:",
+        formData.district
+      );
+
+      console.log(
+        "Mandal:",
+        formData.mandal
+      );
+
+      console.log(
+        "Sangham:",
+        formData.sangham
+      );
 
       const apiEndpoint =
         `${apiUrl}/membership-register`;
@@ -1650,9 +1625,8 @@ export default function MembershipPage() {
       setBrotherCount(0);
       setSisterCount(0);
 
-      setConsent(false);
-
       setErrors({});
+      setMandals([]);
     } catch (err) {
       console.error(
         "MEMBERSHIP REGISTRATION ERROR:",
@@ -1913,7 +1887,6 @@ export default function MembershipPage() {
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
           {/* HEADER */}
-
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
             <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
               Membership Registration
@@ -1932,84 +1905,7 @@ export default function MembershipPage() {
 
           <div className="space-y-7 p-5 sm:p-8">
 
-            {/* SERVICE */}
-
-            <section className="rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-white p-6 shadow-sm sm:p-8">
-              <div className="text-center">
-                <div className="mb-2 text-3xl">
-                  🙏
-                </div>
-
-                <h2 className="text-xl font-bold uppercase tracking-wide text-rose-700 sm:text-2xl">
-                  SERVICE IS OUR MOTTO
-                </h2>
-
-                <p className="mx-auto mt-4 max-w-4xl text-sm leading-7 text-gray-700 sm:text-base">
-                  This matrimonial website is intended to sustain
-                  and serve our community for a long time with
-                  your wholehearted support. Our aim is to provide
-                  safe, accountable and good connectivity for our
-                  unmarried youth and married couples and to
-                  strengthen the Vysya community.
-                </p>
-              </div>
-
-              <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
-
-                <div className="rounded-2xl border border-green-200 bg-white p-5 text-center shadow-sm">
-                  <div className="mb-3 text-3xl">
-                    🆓
-                  </div>
-
-                  <h3 className="text-base font-bold text-green-700">
-                    FREE REGISTRATION
-                  </h3>
-
-                  <p className="mt-2 text-sm text-gray-600">
-                    Registration available for 99 days
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-blue-200 bg-white p-5 text-center shadow-sm">
-                  <div className="mb-3 text-3xl">
-                    📅
-                  </div>
-
-                  <h3 className="text-base font-bold text-blue-700">
-                    EXTENSION
-                  </h3>
-
-                  <p className="mt-2 text-sm text-gray-600">
-                    Can be extended up to 180 days
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-amber-200 bg-white p-5 text-center shadow-sm">
-                  <div className="mb-3 text-3xl">
-                    🤝
-                  </div>
-
-                  <h3 className="text-base font-bold text-amber-700">
-                    COMMUNITY SUPPORT
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-gray-600">
-                    Voluntary three-digit contribution where applicable
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-2xl border border-rose-100 bg-white px-5 py-4 text-center">
-                <p className="text-sm font-semibold leading-6 text-rose-700">
-                  Registration is offered free for the initial
-                  99 days. Extension support up to 180 days may
-                  be facilitated through a voluntary contribution.
-                </p>
-              </div>
-            </section>
-
             {/* FORM */}
-
             <form
               onSubmit={handleSubmit}
               noValidate
@@ -2017,16 +1913,10 @@ export default function MembershipPage() {
             >
 
               {/* MEMBER DETAILS */}
-
               <section>
-                <h2 className="mb-5 text-lg font-semibold text-gray-900">
-                  Member Details
-                </h2>
-
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* FULL NAME */}
-
                   <div>
                     <label className={labelClass}>
                       Full Name *
@@ -2054,7 +1944,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* SURNAME */}
-
                   <div>
                     <label className={labelClass}>
                       Surname *
@@ -2081,7 +1970,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* MOBILE */}
-
                   <div>
                     <label className={labelClass}>
                       Mobile Number *
@@ -2110,7 +1998,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* EMAIL */}
-
                   <div>
                     <label className={labelClass}>
                       Email Address *
@@ -2138,7 +2025,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* GENDER */}
-
                   <div>
                     <label className={labelClass}>
                       Gender *
@@ -2175,7 +2061,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* DOB */}
-
                   <div>
                     <label className={labelClass}>
                       Date of Birth *
@@ -2215,7 +2100,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* OCCUPATION */}
-
                   <div>
                     <label className={labelClass}>
                       Occupation *
@@ -2241,8 +2125,46 @@ export default function MembershipPage() {
                     />
                   </div>
 
-                  {/* LOCATION */}
+                  {/* GOTRAM - ADDED */}
+                  <div>
+                    <label className={labelClass}>
+                      Gotram *
+                    </label>
 
+                    <input
+                      type="text"
+                      name="gotram"
+                      value={
+                        formData.gotram
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      list="membership-gotram-options"
+                      placeholder="Select Gotram"
+                      autoComplete="off"
+                      className={getInputClass(
+                        "gotram"
+                      )}
+                    />
+
+                    <datalist id="membership-gotram-options">
+                      {gotramList.map(
+                        (gotram) => (
+                          <option
+                            key={gotram}
+                            value={gotram}
+                          />
+                        )
+                      )}
+                    </datalist>
+
+                    <ErrorMessage
+                      field="gotram"
+                    />
+                  </div>
+
+                  {/* LOCATION */}
                   <div>
                     <label className={labelClass}>
                       Location *
@@ -2270,7 +2192,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* PHOTO */}
-
                   <div>
                     <label className={labelClass}>
                       Member Photo *
@@ -2279,7 +2200,6 @@ export default function MembershipPage() {
                     <div className="flex flex-col gap-3 sm:flex-row">
 
                       {/* CAMERA */}
-
                       <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
                         📷 Take Photo
 
@@ -2296,7 +2216,6 @@ export default function MembershipPage() {
                       </label>
 
                       {/* GALLERY */}
-
                       <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
                         🖼️ Choose Photo
 
@@ -2330,7 +2249,6 @@ export default function MembershipPage() {
               </section>
 
               {/* COMMUNITY MEMBERSHIP DETAILS */}
-
               <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
 
                 <div className="mb-5">
@@ -2346,7 +2264,6 @@ export default function MembershipPage() {
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* STATE BODY */}
-
                   <div>
                     <label className={labelClass}>
                       State Body
@@ -2361,7 +2278,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* EXECUTIVE BODY */}
-
                   <div>
                     <label className={labelClass}>
                       Executive Body *
@@ -2401,7 +2317,6 @@ export default function MembershipPage() {
                   </div>
 
                   {/* DISTRICT */}
-
                   {[
                     "District Body",
                     "Mandal Body",
@@ -2422,21 +2337,31 @@ export default function MembershipPage() {
                         onChange={
                           handleDistrictChange
                         }
+                        disabled={
+                          locationLoading &&
+                          districts.length === 0
+                        }
                         className={getInputClass(
                           "district"
                         )}
                       >
                         <option value="">
-                          Select District
+                          {locationLoading
+                            ? "Loading Districts..."
+                            : "Select District"}
                         </option>
 
-                        {districtList.map(
+                        {districts.map(
                           (district) => (
                             <option
-                              key={district}
-                              value={district}
+                              key={
+                                district.id
+                              }
+                              value={
+                                district.name
+                              }
                             >
-                              {district.replaceAll(
+                              {district.name.replaceAll(
                                 "_",
                                 " "
                               )}
@@ -2452,7 +2377,6 @@ export default function MembershipPage() {
                   )}
 
                   {/* MANDAL */}
-
                   {[
                     "Mandal Body",
                     "Sangham Body",
@@ -2473,12 +2397,14 @@ export default function MembershipPage() {
                           handleMandalChange
                         }
                         disabled={
-                          !formData.district
+                          !formData.district ||
+                          mandals.length === 0
                         }
                         className={`${getInputClass(
                           "mandal"
                         )} ${
-                          !formData.district
+                          !formData.district ||
+                          mandals.length === 0
                             ? "cursor-not-allowed bg-gray-100"
                             : ""
                         }`}
@@ -2486,18 +2412,24 @@ export default function MembershipPage() {
                         <option value="">
                           {!formData.district
                             ? "Select District First"
-                            : selectedDistrict.mandals.length
+                            : locationLoading
+                            ? "Loading Mandals..."
+                            : mandals.length
                             ? "Select Mandal"
                             : "No Mandals Available"}
                         </option>
 
-                        {selectedDistrict.mandals.map(
+                        {mandals.map(
                           (mandal) => (
                             <option
-                              key={mandal}
-                              value={mandal}
+                              key={
+                                mandal.id
+                              }
+                              value={
+                                mandal.name
+                              }
                             >
-                              {mandal}
+                              {mandal.name}
                             </option>
                           )
                         )}
@@ -2510,7 +2442,6 @@ export default function MembershipPage() {
                   )}
 
                   {/* SANGHAM */}
-
                   {formData.executive_body ===
                     "Sangham Body" && (
                     <div>
@@ -2518,28 +2449,17 @@ export default function MembershipPage() {
                         Sangham *
                       </label>
 
-                      <select
+                      <input
+                        type="text"
                         name="sangham"
                         value={
                           formData.sangham
                         }
-                        onChange={(e) => {
-                          const sangham =
-                            e.target.value;
-
-                          setFormData(
-                            (prev) => ({
-                              ...prev,
-                              sangham,
-                            })
-                          );
-
-                          if (sangham) {
-                            clearFieldError(
-                              "sangham"
-                            );
-                          }
-                        }}
+                        onChange={
+                          handleSanghamChange
+                        }
+                        placeholder="Enter Sangham Name"
+                        maxLength={150}
                         disabled={
                           !formData.district ||
                           !formData.mandal
@@ -2552,28 +2472,7 @@ export default function MembershipPage() {
                             ? "cursor-not-allowed bg-gray-100"
                             : ""
                         }`}
-                      >
-                        <option value="">
-                          {!formData.district
-                            ? "Select District First"
-                            : !formData.mandal
-                            ? "Select Mandal First"
-                            : selectedDistrict.sanghams.length
-                            ? "Select Sangham"
-                            : "No Sanghams Available"}
-                        </option>
-
-                        {selectedDistrict.sanghams.map(
-                          (sangham) => (
-                            <option
-                              key={sangham}
-                              value={sangham}
-                            >
-                              {sangham}
-                            </option>
-                          )
-                        )}
-                      </select>
+                      />
 
                       <ErrorMessage
                         field="sangham"
@@ -2582,7 +2481,6 @@ export default function MembershipPage() {
                   )}
 
                   {/* DESIGNATION */}
-
                   <div>
                     <label className={labelClass}>
                       Designation *
@@ -2607,7 +2505,9 @@ export default function MembershipPage() {
                       {designations.map(
                         (designation) => (
                           <option
-                            key={designation}
+                            key={
+                              designation
+                            }
                             value={
                               designation
                             }
@@ -2626,7 +2526,6 @@ export default function MembershipPage() {
               </section>
 
               {/* MAHASHABA PAYMENT */}
-
               {renderPaymentSection(
                 "Payment Details Of Mahashaba",
                 "mahashaba_payment_status",
@@ -2637,7 +2536,6 @@ export default function MembershipPage() {
               )}
 
               {/* SANGAM PAYMENT */}
-
               {renderPaymentSection(
                 "Payment Details Of Sangam",
                 "sangam_payment_status",
@@ -2647,88 +2545,7 @@ export default function MembershipPage() {
                 "sangam_payment_date"
               )}
 
-              {/* DECLARATION */}
-
-              <section className="rounded-3xl border border-rose-200 bg-rose-50/50 p-5 sm:p-6">
-
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-rose-700 sm:text-xl">
-                    Declaration & Divine Blessings
-                  </h2>
-                </div>
-
-                <div className="rounded-2xl border border-rose-100 bg-white p-5">
-                  <p className="text-sm leading-7 text-gray-700 sm:text-base">
-                    I/We solemnly declare that the
-                    information/data provided by me/us in
-                    this Matrimonial Biodata is true and
-                    correct to the best of my/our knowledge
-                    and belief. I/We seek the divine blessings
-                    of our Arya Vysya Goddess{" "}
-                    <span className="font-bold text-rose-700">
-                      Sri Vasavi Kanyaka Parameshwari Ammavaru
-                    </span>{" "}
-                    for a happy, successful and prosperous
-                    matrimonial alliance.
-                  </p>
-                </div>
-
-                {/* CONSENT CHECKBOX */}
-
-                <div
-                  className={`mt-5 rounded-2xl border p-4 transition ${
-                    errors.consent
-                      ? "border-red-400 bg-red-50"
-                      : "border-gray-200 bg-white"
-                  }`}
-                >
-                  <label className="flex cursor-pointer items-start gap-3">
-
-                    <input
-                      type="checkbox"
-                      checked={consent}
-                      onChange={(e) => {
-                        const checked =
-                          e.target.checked;
-
-                        setConsent(
-                          checked
-                        );
-
-                        if (checked) {
-                          clearFieldError(
-                            "consent"
-                          );
-                        } else {
-                          setFieldError(
-                            "consent",
-                            "Please agree to the declaration before submitting"
-                          );
-                        }
-                      }}
-                      className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-600"
-                    />
-
-                    <span className="text-sm leading-6 text-gray-700">
-                      I agree that the information provided by
-                      me/us is true and correct, and I give my
-                      consent to use this information for the
-                      purpose of matrimonial and community
-                      services.
-                      <span className="ml-1 font-semibold text-rose-600">
-                        *
-                      </span>
-                    </span>
-                  </label>
-
-                  <ErrorMessage
-                    field="consent"
-                  />
-                </div>
-              </section>
-
               {/* SUBMIT */}
-
               <div className="flex flex-col items-center justify-center gap-3 border-t border-gray-100 pt-7">
 
                 <button
@@ -2751,10 +2568,10 @@ export default function MembershipPage() {
                   true and correct.
                 </p>
               </div>
+
             </form>
 
             {/* EXISTING MEMBERS */}
-
             <p className="mt-7 text-center text-sm text-gray-600">
               Already registered?
 
@@ -2771,4 +2588,3 @@ export default function MembershipPage() {
     </>
   );
 }
-
