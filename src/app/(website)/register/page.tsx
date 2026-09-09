@@ -2424,53 +2424,7 @@ export default function RegisterPage() {
 
                   </div>
 
-                  {/* CONSENT */}
-
-                  <div
-                    className={`mt-5 rounded-2xl border-2 p-5 transition ${
-                      consent
-                        ? "border-green-300 bg-green-50"
-                        : "border-rose-300 bg-rose-50"
-                    }`}
-                  >
-
-                    <label className="flex cursor-pointer items-start gap-3">
-
-                      <input
-                        type="checkbox"
-                        checked={consent}
-                        onChange={(e) =>
-                          setConsent(
-                            e.target.checked
-                          )
-                        }
-                        className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-700"
-                      />
-
-                      <span className="text-sm font-medium leading-6 text-gray-800 sm:text-base">
-
-                        I/We hereby confirm that I/We have read, understood and accepted the above declaration and agree to provide my/our consent for registration on this matrimonial website.
-
-                        <span className="font-bold text-red-600">
-                          {" "}*
-                        </span>
-
-                      </span>
-
-                    </label>
-
-                    {!consent ? (
-                      <p className="ml-8 mt-3 text-xs text-red-600 sm:text-sm">
-                        Please accept the declaration by selecting the tick mark before submitting the registration.
-                      </p>
-                    ) : (
-                      <p className="ml-8 mt-3 flex items-center gap-2 text-xs font-medium text-green-700 sm:text-sm">
-                        <FaCheckCircle />
-                        Consent accepted successfully.
-                      </p>
-                    )}
-
-                  </div>
+                  
 
                   {/* SERVICE & REGISTRATION */}
 
@@ -2638,7 +2592,53 @@ export default function RegisterPage() {
                   </div>
 
                 </div>
+{/* CONSENT */}
 
+                  <div
+                    className={`mt-5 rounded-2xl border-2 p-5 transition ${
+                      consent
+                        ? "border-green-300 bg-green-50"
+                        : "border-rose-300 bg-rose-50"
+                    }`}
+                  >
+
+                    <label className="flex cursor-pointer items-start gap-3">
+
+                      <input
+                        type="checkbox"
+                        checked={consent}
+                        onChange={(e) =>
+                          setConsent(
+                            e.target.checked
+                          )
+                        }
+                        className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-700"
+                      />
+
+                      <span className="text-sm font-medium leading-6 text-gray-800 sm:text-base">
+
+                        I/We hereby confirm that I/We have read, understood and accepted the above declaration and agree to provide my/our consent for registration on this matrimonial website.
+
+                        <span className="font-bold text-red-600">
+                          {" "}*
+                        </span>
+
+                      </span>
+
+                    </label>
+
+                    {!consent ? (
+                      <p className="ml-8 mt-3 text-xs text-red-600 sm:text-sm">
+                        Please accept the declaration by selecting the tick mark before submitting the registration.
+                      </p>
+                    ) : (
+                      <p className="ml-8 mt-3 flex items-center gap-2 text-xs font-medium text-green-700 sm:text-sm">
+                        <FaCheckCircle />
+                        Consent accepted successfully.
+                      </p>
+                    )}
+
+                  </div>
               </div>
 
               {/* SUBMIT */}

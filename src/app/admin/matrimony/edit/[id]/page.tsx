@@ -10,10 +10,6 @@ import {
   FaUpload,
   FaCheckCircle,
   FaTimes,
-  FaUser,
-  FaHeart,
-  FaGraduationCap,
-  FaHome,
   FaUsers,
   FaCamera,
 } from "react-icons/fa";
@@ -22,9 +18,10 @@ import {
    BACKEND
 ========================================================= */
 
-const BACKEND_URL =
+const BACKEND_URL = (
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5000";
+  "http://localhost:5000"
+).replace(/\/$/, "");
 
 /* =========================================================
    GOTRAM
@@ -281,20 +278,31 @@ const profileCategoryList = [
 ];
 
 /* =========================================================
-   TYPE
+   SIBLING TYPE
+========================================================= */
+
+type Sibling = {
+  name: string;
+  age: string;
+  marital_status: string;
+  occupation: string;
+};
+
+/* =========================================================
+   PROFILE TYPE
 ========================================================= */
 
 type Profile = {
-  memberId: string;
+  member_id: string;
 
-  profileCategory: string;
+  profile_category: string;
 
-  fatherName: string;
-  motherName: string;
+  father_name: string;
+  mother_name: string;
 
-  fatherGotram: string;
-  motherGotram: string;
-  grandmotherGotram: string;
+  father_gotram: string;
+  mother_gotram: string;
+  grandmother_gotram: string;
 
   nakshatram: string;
   padham: string;
@@ -303,22 +311,24 @@ type Profile = {
   height: string;
 
   education: string;
-  annualIncome: string;
+  annual_income: string;
 
   address: string;
 
-  fatherOccupation: string;
-  motherOccupation: string;
+  father_occupation: string;
+  mother_occupation: string;
 
-  brotherDetails: string;
-  sisterDetails: string;
+  property_details: string;
+  preferred_requirements: string;
 
-  propertyDetails: string;
-
-  preferredRequirements: string;
+  area_volunteer_name: string;
+  area_volunteer_contact: string;
+  area_volunteer_position: string;
 
   mobile: string;
   email: string;
+
+  consent: boolean;
 
   photo: string;
 };
@@ -328,16 +338,16 @@ type Profile = {
 ========================================================= */
 
 const emptyProfile: Profile = {
-  memberId: "",
+  member_id: "",
 
-  profileCategory: "Professional",
+  profile_category: "Professional",
 
-  fatherName: "",
-  motherName: "",
+  father_name: "",
+  mother_name: "",
 
-  fatherGotram: "",
-  motherGotram: "",
-  grandmotherGotram: "",
+  father_gotram: "",
+  mother_gotram: "",
+  grandmother_gotram: "",
 
   nakshatram: "",
   padham: "",
@@ -346,22 +356,24 @@ const emptyProfile: Profile = {
   height: "",
 
   education: "",
-  annualIncome: "",
+  annual_income: "",
 
   address: "",
 
-  fatherOccupation: "",
-  motherOccupation: "",
+  father_occupation: "",
+  mother_occupation: "",
 
-  brotherDetails: "",
-  sisterDetails: "",
+  property_details: "",
+  preferred_requirements: "",
 
-  propertyDetails: "",
-
-  preferredRequirements: "",
+  area_volunteer_name: "",
+  area_volunteer_contact: "",
+  area_volunteer_position: "",
 
   mobile: "",
   email: "",
+
+  consent: false,
 
   photo: "",
 };
@@ -374,7 +386,7 @@ const inputClass =
   "mt-2 w-full h-12 border rounded-xl px-4 border-pink-200 outline-none focus:ring-2 focus:ring-pink-300 bg-white";
 
 const textareaClass =
-  "mt-2 w-full border rounded-xl p-4 border-pink-200 outline-none focus:ring-2 focus:ring-pink-300";
+  "mt-2 w-full border rounded-xl p-4 border-pink-200 outline-none focus:ring-2 focus:ring-pink-300 bg-white";
 
 const labelClass =
   "text-sm font-medium text-gray-700";
@@ -392,6 +404,12 @@ export default function EditMatrimonialMemberPage() {
   const [profile, setProfile] =
     useState<Profile>(emptyProfile);
 
+  const [brothers, setBrothers] =
+    useState<Sibling[]>([]);
+
+  const [sisters, setSisters] =
+    useState<Sibling[]>([]);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -400,6 +418,10 @@ export default function EditMatrimonialMemberPage() {
 
   const [error, setError] =
     useState("");
+
+  /* =======================================================
+     PHOTO
+  ======================================================= */
 
   const [selectedPhoto, setSelectedPhoto] =
     useState<File | null>(null);
@@ -454,7 +476,97 @@ export default function EditMatrimonialMemberPage() {
   };
 
   /* =======================================================
-     GET MEMBER
+     EMPTY SIBLING
+  ======================================================= */
+
+  const createEmptySibling = (): Sibling => ({
+    name: "",
+    age: "",
+    marital_status: "",
+    occupation: "",
+  });
+
+  /* =======================================================
+     PARSE SIBLINGS
+  ======================================================= */
+
+  const parseSiblings = (
+    text: string,
+    type: "Brother" | "Sister"
+  ): Sibling[] => {
+    if (!text) {
+      return [];
+    }
+
+    if (
+      text.trim() === "No Brothers" ||
+      text.trim() === "No Sisters"
+    ) {
+      return [];
+    }
+
+    const parts = text
+      .split("|")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const result: Sibling[] = [];
+
+    for (const part of parts) {
+      const regex = new RegExp(
+        `${type}\\s*\\d+\\s*:\\s*Name:\\s*(.*?),\\s*Age:\\s*(.*?),\\s*Marital Status:\\s*(.*?),\\s*Occupation:\\s*(.*)$`,
+        "i"
+      );
+
+      const match = part.match(regex);
+
+      if (match) {
+        result.push({
+          name: match[1]?.trim() || "",
+          age: match[2]?.trim() || "",
+          marital_status:
+            match[3]?.trim() || "",
+          occupation:
+            match[4]?.trim() || "",
+        });
+      }
+    }
+
+    return result;
+  };
+
+  /* =======================================================
+     FORMAT SIBLINGS
+  ======================================================= */
+
+  const formatSiblings = (
+    list: Sibling[],
+    type: "Brother" | "Sister"
+  ) => {
+    if (list.length === 0) {
+      return type === "Brother"
+        ? "No Brothers"
+        : "No Sisters";
+    }
+
+    return list
+      .map(
+        (item, index) =>
+          `${type} ${index + 1}: Name: ${
+            item.name
+          }, Age: ${
+            item.age
+          }, Marital Status: ${
+            item.marital_status
+          }, Occupation: ${
+            item.occupation
+          }`
+      )
+      .join(" | ");
+  };
+
+  /* =======================================================
+     FETCH MEMBER
   ======================================================= */
 
   useEffect(() => {
@@ -473,7 +585,8 @@ export default function EditMatrimonialMemberPage() {
           }
         );
 
-        const result = await response.json();
+        const result =
+          await response.json();
 
         console.log(
           "EDIT MEMBER API RESPONSE:",
@@ -489,11 +602,6 @@ export default function EditMatrimonialMemberPage() {
           );
         }
 
-        /*
-         * Some APIs return:
-         * { data: {...} }
-         * and some directly return {...}
-         */
         const member =
           result?.data ?? result;
 
@@ -503,36 +611,99 @@ export default function EditMatrimonialMemberPage() {
           );
         }
 
+        /* =========================================
+           DEBUG
+        ========================================= */
+
+        console.log(
+          "FATHER OCCUPATION:",
+          member.father_occupation,
+          member.fatherOccupation
+        );
+
+        console.log(
+          "MOTHER OCCUPATION:",
+          member.mother_occupation,
+          member.motherOccupation
+        );
+
+        console.log(
+          "PHOTO:",
+          member.photo
+        );
+
+        /* =========================================
+           SIBLINGS
+        ========================================= */
+
+        const parsedBrothers =
+          parseSiblings(
+            member.brother_details ??
+              member.brotherDetails ??
+              "",
+            "Brother"
+          );
+
+        const parsedSisters =
+          parseSiblings(
+            member.sister_details ??
+              member.sisterDetails ??
+              "",
+            "Sister"
+          );
+
+        setBrothers(parsedBrothers);
+        setSisters(parsedSisters);
+
+        /* =========================================
+           PHOTO
+        ========================================= */
+
         const photo =
           member.photo ?? "";
 
+        /* =========================================
+           PROFILE
+        ========================================= */
+
         setProfile({
-          memberId: String(
+          member_id: String(
             member.member_id ??
+              member.memberId ??
               member.id ??
               ""
           ),
 
-          profileCategory:
+          profile_category:
             member.profile_category ??
+            member.profileCategory ??
             "Professional",
 
-          fatherName:
-            member.father_name ?? "",
+          father_name:
+            member.father_name ??
+            member.fatherName ??
+            "",
 
-          motherName:
-            member.mother_name ?? "",
+          mother_name:
+            member.mother_name ??
+            member.motherName ??
+            "",
 
-          fatherGotram:
+          father_gotram:
             member.father_gotram ??
+            member.fatherGotram ??
             member.gotram ??
             "",
 
-          motherGotram:
-            member.mother_gotram ?? "",
+          mother_gotram:
+            member.mother_gotram ??
+            member.motherGotram ??
+            "",
 
-          grandmotherGotram:
-            member.grandmother_gotram ?? "",
+          grandmother_gotram:
+            member.grandmother_gotram ??
+            member.grandmotherGotram ??
+            "",
 
           nakshatram:
             member.nakshatram ?? "",
@@ -556,7 +727,7 @@ export default function EditMatrimonialMemberPage() {
           education:
             member.education ?? "",
 
-          annualIncome:
+          annual_income:
             member.annual_income != null
               ? String(member.annual_income)
               : "",
@@ -564,30 +735,72 @@ export default function EditMatrimonialMemberPage() {
           address:
             member.address ?? "",
 
-          fatherOccupation:
-            member.father_occupation ?? "",
+          /* =====================================
+             IMPORTANT OCCUPATION FIX
+          ===================================== */
 
-          motherOccupation:
-            member.mother_occupation ?? "",
-
-          brotherDetails:
-            member.brother_details ?? "",
-
-          sisterDetails:
-            member.sister_details ?? "",
-
-          propertyDetails:
-            member.property_details ?? "",
-
-          preferredRequirements:
-            member.preferred_requirements ??
+          father_occupation:
+            member.father_occupation ??
+            member.fatherOccupation ??
             "",
+
+          mother_occupation:
+            member.mother_occupation ??
+            member.motherOccupation ??
+            "",
+
+          property_details:
+            member.property_details ??
+            member.propertyDetails ??
+            "",
+
+          preferred_requirements:
+            member.preferred_requirements ??
+            member.preferredRequirements ??
+            "",
+
+          /* =====================================
+             AREA VOLUNTEER
+          ===================================== */
+
+          area_volunteer_name:
+            member.preference_name ??
+            member.area_volunteer_name ??
+            "",
+
+          area_volunteer_contact:
+            member.preference_phone ??
+            member.area_volunteer_contact ??
+            "",
+
+          area_volunteer_position:
+            member.preference_area ??
+            member.area_volunteer_position ??
+            "",
+
+          /* =====================================
+             CONTACT
+          ===================================== */
 
           mobile:
             member.mobile ?? "",
 
           email:
             member.email ?? "",
+
+          /* =====================================
+             CONSENT
+          ===================================== */
+
+          consent:
+            member.consent === true ||
+            member.consent === "true" ||
+            member.consent === 1 ||
+            member.consent === "1",
+
+          /* =====================================
+             PHOTO
+          ===================================== */
 
           photo,
         });
@@ -596,16 +809,20 @@ export default function EditMatrimonialMemberPage() {
           setPhotoPreview(
             getPhotoUrl(photo)
           );
+        } else {
+          setPhotoPreview(
+            "/images/default-profile.jpg"
+          );
         }
-      } catch (error) {
+      } catch (err) {
         console.error(
           "Fetch matrimonial member error:",
-          error
+          err
         );
 
         setError(
-          error instanceof Error
-            ? error.message
+          err instanceof Error
+            ? err.message
             : "Failed to load member"
         );
       } finally {
@@ -636,6 +853,19 @@ export default function EditMatrimonialMemberPage() {
   };
 
   /* =======================================================
+     CONSENT
+  ======================================================= */
+
+  const handleConsentChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setProfile((prev) => ({
+      ...prev,
+      consent: e.target.checked,
+    }));
+  };
+
+  /* =======================================================
      PHOTO CHANGE
   ======================================================= */
 
@@ -647,18 +877,18 @@ export default function EditMatrimonialMemberPage() {
 
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (!file.type.startsWith("image/")) {
       alert(
-        "Please select an image smaller than 5MB."
+        "Please select a valid image file."
       );
 
       e.target.value = "";
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+    if (file.size > 5 * 1024 * 1024) {
       alert(
-        "Please select a valid image file."
+        "Please select an image smaller than 5MB."
       );
 
       e.target.value = "";
@@ -674,31 +904,133 @@ export default function EditMatrimonialMemberPage() {
   };
 
   /* =======================================================
+     BROTHER COUNT
+  ======================================================= */
+
+  const handleBrotherCount = (
+    count: number
+  ) => {
+    setBrothers((previous) => {
+      if (count === 0) {
+        return [];
+      }
+
+      if (count > previous.length) {
+        return [
+          ...previous,
+          ...Array.from(
+            {
+              length:
+                count -
+                previous.length,
+            },
+            () => createEmptySibling()
+          ),
+        ];
+      }
+
+      return previous.slice(0, count);
+    });
+  };
+
+  /* =======================================================
+     SISTER COUNT
+  ======================================================= */
+
+  const handleSisterCount = (
+    count: number
+  ) => {
+    setSisters((previous) => {
+      if (count === 0) {
+        return [];
+      }
+
+      if (count > previous.length) {
+        return [
+          ...previous,
+          ...Array.from(
+            {
+              length:
+                count -
+                previous.length,
+            },
+            () => createEmptySibling()
+          ),
+        ];
+      }
+
+      return previous.slice(0, count);
+    });
+  };
+
+  /* =======================================================
+     BROTHER CHANGE
+  ======================================================= */
+
+  const handleBrotherChange = (
+    index: number,
+    field: keyof Sibling,
+    value: string
+  ) => {
+    setBrothers((previous) =>
+      previous.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item
+      )
+    );
+  };
+
+  /* =======================================================
+     SISTER CHANGE
+  ======================================================= */
+
+  const handleSisterChange = (
+    index: number,
+    field: keyof Sibling,
+    value: string
+  ) => {
+    setSisters((previous) =>
+      previous.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item
+      )
+    );
+  };
+
+  /* =======================================================
      SAVE
   ======================================================= */
 
   const handleSave = async () => {
     if (saving) return;
 
-    /* =====================================================
+    /* =========================================
        VALIDATION
-    ===================================================== */
+    ========================================= */
 
-    if (!profile.profileCategory) {
+    if (!profile.profile_category) {
       alert(
         "Please select Profile Category."
       );
       return;
     }
 
-    if (!profile.fatherName.trim()) {
+    if (!profile.father_name.trim()) {
       alert(
         "Please enter Father's Name."
       );
       return;
     }
 
-    if (!profile.motherName.trim()) {
+    if (!profile.mother_name.trim()) {
       alert(
         "Please enter Mother's Name."
       );
@@ -712,18 +1044,87 @@ export default function EditMatrimonialMemberPage() {
       return;
     }
 
+    /* =========================================
+       BROTHER VALIDATION
+    ========================================= */
+
+    for (
+      let i = 0;
+      i < brothers.length;
+      i++
+    ) {
+      const brother =
+        brothers[i];
+
+      if (
+        !brother.name.trim() ||
+        !brother.age.trim() ||
+        !brother.marital_status.trim() ||
+        !brother.occupation.trim()
+      ) {
+        alert(
+          `Please complete Brother ${
+            i + 1
+          } details.`
+        );
+
+        return;
+      }
+    }
+
+    /* =========================================
+       SISTER VALIDATION
+    ========================================= */
+
+    for (
+      let i = 0;
+      i < sisters.length;
+      i++
+    ) {
+      const sister =
+        sisters[i];
+
+      if (
+        !sister.name.trim() ||
+        !sister.age.trim() ||
+        !sister.marital_status.trim() ||
+        !sister.occupation.trim()
+      ) {
+        alert(
+          `Please complete Sister ${
+            i + 1
+          } details.`
+        );
+
+        return;
+      }
+    }
+
+    /* =========================================
+       CONSENT
+    ========================================= */
+
+    if (!profile.consent) {
+      alert(
+        "Please confirm the consent before saving."
+      );
+
+      return;
+    }
+
     setSaving(true);
 
     try {
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
-      /* ===================================================
-         MEMBERSHIP / CONTACT
-      =================================================== */
+      /* =========================================
+         MEMBERSHIP
+      ========================================= */
 
       formData.append(
         "member_id",
-        profile.memberId
+        profile.member_id
       );
 
       formData.append(
@@ -736,38 +1137,38 @@ export default function EditMatrimonialMemberPage() {
         profile.email.trim()
       );
 
-      /* ===================================================
-         PERSONAL INFORMATION
-      =================================================== */
+      /* =========================================
+         PERSONAL
+      ========================================= */
 
       formData.append(
         "profile_category",
-        profile.profileCategory
+        profile.profile_category
       );
 
       formData.append(
         "father_name",
-        profile.fatherName
+        profile.father_name
       );
 
       formData.append(
         "mother_name",
-        profile.motherName
+        profile.mother_name
       );
 
       formData.append(
         "father_gotram",
-        profile.fatherGotram
+        profile.father_gotram
       );
 
       formData.append(
         "mother_gotram",
-        profile.motherGotram
+        profile.mother_gotram
       );
 
       formData.append(
         "grandmother_gotram",
-        profile.grandmotherGotram
+        profile.grandmother_gotram
       );
 
       formData.append(
@@ -795,9 +1196,9 @@ export default function EditMatrimonialMemberPage() {
         profile.height
       );
 
-      /* ===================================================
+      /* =========================================
          EDUCATION
-      =================================================== */
+      ========================================= */
 
       formData.append(
         "education",
@@ -806,59 +1207,114 @@ export default function EditMatrimonialMemberPage() {
 
       formData.append(
         "annual_income",
-        profile.annualIncome
+        profile.annual_income
       );
 
-      /* ===================================================
+      /* =========================================
          ADDRESS
-      =================================================== */
+      ========================================= */
 
       formData.append(
         "address",
         profile.address
       );
 
-      /* ===================================================
+      /* =========================================
          FAMILY
-      =================================================== */
+      ========================================= */
 
       formData.append(
         "father_occupation",
-        profile.fatherOccupation
+        profile.father_occupation
       );
 
       formData.append(
         "mother_occupation",
-        profile.motherOccupation
+        profile.mother_occupation
       );
 
       formData.append(
         "brother_details",
-        profile.brotherDetails
+        formatSiblings(
+          brothers,
+          "Brother"
+        )
       );
 
       formData.append(
         "sister_details",
-        profile.sisterDetails
+        formatSiblings(
+          sisters,
+          "Sister"
+        )
       );
 
       formData.append(
         "property_details",
-        profile.propertyDetails
+        profile.property_details
       );
 
-      /* ===================================================
+      /* =========================================
          PREFERRED
-      =================================================== */
+      ========================================= */
 
       formData.append(
         "preferred_requirements",
-        profile.preferredRequirements
+        profile.preferred_requirements
       );
 
-      /* ===================================================
+      /* =========================================
+         AREA VOLUNTEER
+      ========================================= */
+
+      formData.append(
+        "area_volunteer_name",
+        profile.area_volunteer_name
+      );
+
+      formData.append(
+        "area_volunteer_contact",
+        profile.area_volunteer_contact
+      );
+
+      formData.append(
+        "area_volunteer_position",
+        profile.area_volunteer_position
+      );
+
+      /* =========================================
+         BACKEND ALIASES
+      ========================================= */
+
+      formData.append(
+        "preference_name",
+        profile.area_volunteer_name
+      );
+
+      formData.append(
+        "preference_phone",
+        profile.area_volunteer_contact
+      );
+
+      formData.append(
+        "preference_area",
+        profile.area_volunteer_position
+      );
+
+      /* =========================================
+         CONSENT
+      ========================================= */
+
+      formData.append(
+        "consent",
+        profile.consent
+          ? "true"
+          : "false"
+      );
+
+      /* =========================================
          PHOTO
-      =================================================== */
+      ========================================= */
 
       if (selectedPhoto) {
         formData.append(
@@ -867,13 +1323,56 @@ export default function EditMatrimonialMemberPage() {
         );
       }
 
+      /* =========================================
+         DEBUG FORM DATA
+      ========================================= */
+
       console.log(
-        "UPDATING MATRIMONIAL MEMBER:",
-        {
-          id,
-          memberId: profile.memberId,
-        }
+        "========== UPDATE DATA =========="
       );
+
+      console.log(
+        "ID:",
+        id
+      );
+
+      console.log(
+        "Member ID:",
+        profile.member_id
+      );
+
+      console.log(
+        "Father Occupation:",
+        profile.father_occupation
+      );
+
+      console.log(
+        "Mother Occupation:",
+        profile.mother_occupation
+      );
+
+      console.log(
+        "Brothers:",
+        brothers
+      );
+
+      console.log(
+        "Sisters:",
+        sisters
+      );
+
+      console.log(
+        "New Photo:",
+        selectedPhoto?.name
+      );
+
+      console.log(
+        "================================="
+      );
+
+      /* =========================================
+         PUT REQUEST
+      ========================================= */
 
       const response = await fetch(
         `${BACKEND_URL}/matrimonial-users/${id}`,
@@ -887,7 +1386,7 @@ export default function EditMatrimonialMemberPage() {
         await response.json();
 
       console.log(
-        "UPDATE MEMBER RESPONSE:",
+        "UPDATE RESPONSE:",
         result
       );
 
@@ -911,15 +1410,15 @@ export default function EditMatrimonialMemberPage() {
 
         router.refresh();
       }, 1200);
-    } catch (error) {
+    } catch (err) {
       console.error(
         "Update matrimonial member error:",
-        error
+        err
       );
 
       alert(
-        error instanceof Error
-          ? error.message
+        err instanceof Error
+          ? err.message
           : "Something went wrong"
       );
     } finally {
@@ -934,13 +1433,17 @@ export default function EditMatrimonialMemberPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef] flex items-center justify-center px-4">
+
         <div className="text-center">
+
           <div className="w-12 h-12 border-4 border-pink-200 border-t-[#8B1E3F] rounded-full animate-spin mx-auto" />
 
           <p className="mt-4 text-sm text-gray-500">
             Loading member data...
           </p>
+
         </div>
+
       </div>
     );
   }
@@ -952,10 +1455,13 @@ export default function EditMatrimonialMemberPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+
         <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-red-200 p-8 text-center shadow-lg">
 
           <div className="mx-auto w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center">
+
             <FaTimes className="text-2xl" />
+
           </div>
 
           <h2 className="text-xl font-bold text-red-600 mt-4">
@@ -967,7 +1473,8 @@ export default function EditMatrimonialMemberPage() {
           </p>
 
           <p className="text-xs text-gray-400 mt-3 break-all">
-            API: {BACKEND_URL}/matrimonial-users/
+            API:{" "}
+            {BACKEND_URL}/matrimonial-users/
             {id}
           </p>
 
@@ -980,6 +1487,7 @@ export default function EditMatrimonialMemberPage() {
           </Link>
 
         </div>
+
       </div>
     );
   }
@@ -991,9 +1499,9 @@ export default function EditMatrimonialMemberPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
 
-      {/* ===================================================
+      {/* =================================================
           TOAST
-      =================================================== */}
+      ================================================= */}
 
       {toast.show && (
         <div className="fixed right-5 top-5 z-[9999] w-[calc(100%-40px)] max-w-md">
@@ -1003,7 +1511,9 @@ export default function EditMatrimonialMemberPage() {
             <div className="flex items-start gap-3">
 
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+
                 <FaCheckCircle className="text-xl" />
+
               </div>
 
               <div className="flex-1">
@@ -1038,9 +1548,9 @@ export default function EditMatrimonialMemberPage() {
         </div>
       )}
 
-      {/* ===================================================
+      {/* =================================================
           MAIN
-      =================================================== */}
+      ================================================= */}
 
       <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
 
@@ -1074,7 +1584,8 @@ export default function EditMatrimonialMemberPage() {
           </div>
 
           <div className="rounded-full bg-pink-50 px-4 py-2 text-sm font-bold text-[#8B1E3F]">
-            Member ID: {profile.memberId || id}
+            Member ID:{" "}
+            {profile.member_id || id}
           </div>
 
         </div>
@@ -1098,65 +1609,47 @@ export default function EditMatrimonialMemberPage() {
 
             <FormSelect
               label="Profile Category"
-              name="profileCategory"
-              value={profile.profileCategory}
+              name="profile_category"
+              value={profile.profile_category}
               onChange={handleChange}
               options={profileCategoryList}
             />
 
             <FormInput
               label="Father's Name"
-              name="fatherName"
-              value={profile.fatherName}
+              name="father_name"
+              value={profile.father_name}
               onChange={handleChange}
               required
             />
 
             <FormInput
               label="Mother's Name"
-              name="motherName"
-              value={profile.motherName}
+              name="mother_name"
+              value={profile.mother_name}
               onChange={handleChange}
               required
             />
 
-            <FormSelect
+            <GotramSelect
               label="Father Gotram"
-              name="fatherGotram"
-              value={profile.fatherGotram}
+              name="father_gotram"
+              value={profile.father_gotram}
               onChange={handleChange}
-              options={gotramList.map(
-                (item) => ({
-                  value: item,
-                  label: item,
-                })
-              )}
             />
 
-            <FormSelect
+            <GotramSelect
               label="Mother Gotram"
-              name="motherGotram"
-              value={profile.motherGotram}
+              name="mother_gotram"
+              value={profile.mother_gotram}
               onChange={handleChange}
-              options={gotramList.map(
-                (item) => ({
-                  value: item,
-                  label: item,
-                })
-              )}
             />
 
-            <FormSelect
-              label="Grand Mother Gotram"
-              name="grandmotherGotram"
-              value={profile.grandmotherGotram}
+            <GotramSelect
+              label="Grandmother Gotram"
+              name="grandmother_gotram"
+              value={profile.grandmother_gotram}
               onChange={handleChange}
-              options={gotramList.map(
-                (item) => ({
-                  value: item,
-                  label: item,
-                })
-              )}
             />
 
             <FormSelect
@@ -1254,8 +1747,8 @@ export default function EditMatrimonialMemberPage() {
 
             <FormInput
               label="Salary / Annual Income"
-              name="annualIncome"
-              value={profile.annualIncome}
+              name="annual_income"
+              value={profile.annual_income}
               onChange={handleChange}
               placeholder="Example: ₹6,00,000"
             />
@@ -1294,10 +1787,12 @@ export default function EditMatrimonialMemberPage() {
 
           <div className="grid gap-6 p-6 md:grid-cols-2">
 
+            {/* FATHER OCCUPATION */}
+
             <FormSelect
-              label="Father Details"
-              name="fatherOccupation"
-              value={profile.fatherOccupation}
+              label="Father Occupation"
+              name="father_occupation"
+              value={profile.father_occupation}
               onChange={handleChange}
               options={parentOccupationList.map(
                 (item) => ({
@@ -1307,10 +1802,12 @@ export default function EditMatrimonialMemberPage() {
               )}
             />
 
+            {/* MOTHER OCCUPATION */}
+
             <FormSelect
-              label="Mother Details"
-              name="motherOccupation"
-              value={profile.motherOccupation}
+              label="Mother Occupation"
+              name="mother_occupation"
+              value={profile.mother_occupation}
               onChange={handleChange}
               options={[
                 {
@@ -1326,72 +1823,334 @@ export default function EditMatrimonialMemberPage() {
               ]}
             />
 
-            <FormSelect
-              label="Brother Details"
-              name="brotherDetails"
-              value={profile.brotherDetails}
-              onChange={handleChange}
-              options={[
-                {
-                  value: "No Brothers",
-                  label: "No Brothers",
-                },
-                {
-                  value: "1 Brother",
-                  label: "1 Brother",
-                },
-                {
-                  value: "2 Brothers",
-                  label: "2 Brothers",
-                },
-                {
-                  value: "3 Brothers",
-                  label: "3 Brothers",
-                },
-              ]}
-            />
+          </div>
 
-            <FormSelect
-              label="Sister Details"
-              name="sisterDetails"
-              value={profile.sisterDetails}
-              onChange={handleChange}
-              options={[
-                {
-                  value: "No Sisters",
-                  label: "No Sisters",
-                },
-                {
-                  value: "1 Sister",
-                  label: "1 Sister",
-                },
-                {
-                  value: "2 Sisters",
-                  label: "2 Sisters",
-                },
-                {
-                  value: "3 Sisters",
-                  label: "3 Sisters",
-                },
-              ]}
-            />
+          {/* =================================================
+              BROTHERS
+          ================================================= */}
 
-            <div className="md:col-span-2">
+          <div className="px-6 pb-6">
 
-              <FormTextarea
-                label="Property Details"
-                name="propertyDetails"
-                value={profile.propertyDetails}
-                onChange={handleChange}
-                rows={4}
-              />
+            <div className="rounded-2xl border border-pink-100 bg-pink-50/30 p-5">
+
+              <div className="flex items-center gap-2">
+
+                <FaUsers className="text-[#8B1E3F]" />
+
+                <h3 className="font-bold text-[#8B1E3F]">
+                  Brother Details
+                </h3>
+
+              </div>
+
+              <div className="mt-4 max-w-xs">
+
+                <label className={labelClass}>
+                  Number of Brothers
+                </label>
+
+                <select
+                  value={brothers.length}
+                  onChange={(e) =>
+                    handleBrotherCount(
+                      Number(e.target.value)
+                    )
+                  }
+                  className={inputClass}
+                >
+
+                  <option value="0">
+                    No Brothers
+                  </option>
+
+                  <option value="1">
+                    1 Brother
+                  </option>
+
+                  <option value="2">
+                    2 Brothers
+                  </option>
+
+                  <option value="3">
+                    3 Brothers
+                  </option>
+
+                </select>
+
+              </div>
+
+              {brothers.map(
+                (brother, index) => (
+                  <div
+                    key={index}
+                    className="mt-5 rounded-2xl border border-pink-200 bg-white p-5"
+                  >
+
+                    <h4 className="font-semibold text-gray-800">
+                      Brother {index + 1}
+                    </h4>
+
+                    <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+
+                      <FormInput
+                        label="Name"
+                        name={`brother_name_${index}`}
+                        value={brother.name}
+                        onChange={(e) =>
+                          handleBrotherChange(
+                            index,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+
+                      <FormInput
+                        label="Age"
+                        name={`brother_age_${index}`}
+                        value={brother.age}
+                        onChange={(e) =>
+                          handleBrotherChange(
+                            index,
+                            "age",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+
+                      <FormSelect
+                        label="Marital Status"
+                        name={`brother_status_${index}`}
+                        value={
+                          brother.marital_status
+                        }
+                        onChange={(e) =>
+                          handleBrotherChange(
+                            index,
+                            "marital_status",
+                            e.target.value
+                          )
+                        }
+                        options={[
+                          {
+                            value: "Married",
+                            label: "Married",
+                          },
+                          {
+                            value: "Unmarried",
+                            label: "Unmarried",
+                          },
+                          {
+                            value: "Divorced",
+                            label: "Divorced",
+                          },
+                          {
+                            value: "Widowed",
+                            label: "Widowed",
+                          },
+                        ]}
+                      />
+
+                      <FormInput
+                        label="Occupation"
+                        name={`brother_occupation_${index}`}
+                        value={
+                          brother.occupation
+                        }
+                        onChange={(e) =>
+                          handleBrotherChange(
+                            index,
+                            "occupation",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+
+                    </div>
+
+                  </div>
+                )
+              )}
 
             </div>
 
           </div>
 
           {/* =================================================
-              PREFERRED
+              SISTERS
+          ================================================= */}
+
+          <div className="px-6 pb-6">
+
+            <div className="rounded-2xl border border-pink-100 bg-pink-50/30 p-5">
+
+              <div className="flex items-center gap-2">
+
+                <FaUsers className="text-[#8B1E3F]" />
+
+                <h3 className="font-bold text-[#8B1E3F]">
+                  Sister Details
+                </h3>
+
+              </div>
+
+              <div className="mt-4 max-w-xs">
+
+                <label className={labelClass}>
+                  Number of Sisters
+                </label>
+
+                <select
+                  value={sisters.length}
+                  onChange={(e) =>
+                    handleSisterCount(
+                      Number(e.target.value)
+                    )
+                  }
+                  className={inputClass}
+                >
+
+                  <option value="0">
+                    No Sisters
+                  </option>
+
+                  <option value="1">
+                    1 Sister
+                  </option>
+
+                  <option value="2">
+                    2 Sisters
+                  </option>
+
+                  <option value="3">
+                    3 Sisters
+                  </option>
+
+                </select>
+
+              </div>
+
+              {sisters.map(
+                (sister, index) => (
+                  <div
+                    key={index}
+                    className="mt-5 rounded-2xl border border-pink-200 bg-white p-5"
+                  >
+
+                    <h4 className="font-semibold text-gray-800">
+                      Sister {index + 1}
+                    </h4>
+
+                    <div className="mt-4 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+
+                      <FormInput
+                        label="Name"
+                        name={`sister_name_${index}`}
+                        value={sister.name}
+                        onChange={(e) =>
+                          handleSisterChange(
+                            index,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+
+                      <FormInput
+                        label="Age"
+                        name={`sister_age_${index}`}
+                        value={sister.age}
+                        onChange={(e) =>
+                          handleSisterChange(
+                            index,
+                            "age",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+
+                      <FormSelect
+                        label="Marital Status"
+                        name={`sister_status_${index}`}
+                        value={
+                          sister.marital_status
+                        }
+                        onChange={(e) =>
+                          handleSisterChange(
+                            index,
+                            "marital_status",
+                            e.target.value
+                          )
+                        }
+                        options={[
+                          {
+                            value: "Married",
+                            label: "Married",
+                          },
+                          {
+                            value: "Unmarried",
+                            label: "Unmarried",
+                          },
+                          {
+                            value: "Divorced",
+                            label: "Divorced",
+                          },
+                          {
+                            value: "Widowed",
+                            label: "Widowed",
+                          },
+                        ]}
+                      />
+
+                      <FormInput
+                        label="Occupation"
+                        name={`sister_occupation_${index}`}
+                        value={
+                          sister.occupation
+                        }
+                        onChange={(e) =>
+                          handleSisterChange(
+                            index,
+                            "occupation",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+
+                    </div>
+
+                  </div>
+                )
+              )}
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              PROPERTY
+          ================================================= */}
+
+          <div className="p-6">
+
+            <FormTextarea
+              label="Property Details"
+              name="property_details"
+              value={profile.property_details}
+              onChange={handleChange}
+              rows={4}
+            />
+
+          </div>
+
+          {/* =================================================
+              PREFERRED REQUIREMENTS
           ================================================= */}
 
           <SectionTitle
@@ -1403,10 +2162,55 @@ export default function EditMatrimonialMemberPage() {
 
             <FormTextarea
               label="Preferred Requirements"
-              name="preferredRequirements"
-              value={profile.preferredRequirements}
+              name="preferred_requirements"
+              value={
+                profile.preferred_requirements
+              }
               onChange={handleChange}
               rows={5}
+            />
+
+          </div>
+
+          {/* =================================================
+              AREA VOLUNTEER
+          ================================================= */}
+
+          <SectionTitle
+            title="Your Preference Details"
+            description="Update area volunteer information."
+          />
+
+          <div className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
+
+            <FormInput
+              label="Your Preference Name"
+              name="area_volunteer_name"
+              value={
+                profile.area_volunteer_name
+              }
+              onChange={handleChange}
+              placeholder="Enter volunteer name"
+            />
+
+            <FormInput
+              label="Your Preference Contact"
+              name="area_volunteer_contact"
+              value={
+                profile.area_volunteer_contact
+              }
+              onChange={handleChange}
+              placeholder="Enter contact number"
+            />
+
+            <FormInput
+              label="Your Preference Position"
+              name="area_volunteer_position"
+              value={
+                profile.area_volunteer_position
+              }
+              onChange={handleChange}
+              placeholder="Example: Your Preference"
             />
 
           </div>
@@ -1441,12 +2245,12 @@ export default function EditMatrimonialMemberPage() {
           </div>
 
           {/* =================================================
-              PHOTO
+              PROFILE PHOTO
           ================================================= */}
 
           <SectionTitle
             title="Profile Photo"
-            description="Change the matrimonial profile photograph."
+            description="View or change the matrimonial profile photograph."
           />
 
           <div className="p-6">
@@ -1465,7 +2269,7 @@ export default function EditMatrimonialMemberPage() {
                       "/images/default-profile.jpg"
                     }
                     alt={
-                      profile.memberId ||
+                      profile.member_id ||
                       "Matrimonial Profile"
                     }
                     className="h-full w-full object-cover"
@@ -1557,6 +2361,47 @@ export default function EditMatrimonialMemberPage() {
           </div>
 
           {/* =================================================
+              CONSENT
+          ================================================= */}
+
+          <SectionTitle
+            title="Declaration & Consent"
+            description="Confirm the matrimonial information provided."
+          />
+
+          <div className="p-6">
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-pink-200 bg-pink-50/40 p-5">
+
+              <input
+                type="checkbox"
+                checked={profile.consent}
+                onChange={
+                  handleConsentChange
+                }
+                className="mt-1 h-5 w-5 accent-[#8B1E3F]"
+              />
+
+              <span className="text-sm leading-6 text-gray-700">
+
+                I/We confirm that the information
+                provided by me/us is true and
+                correct, and I/we give my/our
+                consent to use this information
+                for the purpose of matrimonial
+                and community services.
+
+                <span className="ml-1 text-red-500">
+                  *
+                </span>
+
+              </span>
+
+            </label>
+
+          </div>
+
+          {/* =================================================
               ACTIONS
           ================================================= */}
 
@@ -1589,6 +2434,61 @@ export default function EditMatrimonialMemberPage() {
         </div>
 
       </main>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   GOTRAM SELECT
+========================================================= */
+
+function GotramSelect({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+}) {
+  const datalistId =
+    `${name}-gotram-options`;
+
+  return (
+    <div>
+
+      <label className={labelClass}>
+        {label}
+      </label>
+
+      <input
+        type="text"
+        name={name}
+        value={value}
+        onChange={onChange}
+        list={datalistId}
+        placeholder="Select Gotram"
+        autoComplete="off"
+        className={inputClass}
+      />
+
+      <datalist id={datalistId}>
+
+        {gotramList.map(
+          (gotram) => (
+            <option
+              key={gotram}
+              value={gotram}
+            />
+          )
+        )}
+
+      </datalist>
 
     </div>
   );
@@ -1766,4 +2666,3 @@ function FormTextarea({
     </div>
   );
 }
-

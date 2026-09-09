@@ -36,7 +36,7 @@ type Member = {
   gender?: string;
   occupation?: string;
   date_of_birth?: string;
-
+  location?: string | null;
   district?: string | null;
   mandal?: string | null;
   sangham?: string | null;
@@ -89,6 +89,7 @@ type LoggedInUser = {
 
   district?: string;
   mandal?: string;
+  location?: string | null;
 
   [key: string]: any;
 };
@@ -168,17 +169,31 @@ const getMemberId = (
 ========================================================= */
 
 const getLocation = (member: Member) => {
+  // =====================================================
+  // FIRST PRIORITY: members.location
+  // =====================================================
+
+  if (
+    member.location &&
+    String(member.location).trim() !== ""
+  ) {
+    return String(member.location).trim();
+  }
+
+  // =====================================================
+  // FALLBACK: LOCATION DETAILS
+  // =====================================================
+
   const parts = [
     member.sangham,
     member.mandal,
     member.district,
     member.state,
-  ].filter(
-    (value) =>
-      value !== null &&
-      value !== undefined &&
-      String(value).trim() !== "",
-  );
+  ]
+    .map((value) =>
+      String(value ?? "").trim(),
+    )
+    .filter(Boolean);
 
   if (parts.length > 0) {
     return parts.join(", ");
