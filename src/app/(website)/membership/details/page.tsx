@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -25,25 +26,12 @@ import {
   Building2,
   Users,
   ShieldCheck,
-  Printer,
 } from "lucide-react";
 
 // =========================================================
 // CONFIG
 // =========================================================
 
-/**
- * Production backend:
- * https://avms-backend-production.up.railway.app
- *
- * Vercel Environment Variable:
- * NEXT_PUBLIC_BACKEND_URL
- *
- * Recommended value:
- * https://avms-backend-production.up.railway.app
- *
- * We also support NEXT_PUBLIC_API_URL for compatibility.
- */
 const API_URL = (
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
@@ -79,23 +67,50 @@ interface Member {
 
   occupation?: string;
 
-  district?: string;
-  mandal?: string;
-  sangham?: string;
+  // =======================================================
+  // LOCATION
+  // =======================================================
+
+  location?: string | null;
+  state?: string | null;
+  district?: string | null;
+  mandal?: string | null;
+  sangham?: string | null;
+  sangam?: string | null;
+
+  // =======================================================
+  // GOTRAM
+  // =======================================================
+
+  gotram?: string | null;
+
+  // =======================================================
+  // EXECUTIVE
+  // =======================================================
 
   executive_body?: string;
   designation?: string;
 
   status?: string;
 
+  // =======================================================
+  // MAHASHABA PAYMENT
+  // =======================================================
+
   mahashaba_payment_status?: string;
   mahashaba_payment_method?: string;
-  mahashaba_amount?: number | string;
+  mahashaba_amount?: number | string | null;
+  mahashaba_amount_paid?: number | string | null;
   mahashaba_payment_date?: string;
+
+  // =======================================================
+  // SANGAM PAYMENT
+  // =======================================================
 
   sangam_payment_status?: string;
   sangam_payment_method?: string;
-  sangam_amount?: number | string;
+  sangam_amount?: number | string | null;
+  sangam_amount_paid?: number | string | null;
   sangam_payment_date?: string;
 
   created_at?: string;
@@ -121,11 +136,58 @@ const getValue = (
       value !== null &&
       String(value).trim() !== ""
     ) {
-      return String(value);
+      return String(value).trim();
     }
   }
 
   return fallback;
+};
+
+// =========================================================
+// GOTRAM
+// =========================================================
+
+const getGotram = (member: Member): string => {
+  return getValue(
+    member,
+    ["gotram", "gothram", "gotra"],
+    "-"
+  );
+};
+
+// =========================================================
+// LOCATION
+// =========================================================
+
+const getLocation = (member: Member): string => {
+  // =======================================================
+  // FIRST PRIORITY: members.location
+  // =======================================================
+
+  if (
+    member.location !== undefined &&
+    member.location !== null &&
+    String(member.location).trim() !== ""
+  ) {
+    return String(member.location).trim();
+  }
+
+  // =======================================================
+  // FALLBACK LOCATION
+  // =======================================================
+
+  const parts = [
+    member.sangham ?? member.sangam,
+    member.mandal,
+    member.district,
+    member.state,
+  ]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+
+  return parts.length > 0
+    ? parts.join(", ")
+    : "-";
 };
 
 // =========================================================
@@ -177,7 +239,9 @@ const formatAmount = (value?: unknown): string => {
 // PHOTO URL
 // =========================================================
 
-const getPhotoUrl = (member: Member): string | null => {
+const getPhotoUrl = (
+  member: Member
+): string | null => {
   const photo = getValue(
     member,
     ["photo", "profile_photo"],
@@ -188,7 +252,6 @@ const getPhotoUrl = (member: Member): string | null => {
     return null;
   }
 
-  // Already a complete URL
   if (
     photo.startsWith("http://") ||
     photo.startsWith("https://")
@@ -196,12 +259,10 @@ const getPhotoUrl = (member: Member): string | null => {
     return photo;
   }
 
-  // Backend relative URL
   if (photo.startsWith("/")) {
     return `${API_URL}${photo}`;
   }
 
-  // Relative filename/path
   return `${API_URL}/${photo}`;
 };
 
@@ -209,22 +270,33 @@ const getPhotoUrl = (member: Member): string | null => {
 // DOWNLOAD CARD HTML
 // =========================================================
 
-const createDownloadCard = (member: Member): string => {
-  const name = getValue(member, ["full_name", "name"]);
+const createDownloadCard = (
+  member: Member
+): string => {
+  const name = getValue(
+    member,
+    ["full_name", "name"]
+  );
 
-  const memberId = getValue(member, [
-    "member_id",
-    "id",
-  ]);
+  const memberId = getValue(
+    member,
+    ["member_id", "id"]
+  );
 
-  const mobile = getValue(member, [
-    "mobile",
-    "phone",
-  ]);
+  const mobile = getValue(
+    member,
+    ["mobile", "phone"]
+  );
 
-  const email = getValue(member, ["email"]);
+  const email = getValue(
+    member,
+    ["email"]
+  );
 
-  const gender = getValue(member, ["gender"]);
+  const gender = getValue(
+    member,
+    ["gender"]
+  );
 
   const dob = formatDate(
     getValue(
@@ -239,6 +311,18 @@ const createDownloadCard = (member: Member): string => {
     ["occupation"]
   );
 
+  // =======================================================
+  // GOTRAM
+  // =======================================================
+
+  const gotram = getGotram(member);
+
+  // =======================================================
+  // LOCATION
+  // =======================================================
+
+  const location = getLocation(member);
+
   const district = getValue(
     member,
     ["district"]
@@ -251,7 +335,7 @@ const createDownloadCard = (member: Member): string => {
 
   const sangham = getValue(
     member,
-    ["sangham"]
+    ["sangham", "sangam"]
   );
 
   const executiveBody = getValue(
@@ -282,7 +366,8 @@ const createDownloadCard = (member: Member): string => {
   );
 
   const mahashabaAmount = formatAmount(
-    member.mahashaba_amount
+    member.mahashaba_amount ??
+      member.mahashaba_amount_paid
   );
 
   const mahashabaDate = formatDate(
@@ -300,7 +385,8 @@ const createDownloadCard = (member: Member): string => {
   );
 
   const sangamAmount = formatAmount(
-    member.sangam_amount
+    member.sangam_amount ??
+      member.sangam_amount_paid
   );
 
   const sangamDate = formatDate(
@@ -311,13 +397,10 @@ const createDownloadCard = (member: Member): string => {
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta charset="UTF-8" />
-
 <title>Membership Details - ${name}</title>
 
 <style>
-
 * {
   box-sizing: border-box;
 }
@@ -447,7 +530,6 @@ body {
 }
 
 @media print {
-
   body {
     padding: 0;
     background: #fff;
@@ -456,11 +538,9 @@ body {
   .card {
     border: none;
   }
-
 }
 
 @media(max-width: 600px) {
-
   body {
     padding: 10px;
   }
@@ -472,9 +552,7 @@ body {
   .grid {
     grid-template-columns: 1fr;
   }
-
 }
-
 </style>
 
 </head>
@@ -484,13 +562,8 @@ body {
 <div class="card">
 
   <div class="header">
-
     <h1>ARYA VYSYA MAHASABHA</h1>
-
-    <p>
-      Membership Details
-    </p>
-
+    <p>Membership Details</p>
   </div>
 
   <div class="member-header">
@@ -509,9 +582,7 @@ body {
 
     <div class="member-name">
 
-      <h2>
-        ${name}
-      </h2>
+      <h2>${name}</h2>
 
       <span class="member-id">
         Member ID: ${memberId}
@@ -520,6 +591,8 @@ body {
     </div>
 
   </div>
+
+  <!-- PERSONAL DETAILS -->
 
   <div class="section">
 
@@ -530,62 +603,50 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">
-          Full Name
-        </div>
-        <div class="value">
-          ${name}
-        </div>
+        <div class="label">Full Name</div>
+        <div class="value">${name}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Gender
-        </div>
-        <div class="value">
-          ${gender}
-        </div>
+        <div class="label">Gender</div>
+        <div class="value">${gender}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Date of Birth
-        </div>
-        <div class="value">
-          ${dob}
-        </div>
+        <div class="label">Date of Birth</div>
+        <div class="value">${dob}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Mobile
-        </div>
-        <div class="value">
-          ${mobile}
-        </div>
+        <div class="label">Mobile</div>
+        <div class="value">${mobile}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Email
-        </div>
-        <div class="value">
-          ${email}
-        </div>
+        <div class="label">Email</div>
+        <div class="value">${email}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Occupation
-        </div>
-        <div class="value">
-          ${occupation}
-        </div>
+        <div class="label">Occupation</div>
+        <div class="value">${occupation}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Gotram</div>
+        <div class="value">${gotram}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Location</div>
+        <div class="value">${location}</div>
       </div>
 
     </div>
 
   </div>
+
+  <!-- LOCATION DETAILS -->
 
   <div class="section">
 
@@ -596,35 +657,30 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">
-          District
-        </div>
-        <div class="value">
-          ${district}
-        </div>
+        <div class="label">Location</div>
+        <div class="value">${location}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Mandal
-        </div>
-        <div class="value">
-          ${mandal}
-        </div>
+        <div class="label">District</div>
+        <div class="value">${district}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Sangham
-        </div>
-        <div class="value">
-          ${sangham}
-        </div>
+        <div class="label">Mandal</div>
+        <div class="value">${mandal}</div>
+      </div>
+
+      <div class="item">
+        <div class="label">Sangham</div>
+        <div class="value">${sangham}</div>
       </div>
 
     </div>
 
   </div>
+
+  <!-- EXECUTIVE BODY -->
 
   <div class="section">
 
@@ -635,35 +691,25 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">
-          Executive Body
-        </div>
-        <div class="value">
-          ${executiveBody}
-        </div>
+        <div class="label">Executive Body</div>
+        <div class="value">${executiveBody}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Designation
-        </div>
-        <div class="value">
-          ${designation}
-        </div>
+        <div class="label">Designation</div>
+        <div class="value">${designation}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Status
-        </div>
-        <div class="value">
-          ${status}
-        </div>
+        <div class="label">Status</div>
+        <div class="value">${status}</div>
       </div>
 
     </div>
 
   </div>
+
+  <!-- MAHASHABA PAYMENT -->
 
   <div class="section">
 
@@ -674,44 +720,30 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">
-          Status
-        </div>
-        <div class="value">
-          ${mahashabaStatus}
-        </div>
+        <div class="label">Status</div>
+        <div class="value">${mahashabaStatus}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Payment Method
-        </div>
-        <div class="value">
-          ${mahashabaMethod}
-        </div>
+        <div class="label">Payment Method</div>
+        <div class="value">${mahashabaMethod}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Amount
-        </div>
-        <div class="value">
-          ${mahashabaAmount}
-        </div>
+        <div class="label">Amount</div>
+        <div class="value">${mahashabaAmount}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Payment Date
-        </div>
-        <div class="value">
-          ${mahashabaDate}
-        </div>
+        <div class="label">Payment Date</div>
+        <div class="value">${mahashabaDate}</div>
       </div>
 
     </div>
 
   </div>
+
+  <!-- SANGAM PAYMENT -->
 
   <div class="section">
 
@@ -722,39 +754,23 @@ body {
     <div class="grid">
 
       <div class="item">
-        <div class="label">
-          Status
-        </div>
-        <div class="value">
-          ${sangamStatus}
-        </div>
+        <div class="label">Status</div>
+        <div class="value">${sangamStatus}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Payment Method
-        </div>
-        <div class="value">
-          ${sangamMethod}
-        </div>
+        <div class="label">Payment Method</div>
+        <div class="value">${sangamMethod}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Amount
-        </div>
-        <div class="value">
-          ${sangamAmount}
-        </div>
+        <div class="label">Amount</div>
+        <div class="value">${sangamAmount}</div>
       </div>
 
       <div class="item">
-        <div class="label">
-          Payment Date
-        </div>
-        <div class="value">
-          ${sangamDate}
-        </div>
+        <div class="label">Payment Date</div>
+        <div class="value">${sangamDate}</div>
       </div>
 
     </div>
@@ -777,15 +793,20 @@ body {
 // =========================================================
 
 export default function MembershipDetailsPage() {
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] =
+    useState<Member[]>([]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] =
+    useState(1);
 
   const [selectedMember, setSelectedMember] =
     useState<Member | null>(null);
@@ -800,101 +821,109 @@ export default function MembershipDetailsPage() {
   // FETCH MEMBERS
   // =======================================================
 
-  const fetchMembers = useCallback(async () => {
-    try {
-      setLoading(true);
+  const fetchMembers = useCallback(
+    async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-      setError("");
-
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "MEMBERS API:",
-        MEMBERS_API
-      );
-
-      console.log(
-        "================================="
-      );
-
-      const response = await fetch(
-        MEMBERS_API,
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch members (${response.status})`
+        console.log(
+          "================================="
         );
+
+        console.log(
+          "MEMBERS API:",
+          MEMBERS_API
+        );
+
+        console.log(
+          "================================="
+        );
+
+        const response =
+          await fetch(
+            MEMBERS_API,
+            {
+              method: "GET",
+              cache: "no-store",
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch members (${response.status})`
+          );
+        }
+
+        const data =
+          await response.json();
+
+        console.log(
+          "Members API response:",
+          data
+        );
+
+        let memberList: Member[] = [];
+
+        if (Array.isArray(data)) {
+          memberList = data;
+        } else if (
+          Array.isArray(data?.data)
+        ) {
+          memberList = data.data;
+        } else if (
+          Array.isArray(data?.members)
+        ) {
+          memberList = data.members;
+        } else if (
+          Array.isArray(data?.results)
+        ) {
+          memberList = data.results;
+        } else if (
+          Array.isArray(data?.items)
+        ) {
+          memberList = data.items;
+        } else if (
+          Array.isArray(data?.result)
+        ) {
+          memberList = data.result;
+        }
+
+        console.log(
+          "FINAL MEMBER LIST:",
+          memberList
+        );
+
+        console.log(
+          "LOCATION SAMPLE:",
+          memberList[0]?.location
+        );
+
+        console.log(
+          "GOTRAM SAMPLE:",
+          memberList[0]?.gotram
+        );
+
+        setMembers(memberList);
+      } catch (err) {
+        console.error(
+          "Members API error:",
+          err
+        );
+
+        setMembers([]);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load members."
+        );
+      } finally {
+        setLoading(false);
       }
-
-      const data = await response.json();
-
-      console.log(
-        "Members API response:",
-        data
-      );
-
-      let memberList: Member[] = [];
-
-      // API returns array
-      if (Array.isArray(data)) {
-        memberList = data;
-      }
-
-      // { data: [] }
-      else if (Array.isArray(data?.data)) {
-        memberList = data.data;
-      }
-
-      // { members: [] }
-      else if (Array.isArray(data?.members)) {
-        memberList = data.members;
-      }
-
-      // { results: [] }
-      else if (Array.isArray(data?.results)) {
-        memberList = data.results;
-      }
-
-      // { items: [] }
-      else if (Array.isArray(data?.items)) {
-        memberList = data.items;
-      }
-
-      // { result: [] }
-      else if (Array.isArray(data?.result)) {
-        memberList = data.result;
-      }
-
-      setMembers(memberList);
-
-    } catch (err) {
-
-      console.error(
-        "Members API error:",
-        err
-      );
-
-      setMembers([]);
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load members."
-      );
-
-    } finally {
-
-      setLoading(false);
-
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
     fetchMembers();
@@ -904,77 +933,73 @@ export default function MembershipDetailsPage() {
   // SEARCH
   // =======================================================
 
-  const filteredMembers = useMemo(() => {
+  const filteredMembers =
+    useMemo(() => {
+      const keyword =
+        search
+          .trim()
+          .toLowerCase();
 
-    const keyword =
-      search.trim().toLowerCase();
-
-    if (!keyword) {
-      return members;
-    }
-
-    return members.filter(
-      (member) => {
-
-        const values = [
-
-          member.member_id,
-
-          member.full_name,
-
-          member.name,
-
-          member.mobile,
-
-          member.phone,
-
-          member.email,
-
-          member.gender,
-
-          member.occupation,
-
-          member.district,
-
-          member.mandal,
-
-          member.sangham,
-
-          member.executive_body,
-
-          member.designation,
-
-          member.status,
-
-        ];
-
-        return values.some(
-          (value) =>
-            String(value ?? "")
-              .toLowerCase()
-              .includes(keyword)
-        );
+      if (!keyword) {
+        return members;
       }
-    );
 
-  }, [members, search]);
+      return members.filter(
+        (member) => {
+          const values = [
+            member.member_id,
+            member.full_name,
+            member.name,
+            member.mobile,
+            member.phone,
+            member.email,
+            member.gender,
+            member.occupation,
+
+            // GOTRAM
+            member.gotram,
+
+            // LOCATION
+            member.location,
+            member.state,
+            member.district,
+            member.mandal,
+            member.sangham,
+            member.sangam,
+
+            member.executive_body,
+            member.designation,
+            member.status,
+          ];
+
+          return values.some(
+            (value) =>
+              String(value ?? "")
+                .toLowerCase()
+                .includes(keyword)
+          );
+        }
+      );
+    }, [members, search]);
 
   // =======================================================
   // PAGINATION
   // =======================================================
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      filteredMembers.length /
-        ROWS_PER_PAGE
-    )
-  );
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        filteredMembers.length /
+          ROWS_PER_PAGE
+      )
+    );
 
-  const safeCurrentPage = Math.min(
-    currentPage,
-    totalPages
-  );
+  const safeCurrentPage =
+    Math.min(
+      currentPage,
+      totalPages
+    );
 
   const startIndex =
     (safeCurrentPage - 1) *
@@ -983,7 +1008,8 @@ export default function MembershipDetailsPage() {
   const paginatedMembers =
     filteredMembers.slice(
       startIndex,
-      startIndex + ROWS_PER_PAGE
+      startIndex +
+        ROWS_PER_PAGE
     );
 
   useEffect(() => {
@@ -995,7 +1021,6 @@ export default function MembershipDetailsPage() {
   // =======================================================
 
   useEffect(() => {
-
     if (!selectedMember) {
       return;
     }
@@ -1003,11 +1028,9 @@ export default function MembershipDetailsPage() {
     const handleKeyDown = (
       event: KeyboardEvent
     ) => {
-
       if (event.key === "Escape") {
         setSelectedMember(null);
       }
-
     };
 
     document.addEventListener(
@@ -1019,7 +1042,6 @@ export default function MembershipDetailsPage() {
       "hidden";
 
     return () => {
-
       document.removeEventListener(
         "keydown",
         handleKeyDown
@@ -1028,118 +1050,84 @@ export default function MembershipDetailsPage() {
       document.body.style.overflow =
         "";
     };
-
   }, [selectedMember]);
 
   // =======================================================
   // DOWNLOAD
   // =======================================================
 
-  const downloadMemberCard = async (
-    member: Member
-  ) => {
+  const downloadMemberCard =
+    async (
+      member: Member
+    ) => {
+      const id =
+        member.member_id ??
+        member.id ??
+        member.full_name ??
+        Math.random();
 
-    const id =
-      member.member_id ??
-      member.id ??
-      member.full_name ??
-      Math.random();
+      try {
+        setDownloadingId(id);
 
-    try {
+        const html =
+          createDownloadCard(
+            member
+          );
 
-      setDownloadingId(id);
+        const blob =
+          new Blob(
+            [html],
+            {
+              type:
+                "text/html;charset=utf-8",
+            }
+          );
 
-      const html =
-        createDownloadCard(member);
+        const url =
+          URL.createObjectURL(
+            blob
+          );
 
-      const blob = new Blob(
-        [html],
-        {
-          type:
-            "text/html;charset=utf-8",
-        }
-      );
+        const anchor =
+          document.createElement(
+            "a"
+          );
 
-      const url =
-        URL.createObjectURL(blob);
+        anchor.href = url;
 
-      const anchor =
-        document.createElement("a");
+        anchor.download =
+          `membership-${String(
+            member.member_id ??
+              member.id ??
+              member.full_name ??
+              "member"
+          ).replace(
+            /\s+/g,
+            "-"
+          )}.html`;
 
-      anchor.href = url;
+        document.body.appendChild(
+          anchor
+        );
 
-      anchor.download =
-        `membership-${String(
-          member.member_id ??
-            member.id ??
-            member.full_name ??
-            "member"
-        ).replace(/\s+/g, "-")}.html`;
+        anchor.click();
 
-      document.body.appendChild(
-        anchor
-      );
+        anchor.remove();
 
-      anchor.click();
-
-      anchor.remove();
-
-      URL.revokeObjectURL(url);
-
-    } catch (err) {
-
-      console.error(
-        "Download error:",
-        err
-      );
-
-    } finally {
-
-      setTimeout(() => {
-        setDownloadingId(null);
-      }, 500);
-
-    }
-  };
-
-  // =======================================================
-  // PRINT
-  // =======================================================
-
-  const printMemberCard = (
-    member: Member
-  ) => {
-
-    const html =
-      createDownloadCard(member);
-
-    const printWindow =
-      window.open(
-        "",
-        "_blank",
-        "width=900,height=800"
-      );
-
-    if (!printWindow) {
-      return;
-    }
-
-    printWindow.document.open();
-
-    printWindow.document.write(
-      html
-    );
-
-    printWindow.document.close();
-
-    printWindow.focus();
-
-    setTimeout(() => {
-
-      printWindow.print();
-
-    }, 500);
-  };
+        URL.revokeObjectURL(
+          url
+        );
+      } catch (err) {
+        console.error(
+          "Download error:",
+          err
+        );
+      } finally {
+        setTimeout(() => {
+          setDownloadingId(null);
+        }, 500);
+      }
+    };
 
   // =======================================================
   // UI HELPERS
@@ -1248,7 +1236,7 @@ export default function MembershipDetailsPage() {
                   event.target.value
                 )
               }
-              placeholder="Search name, member ID, mobile, email..."
+              placeholder="Search name, ID, mobile, email, gotram, location..."
               className="w-full rounded-md border border-gray-300 bg-white py-2.5 pl-10 pr-4 text-sm outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-300"
             />
 
@@ -1259,7 +1247,6 @@ export default function MembershipDetailsPage() {
         {/* ERROR */}
 
         {error && (
-
           <div className="mb-5 rounded-md border border-red-200 bg-white px-4 py-3 text-sm text-red-700">
 
             {error}
@@ -1272,7 +1259,6 @@ export default function MembershipDetailsPage() {
             </button>
 
           </div>
-
         )}
 
         {/* LOADING */}
@@ -1320,7 +1306,7 @@ export default function MembershipDetailsPage() {
 
               <div className="overflow-x-auto">
 
-                <table className="w-full min-w-[950px] border-collapse">
+                <table className="w-full min-w-[1100px] border-collapse">
 
                   <thead>
 
@@ -1332,6 +1318,10 @@ export default function MembershipDetailsPage() {
 
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                         Contact
+                      </th>
+
+                      <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+                        Gotram
                       </th>
 
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -1417,21 +1407,16 @@ export default function MembershipDetailsPage() {
                                 <div>
 
                                   <p className="font-semibold text-gray-900">
-
                                     {getMemberName(
                                       member
                                     )}
-
                                   </p>
 
                                   <p className="mt-1 text-xs text-gray-500">
-
                                     ID:{" "}
-
                                     {getMemberId(
                                       member
                                     )}
-
                                   </p>
 
                                 </div>
@@ -1451,12 +1436,22 @@ export default function MembershipDetailsPage() {
                               </p>
 
                               <p className="mt-1 max-w-[220px] truncate text-xs text-gray-500">
-
                                 {getValue(
                                   member,
                                   ["email"]
                                 )}
+                              </p>
 
+                            </td>
+
+                            {/* GOTRAM */}
+
+                            <td className="px-4 py-4">
+
+                              <p className="text-sm font-medium text-gray-800">
+                                {getGotram(
+                                  member
+                                )}
                               </p>
 
                             </td>
@@ -1466,22 +1461,28 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <p className="text-sm text-gray-800">
-
-                                {getValue(
-                                  member,
-                                  ["district"]
+                                {getLocation(
+                                  member
                                 )}
-
                               </p>
 
-                              <p className="mt-1 text-xs text-gray-500">
+                              {getValue(
+                                member,
+                                ["district"],
+                                ""
+                              ) !== "" && (
 
-                                {getValue(
-                                  member,
-                                  ["mandal"]
-                                )}
+                                <p className="mt-1 text-xs text-gray-500">
 
-                              </p>
+                                  {getValue(
+                                    member,
+                                    ["district"],
+                                    ""
+                                  )}
+
+                                </p>
+
+                              )}
 
                             </td>
 
@@ -1544,31 +1545,6 @@ export default function MembershipDetailsPage() {
                                   View
 
                                 </button>
-
-                            {/*    <button
-                                  type="button"
-                                  onClick={() =>
-                                    downloadMemberCard(
-                                      member
-                                    )
-                                  }
-                                  disabled={
-                                    downloadingId ===
-                                    id
-                                  }
-                                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-xs font-medium text-white hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-
-                                  <Download
-                                    size={15}
-                                  />
-
-                                  {downloadingId ===
-                                  id
-                                    ? "Downloading..."
-                                    : "Download"}
-
-                                </button>*/}
 
                               </div>
 
@@ -1685,6 +1661,38 @@ export default function MembershipDetailsPage() {
                         <div>
 
                           <p className="text-xs text-gray-400">
+                            Gotram
+                          </p>
+
+                          <p className="mt-1 text-sm font-medium text-gray-700">
+
+                            {getGotram(
+                              member
+                            )}
+
+                          </p>
+
+                        </div>
+
+                        <div>
+
+                          <p className="text-xs text-gray-400">
+                            Location
+                          </p>
+
+                          <p className="mt-1 text-sm text-gray-700">
+
+                            {getLocation(
+                              member
+                            )}
+
+                          </p>
+
+                        </div>
+
+                        <div>
+
+                          <p className="text-xs text-gray-400">
                             District
                           </p>
 
@@ -1744,14 +1752,16 @@ export default function MembershipDetailsPage() {
                             )
                           }
                           disabled={
-                            downloadingId === id
+                            downloadingId ===
+                            id
                           }
                           className="flex flex-1 items-center justify-center gap-2 rounded-md bg-gray-800 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-60"
                         >
 
                           <Download size={16} />
 
-                          {downloadingId === id
+                          {downloadingId ===
+                          id
                             ? "Downloading..."
                             : "Download"}
 
@@ -1887,11 +1897,9 @@ export default function MembershipDetailsPage() {
               event.target ===
               event.currentTarget
             ) {
-
               setSelectedMember(
                 null
               );
-
             }
 
           }}
@@ -1962,7 +1970,9 @@ export default function MembershipDetailsPage() {
                         selectedMember
                       )}
                       className="h-32 w-28 rounded-md border border-gray-200 object-cover"
-                      onError={(event) => {
+                      onError={(
+                        event
+                      ) => {
                         event.currentTarget.style.display =
                           "none";
                       }}
@@ -2010,6 +2020,15 @@ export default function MembershipDetailsPage() {
                       <span className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-700">
 
                         {getStatus(
+                          selectedMember
+                        )}
+
+                      </span>
+
+                      <span className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700">
+
+                        Gotram:{" "}
+                        {getGotram(
                           selectedMember
                         )}
 
@@ -2110,14 +2129,32 @@ export default function MembershipDetailsPage() {
 
                   <DetailItem
                     icon={
-                      <Briefcase
-                        size={16}
-                      />
+                      <Briefcase size={16} />
                     }
                     label="Occupation"
                     value={getValue(
                       selectedMember,
                       ["occupation"]
+                    )}
+                  />
+
+                  {/* GOTRAM */}
+
+                  <DetailItem
+                    icon={<ShieldCheck size={16} />}
+                    label="Gotram"
+                    value={getGotram(
+                      selectedMember
+                    )}
+                  />
+
+                  {/* LOCATION */}
+
+                  <DetailItem
+                    icon={<MapPin size={16} />}
+                    label="Location"
+                    value={getLocation(
+                      selectedMember
                     )}
                   />
 
@@ -2142,12 +2179,18 @@ export default function MembershipDetailsPage() {
 
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
                   <DetailItem
-                    icon={
-                      <MapPin size={16} />
-                    }
+                    icon={<MapPin size={16} />}
+                    label="Location"
+                    value={getLocation(
+                      selectedMember
+                    )}
+                  />
+
+                  <DetailItem
+                    icon={<MapPin size={16} />}
                     label="District"
                     value={getValue(
                       selectedMember,
@@ -2156,9 +2199,7 @@ export default function MembershipDetailsPage() {
                   />
 
                   <DetailItem
-                    icon={
-                      <MapPin size={16} />
-                    }
+                    icon={<MapPin size={16} />}
                     label="Mandal"
                     value={getValue(
                       selectedMember,
@@ -2168,14 +2209,15 @@ export default function MembershipDetailsPage() {
 
                   <DetailItem
                     icon={
-                      <Building2
-                        size={16}
-                      />
+                      <Building2 size={16} />
                     }
                     label="Sangham"
                     value={getValue(
                       selectedMember,
-                      ["sangham"]
+                      [
+                        "sangham",
+                        "sangam",
+                      ]
                     )}
                   />
 
@@ -2204,9 +2246,7 @@ export default function MembershipDetailsPage() {
 
                   <DetailItem
                     icon={
-                      <Building2
-                        size={16}
-                      />
+                      <Building2 size={16} />
                     }
                     label="Executive Body"
                     value={getValue(
@@ -2217,9 +2257,7 @@ export default function MembershipDetailsPage() {
 
                   <DetailItem
                     icon={
-                      <ShieldCheck
-                        size={16}
-                      />
+                      <ShieldCheck size={16} />
                     }
                     label="Designation"
                     value={getValue(
@@ -2230,9 +2268,7 @@ export default function MembershipDetailsPage() {
 
                   <DetailItem
                     icon={
-                      <ShieldCheck
-                        size={16}
-                      />
+                      <ShieldCheck size={16} />
                     }
                     label="Status"
                     value={getStatus(
@@ -2275,9 +2311,7 @@ export default function MembershipDetailsPage() {
 
                       <DetailItem
                         icon={
-                          <CreditCard
-                            size={16}
-                          />
+                          <CreditCard size={16} />
                         }
                         label="Status"
                         value={getValue(
@@ -2290,9 +2324,7 @@ export default function MembershipDetailsPage() {
 
                       <DetailItem
                         icon={
-                          <CreditCard
-                            size={16}
-                          />
+                          <CreditCard size={16} />
                         }
                         label="Method"
                         value={getValue(
@@ -2305,22 +2337,20 @@ export default function MembershipDetailsPage() {
 
                       <DetailItem
                         icon={
-                          <CreditCard
-                            size={16}
-                          />
+                          <CreditCard size={16} />
                         }
                         label="Amount"
                         value={formatAmount(
                           selectedMember
-                            .mahashaba_amount
+                            .mahashaba_amount ??
+                            selectedMember
+                              .mahashaba_amount_paid
                         )}
                       />
 
                       <DetailItem
                         icon={
-                          <Calendar
-                            size={16}
-                          />
+                          <Calendar size={16} />
                         }
                         label="Payment Date"
                         value={formatDate(
@@ -2345,9 +2375,7 @@ export default function MembershipDetailsPage() {
 
                       <DetailItem
                         icon={
-                          <CreditCard
-                            size={16}
-                          />
+                          <CreditCard size={16} />
                         }
                         label="Status"
                         value={getValue(
@@ -2360,9 +2388,7 @@ export default function MembershipDetailsPage() {
 
                       <DetailItem
                         icon={
-                          <CreditCard
-                            size={16}
-                          />
+                          <CreditCard size={16} />
                         }
                         label="Method"
                         value={getValue(
@@ -2375,22 +2401,20 @@ export default function MembershipDetailsPage() {
 
                       <DetailItem
                         icon={
-                          <CreditCard
-                            size={16}
-                          />
+                          <CreditCard size={16} />
                         }
                         label="Amount"
                         value={formatAmount(
                           selectedMember
-                            .sangam_amount
+                            .sangam_amount ??
+                            selectedMember
+                              .sangam_amount_paid
                         )}
                       />
 
                       <DetailItem
                         icon={
-                          <Calendar
-                            size={16}
-                          />
+                          <Calendar size={16} />
                         }
                         label="Payment Date"
                         value={formatDate(
@@ -2408,60 +2432,6 @@ export default function MembershipDetailsPage() {
               </div>
 
             </div>
-
-            {/* MODAL FOOTER
-
-            <div className="flex flex-col gap-2 border-t border-gray-200 bg-gray-50 px-5 py-4 sm:flex-row sm:justify-end">
-
-              <button
-                type="button"
-                onClick={() =>
-                  printMemberCard(
-                    selectedMember
-                  )
-                }
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-
-                <Printer size={16} />
-
-                Print
-
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  downloadMemberCard(
-                    selectedMember
-                  )
-                }
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-gray-800 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-900"
-              >
-
-                <Download size={16} />
-
-                Download Card
-
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedMember(
-                    null
-                  )
-                }
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-
-                <X size={16} />
-
-                Close
-
-              </button>
-
-            </div> */}
 
           </div>
 
@@ -2487,7 +2457,6 @@ function DetailItem({
   value: string;
 }) {
   return (
-
     <div className="flex gap-3">
 
       <div className="mt-0.5 shrink-0 text-gray-400">
@@ -2507,7 +2476,6 @@ function DetailItem({
       </div>
 
     </div>
-
   );
 }
 
