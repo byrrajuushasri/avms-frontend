@@ -20,42 +20,28 @@ type LocationItem = {
   parent_id?: number | null;
 };
 
-type Sibling = {
-  name: string;
-  age: string;
-  marital_status: string;
-  occupation: string;
-};
-
 type FormData = {
   /* BASIC DETAILS */
   full_name: string;
   surname: string;
+  father_name: string;
   mobile: string;
   email: string;
   occupation: string;
+ 
   gender: string;
   date_of_birth: string;
   gotram: string;
+
+  /* EXISTING MEMBERS */
+  is_existing_mahashaba_member: string;
+  is_existing_sangam_member: string;
 
   /* LOCATION */
   location: string;
   district: string;
   mandal: string;
   sangham: string;
-
-  /* MEMBERSHIP PAYMENT */
-  mahashaba_payment_status: string;
-  mahashaba_payment_method: string;
-  mahashaba_receipt_number: string;
-  mahashaba_amount_paid: string;
-  mahashaba_payment_date: string;
-
-  sangam_payment_status: string;
-  sangam_payment_method: string;
-  sangam_receipt_number: string;
-  sangam_amount_paid: string;
-  sangam_payment_date: string;
 
   /* BODY */
   executive_body: string;
@@ -173,6 +159,39 @@ const gotramList = [
 ];
 
 /* =========================================================
+   EDUCATION LIST
+========================================================= */
+
+const educationList = [
+  "SSC",
+  "Intermediate",
+  "ITI",
+  "Diploma",
+  "B.A",
+  "B.Com",
+  "B.Sc",
+  "B.Tech",
+  "B.E",
+  "B.Pharmacy",
+  "LLB",
+  "M.A",
+  "M.Com",
+  "M.Sc",
+  "M.Tech",
+  "M.E",
+  "M.Pharmacy",
+  "MBA",
+  "MCA",
+  "LLM",
+  "MBBS",
+  "MD",
+  "CA",
+  "CMA",
+  "Ph.D",
+  "Other",
+];
+
+/* =========================================================
    EXECUTIVE BODY
 ========================================================= */
 
@@ -197,46 +216,28 @@ const designations = [
 ];
 
 /* =========================================================
-   INITIAL SIBLING
-========================================================= */
-
-const emptySibling = (): Sibling => ({
-  name: "",
-  age: "",
-  marital_status: "",
-  occupation: "",
-});
-
-/* =========================================================
    INITIAL FORM
 ========================================================= */
 
 const initialFormData: FormData = {
   full_name: "",
   surname: "",
+  father_name: "",
   mobile: "",
   email: "",
   occupation: "",
+ 
   gender: "",
   date_of_birth: "",
   gotram: "",
+
+  is_existing_mahashaba_member: "",
+  is_existing_sangam_member: "",
 
   location: "",
   district: "",
   mandal: "",
   sangham: "",
-
-  mahashaba_payment_status: "",
-  mahashaba_payment_method: "",
-  mahashaba_receipt_number: "",
-  mahashaba_amount_paid: "",
-  mahashaba_payment_date: "",
-
-  sangam_payment_status: "",
-  sangam_payment_method: "",
-  sangam_receipt_number: "",
-  sangam_amount_paid: "",
-  sangam_payment_date: "",
 
   executive_body: "State Body",
   designation: "Member",
@@ -259,7 +260,7 @@ const labelClass =
 const calculateAge = (dob: string) => {
   if (!dob) return 0;
 
-  const birthDate = new Date(dob);
+  const birthDate = new Date(`${dob}T00:00:00`);
   const today = new Date();
 
   let age =
@@ -320,19 +321,7 @@ export default function MembershipPage() {
   const [photoPreview, setPhotoPreview] =
     useState<string>("");
 
-  /* SIBLING COUNTS */
-  const [brotherCount, setBrotherCount] =
-    useState(0);
-
-  const [sisterCount, setSisterCount] =
-    useState(0);
-
-  /* =========================================================
-     LOCATION DATA
-     District + Mandal are loaded from locations table.
-     Sangham is entered manually.
-  ========================================================= */
-
+  /* LOCATION */
   const [districts, setDistricts] =
     useState<LocationItem[]>([]);
 
@@ -352,7 +341,7 @@ export default function MembershipPage() {
   ).replace(/\/$/, "");
 
   /* =========================================================
-     LOAD DISTRICTS FROM LOCATIONS TABLE
+     LOAD DISTRICTS
   ========================================================= */
 
   useEffect(() => {
@@ -400,14 +389,16 @@ export default function MembershipPage() {
   }, [apiUrl]);
 
   /* =========================================================
-     LOAD MANDALS FROM LOCATIONS TABLE
+     LOAD MANDALS
   ========================================================= */
 
   useEffect(() => {
-    const selectedDistrict = districts.find(
-      (district) =>
-        district.name === formData.district
-    );
+    const selectedDistrict =
+      districts.find(
+        (district) =>
+          district.name ===
+          formData.district
+      );
 
     if (
       !formData.district ||
@@ -522,8 +513,6 @@ export default function MembershipPage() {
     const file = e.target.files?.[0];
 
     if (!file) {
-      setPhoto(null);
-      setPhotoPreview("");
       return;
     }
 
@@ -687,9 +676,48 @@ export default function MembershipPage() {
           "surname",
           "Surname is required"
         );
+      } else if (
+        !/^[A-Za-z\s.'-]+$/.test(
+          value.trim()
+        )
+      ) {
+        setFieldError(
+          "surname",
+          "Only letters and spaces are allowed"
+        );
       } else {
         clearFieldError(
           "surname"
+        );
+      }
+
+      return;
+    }
+
+    /* FATHER NAME */
+    if (name === "father_name") {
+      setFormData((prev) => ({
+        ...prev,
+        father_name: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "father_name",
+          "Father name is required"
+        );
+      } else if (
+        !/^[A-Za-z\s.'-]+$/.test(
+          value.trim()
+        )
+      ) {
+        setFieldError(
+          "father_name",
+          "Only letters and spaces are allowed"
+        );
+      } else {
+        clearFieldError(
+          "father_name"
         );
       }
 
@@ -712,7 +740,9 @@ export default function MembershipPage() {
           "Email address is required"
         );
       } else if (
-        !emailRegex.test(value)
+        !emailRegex.test(
+          value.trim()
+        )
       ) {
         setFieldError(
           "email",
@@ -724,6 +754,27 @@ export default function MembershipPage() {
 
       return;
     }
+
+    /* OCCUPATION */
+    if (name === "occupation") {
+      setFormData((prev) => ({
+        ...prev,
+        occupation: value,
+      }));
+
+      if (!value.trim()) {
+        setFieldError(
+          "occupation",
+          "Occupation is required"
+        );
+      } else {
+        clearFieldError("occupation");
+      }
+
+      return;
+    }
+
+    
 
     /* LOCATION */
     if (name === "location") {
@@ -775,7 +826,14 @@ export default function MembershipPage() {
           "date_of_birth",
           "Date of birth is required"
         );
+        return;
+      }
 
+      if (value > getTodayDate()) {
+        setFieldError(
+          "date_of_birth",
+          "Date of birth cannot be in the future"
+        );
         return;
       }
 
@@ -796,101 +854,71 @@ export default function MembershipPage() {
       return;
     }
 
-    /* PAYMENT DATE */
+    /* EXISTING MEMBER FIELDS */
     if (
       name ===
-        "mahashaba_payment_date" ||
+        "is_existing_mahashaba_member" ||
       name ===
-        "sangam_payment_date"
+        "is_existing_sangam_member"
     ) {
-      const today =
-        getTodayDate();
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
 
-      if (value > today) {
+      if (!value) {
         setFieldError(
           name,
-          "Payment date cannot be in the future"
-        );
-
-        return;
-      }
-
-      clearFieldError(name);
-    }
-
-    /* AMOUNT */
-    if (
-      name ===
-        "mahashaba_amount_paid" ||
-      name ===
-        "sangam_amount_paid"
-    ) {
-      if (
-        value !== "" &&
-        Number(value) < 0
-      ) {
-        setFieldError(
-          name,
-          "Amount cannot be negative"
-        );
-      } else if (
-        value !== "" &&
-        Number(value) <= 0
-      ) {
-        setFieldError(
-          name,
-          "Amount must be greater than 0"
+          "Please select Yes or No"
         );
       } else {
         clearFieldError(name);
       }
+
+      return;
     }
 
-    /* PAYMENT STATUS */
-    if (
-      name ===
-        "mahashaba_payment_status" &&
-      value === "Free"
-    ) {
-      clearFieldError(
-        "mahashaba_payment_method"
-      );
+    /* GENDER */
+    if (name === "gender") {
+      setFormData((prev) => ({
+        ...prev,
+        gender: value,
+      }));
 
-      clearFieldError(
-        "mahashaba_receipt_number"
-      );
+      if (!value) {
+        setFieldError(
+          "gender",
+          "Please select gender"
+        );
+      } else {
+        clearFieldError("gender");
+      }
 
-      clearFieldError(
-        "mahashaba_amount_paid"
-      );
-
-      clearFieldError(
-        "mahashaba_payment_date"
-      );
+      return;
     }
 
-    if (
-      name ===
-        "sangam_payment_status" &&
-      value === "Free"
-    ) {
-      clearFieldError(
-        "sangam_payment_method"
-      );
+    /* DESIGNATION */
+    if (name === "designation") {
+      setFormData((prev) => ({
+        ...prev,
+        designation: value,
+      }));
 
-      clearFieldError(
-        "sangam_receipt_number"
-      );
+      if (!value) {
+        setFieldError(
+          "designation",
+          "Please select Designation"
+        );
+      } else {
+        clearFieldError(
+          "designation"
+        );
+      }
 
-      clearFieldError(
-        "sangam_amount_paid"
-      );
-
-      clearFieldError(
-        "sangam_payment_date"
-      );
+      return;
     }
 
+    /* DEFAULT */
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -955,7 +983,7 @@ export default function MembershipPage() {
   };
 
   /* =========================================================
-     SANGHAM MANUAL CHANGE
+     SANGHAM
   ========================================================= */
 
   const handleSanghamChange = (
@@ -1047,9 +1075,11 @@ export default function MembershipPage() {
     clearFieldError("mandal");
     clearFieldError("sangham");
 
-    toast.success(
-      `${executive_body} selected`
-    );
+    if (executive_body) {
+      toast.success(
+        `${executive_body} selected`
+      );
+    }
   };
 
   /* =========================================================
@@ -1080,11 +1110,35 @@ export default function MembershipPage() {
     }
 
     /* SURNAME */
-    if (
-      !formData.surname.trim()
-    ) {
+    const surname =
+      formData.surname.trim();
+
+    if (!surname) {
       newErrors.surname =
         "Surname is required";
+    } else if (
+      !/^[A-Za-z\s.'-]+$/.test(
+        surname
+      )
+    ) {
+      newErrors.surname =
+        "Only letters and spaces are allowed";
+    }
+
+    /* FATHER NAME */
+    const fatherName =
+      formData.father_name.trim();
+
+    if (!fatherName) {
+      newErrors.father_name =
+        "Father name is required";
+    } else if (
+      !/^[A-Za-z\s.'-]+$/.test(
+        fatherName
+      )
+    ) {
+      newErrors.father_name =
+        "Only letters and spaces are allowed";
     }
 
     /* MOBILE */
@@ -1122,6 +1176,7 @@ export default function MembershipPage() {
       newErrors.occupation =
         "Occupation is required";
     }
+ 
 
     /* LOCATION */
     if (
@@ -1152,6 +1207,12 @@ export default function MembershipPage() {
       newErrors.date_of_birth =
         "Date of birth is required";
     } else if (
+      formData.date_of_birth >
+      getTodayDate()
+    ) {
+      newErrors.date_of_birth =
+        "Date of birth cannot be in the future";
+    } else if (
       calculateAge(
         formData.date_of_birth
       ) < 18
@@ -1164,6 +1225,22 @@ export default function MembershipPage() {
     if (!photo) {
       newErrors.photo =
         "Member photo is required";
+    }
+
+    /* EXISTING MAHASHABA */
+    if (
+      !formData.is_existing_mahashaba_member
+    ) {
+      newErrors.is_existing_mahashaba_member =
+        "Please select Yes or No";
+    }
+
+    /* EXISTING SANGAM */
+    if (
+      !formData.is_existing_sangam_member
+    ) {
+      newErrors.is_existing_sangam_member =
+        "Please select Yes or No";
     }
 
     /* EXECUTIVE BODY */
@@ -1219,108 +1296,6 @@ export default function MembershipPage() {
         "Please enter Sangham";
     }
 
-    /* MAHASHABA STATUS */
-    if (
-      !formData.mahashaba_payment_status
-    ) {
-      newErrors.mahashaba_payment_status =
-        "Please select Mahashaba payment status";
-    }
-
-    /* MAHASHABA PAID */
-    if (
-      formData.mahashaba_payment_status ===
-      "Paid"
-    ) {
-      if (
-        !formData.mahashaba_payment_method
-      ) {
-        newErrors.mahashaba_payment_method =
-          "Please select Mahashaba payment method";
-      }
-
-      if (
-        !formData.mahashaba_receipt_number.trim()
-      ) {
-        newErrors.mahashaba_receipt_number =
-          "Please enter Mahashaba receipt number";
-      }
-
-      if (
-        !formData.mahashaba_amount_paid ||
-        Number(
-          formData.mahashaba_amount_paid
-        ) <= 0
-      ) {
-        newErrors.mahashaba_amount_paid =
-          "Please enter a valid Mahashaba amount";
-      }
-
-      if (
-        !formData.mahashaba_payment_date
-      ) {
-        newErrors.mahashaba_payment_date =
-          "Please select Mahashaba payment date";
-      } else if (
-        formData.mahashaba_payment_date >
-        getTodayDate()
-      ) {
-        newErrors.mahashaba_payment_date =
-          "Payment date cannot be in the future";
-      }
-    }
-
-    /* SANGAM STATUS */
-    if (
-      !formData.sangam_payment_status
-    ) {
-      newErrors.sangam_payment_status =
-        "Please select Sangam payment status";
-    }
-
-    /* SANGAM PAID */
-    if (
-      formData.sangam_payment_status ===
-      "Paid"
-    ) {
-      if (
-        !formData.sangam_payment_method
-      ) {
-        newErrors.sangam_payment_method =
-          "Please select Sangam payment method";
-      }
-
-      if (
-        !formData.sangam_receipt_number.trim()
-      ) {
-        newErrors.sangam_receipt_number =
-          "Please enter Sangam receipt number";
-      }
-
-      if (
-        !formData.sangam_amount_paid ||
-        Number(
-          formData.sangam_amount_paid
-        ) <= 0
-      ) {
-        newErrors.sangam_amount_paid =
-          "Please enter a valid Sangam amount";
-      }
-
-      if (
-        !formData.sangam_payment_date
-      ) {
-        newErrors.sangam_payment_date =
-          "Please select Sangam payment date";
-      } else if (
-        formData.sangam_payment_date >
-        getTodayDate()
-      ) {
-        newErrors.sangam_payment_date =
-          "Payment date cannot be in the future";
-      }
-    }
-
     setErrors(newErrors);
 
     if (
@@ -1366,7 +1341,8 @@ export default function MembershipPage() {
         formData.designation?.trim() ||
         "Member";
 
-      const body = new FormData();
+      const body =
+        new FormData();
 
       /* BASIC */
       body.append(
@@ -1377,6 +1353,11 @@ export default function MembershipPage() {
       body.append(
         "surname",
         formData.surname.trim()
+      );
+
+      body.append(
+        "father_name",
+        formData.father_name.trim()
       );
 
       body.append(
@@ -1394,6 +1375,8 @@ export default function MembershipPage() {
         formData.occupation.trim()
       );
 
+     
+
       body.append(
         "gender",
         formData.gender
@@ -1408,6 +1391,17 @@ export default function MembershipPage() {
       body.append(
         "gotram",
         formData.gotram.trim()
+      );
+
+      /* EXISTING MEMBERS */
+      body.append(
+        "is_existing_mahashaba_member",
+        formData.is_existing_mahashaba_member
+      );
+
+      body.append(
+        "is_existing_sangam_member",
+        formData.is_existing_sangam_member
       );
 
       /* LOCATION */
@@ -1429,58 +1423,6 @@ export default function MembershipPage() {
       body.append(
         "sangham",
         formData.sangham.trim()
-      );
-
-      /* MAHASHABA */
-      body.append(
-        "mahashaba_payment_status",
-        formData.mahashaba_payment_status
-      );
-
-      body.append(
-        "mahashaba_payment_method",
-        formData.mahashaba_payment_method || ""
-      );
-
-      body.append(
-        "mahashaba_receipt_number",
-        formData.mahashaba_receipt_number || ""
-      );
-
-      body.append(
-        "mahashaba_amount_paid",
-        formData.mahashaba_amount_paid || ""
-      );
-
-      body.append(
-        "mahashaba_payment_date",
-        formData.mahashaba_payment_date || ""
-      );
-
-      /* SANGAM */
-      body.append(
-        "sangam_payment_status",
-        formData.sangam_payment_status
-      );
-
-      body.append(
-        "sangam_payment_method",
-        formData.sangam_payment_method || ""
-      );
-
-      body.append(
-        "sangam_receipt_number",
-        formData.sangam_receipt_number || ""
-      );
-
-      body.append(
-        "sangam_amount_paid",
-        formData.sangam_amount_paid || ""
-      );
-
-      body.append(
-        "sangam_payment_date",
-        formData.sangam_payment_date || ""
       );
 
       /* BODY */
@@ -1512,28 +1454,25 @@ export default function MembershipPage() {
       );
 
       console.log(
+        "Father Name:",
+        formData.father_name
+      );
+
+      
+
+      console.log(
         "Gotram:",
         formData.gotram
       );
 
       console.log(
-        "Location:",
-        formData.location
+        "Existing Mahashaba:",
+        formData.is_existing_mahashaba_member
       );
 
       console.log(
-        "District:",
-        formData.district
-      );
-
-      console.log(
-        "Mandal:",
-        formData.mandal
-      );
-
-      console.log(
-        "Sangham:",
-        formData.sangham
+        "Existing Sangam:",
+        formData.is_existing_sangam_member
       );
 
       const apiEndpoint =
@@ -1622,9 +1561,6 @@ export default function MembershipPage() {
       setPhoto(null);
       setPhotoPreview("");
 
-      setBrotherCount(0);
-      setSisterCount(0);
-
       setErrors({});
       setMandals([]);
     } catch (err) {
@@ -1648,214 +1584,6 @@ export default function MembershipPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  /* =========================================================
-     PAYMENT SECTION
-  ========================================================= */
-
-  const renderPaymentSection = (
-    title: string,
-    statusName:
-      | "mahashaba_payment_status"
-      | "sangam_payment_status",
-    methodName:
-      | "mahashaba_payment_method"
-      | "sangam_payment_method",
-    receiptName:
-      | "mahashaba_receipt_number"
-      | "sangam_receipt_number",
-    amountName:
-      | "mahashaba_amount_paid"
-      | "sangam_amount_paid",
-    dateName:
-      | "mahashaba_payment_date"
-      | "sangam_payment_date"
-  ) => {
-    const paid =
-      formData[statusName] ===
-      "Paid";
-
-    return (
-      <section className="rounded-2xl border border-gray-200 bg-gray-50 p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-gray-900">
-          {title}
-        </h2>
-
-        <p className="mb-5 mt-1 text-xs text-gray-500">
-          Enter payment details if payment has been made.
-        </p>
-
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <div>
-            <label className={labelClass}>
-              Payment Status *
-            </label>
-
-            <select
-              name={statusName}
-              value={
-                formData[
-                  statusName
-                ]
-              }
-              onChange={handleChange}
-              className={getInputClass(
-                statusName
-              )}
-            >
-              <option value="">
-                Select Payment Status
-              </option>
-
-              <option value="Paid">
-                Paid
-              </option>
-
-              <option value="Free">
-                Free
-              </option>
-            </select>
-
-            <ErrorMessage
-              field={statusName}
-            />
-          </div>
-
-          {paid && (
-            <>
-              <div>
-                <label className={labelClass}>
-                  Payment Method *
-                </label>
-
-                <select
-                  name={methodName}
-                  value={
-                    formData[
-                      methodName
-                    ]
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  className={getInputClass(
-                    methodName
-                  )}
-                >
-                  <option value="">
-                    Select Payment Method
-                  </option>
-
-                  <option value="UPI">
-                    UPI
-                  </option>
-
-                  <option value="Credit/Debit Card">
-                    Credit/Debit Card
-                  </option>
-
-                  <option value="Net Banking">
-                    Net Banking
-                  </option>
-
-                  <option value="Cash">
-                    Cash
-                  </option>
-                </select>
-
-                <ErrorMessage
-                  field={methodName}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>
-                  Receipt Number *
-                </label>
-
-                <input
-                  name={receiptName}
-                  value={
-                    formData[
-                      receiptName
-                    ]
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Enter Receipt Number"
-                  maxLength={50}
-                  className={getInputClass(
-                    receiptName
-                  )}
-                />
-
-                <ErrorMessage
-                  field={receiptName}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>
-                  Amount Paid *
-                </label>
-
-                <input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  name={amountName}
-                  value={
-                    formData[
-                      amountName
-                    ]
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Enter Amount Paid"
-                  className={getInputClass(
-                    amountName
-                  )}
-                />
-
-                <ErrorMessage
-                  field={amountName}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>
-                  Payment Date *
-                </label>
-
-                <input
-                  type="date"
-                  name={dateName}
-                  value={
-                    formData[
-                      dateName
-                    ]
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  max={getTodayDate()}
-                  className={getInputClass(
-                    dateName
-                  )}
-                />
-
-                <ErrorMessage
-                  field={dateName}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-    );
   };
 
   /* =========================================================
@@ -1886,7 +1614,10 @@ export default function MembershipPage() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
-          {/* HEADER */}
+          {/* =================================================
+              HEADER
+          ================================================= */}
+
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
             <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
               Membership Registration
@@ -1905,18 +1636,35 @@ export default function MembershipPage() {
 
           <div className="space-y-7 p-5 sm:p-8">
 
-            {/* FORM */}
+            {/* =================================================
+                FORM
+            ================================================= */}
+
             <form
               onSubmit={handleSubmit}
               noValidate
               className="space-y-7"
             >
 
-              {/* MEMBER DETAILS */}
+              {/* =================================================
+                  MEMBER DETAILS
+              ================================================= */}
+
               <section>
+                <div className="mb-5">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Member Details
+                  </h2>
+
+                  <p className="mt-1 text-sm text-gray-500">
+                    Please enter the member&apos;s basic details.
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* FULL NAME */}
+
                   <div>
                     <label className={labelClass}>
                       Full Name *
@@ -1944,6 +1692,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* SURNAME */}
+
                   <div>
                     <label className={labelClass}>
                       Surname *
@@ -1969,7 +1718,35 @@ export default function MembershipPage() {
                     />
                   </div>
 
+                  {/* FATHER NAME */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Father Name *
+                    </label>
+
+                    <input
+                      name="father_name"
+                      value={
+                        formData.father_name
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      placeholder="Enter Father Name"
+                      maxLength={100}
+                      className={getInputClass(
+                        "father_name"
+                      )}
+                    />
+
+                    <ErrorMessage
+                      field="father_name"
+                    />
+                  </div>
+
                   {/* MOBILE */}
+
                   <div>
                     <label className={labelClass}>
                       Mobile Number *
@@ -1998,6 +1775,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* EMAIL */}
+
                   <div>
                     <label className={labelClass}>
                       Email Address *
@@ -2025,6 +1803,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* GENDER */}
+
                   <div>
                     <label className={labelClass}>
                       Gender *
@@ -2061,6 +1840,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* DOB */}
+
                   <div>
                     <label className={labelClass}>
                       Date of Birth *
@@ -2100,6 +1880,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* OCCUPATION */}
+
                   <div>
                     <label className={labelClass}>
                       Occupation *
@@ -2124,8 +1905,10 @@ export default function MembershipPage() {
                       field="occupation"
                     />
                   </div>
+ 
 
-                  {/* GOTRAM - ADDED */}
+                  {/* GOTRAM */}
+
                   <div>
                     <label className={labelClass}>
                       Gotram *
@@ -2141,8 +1924,9 @@ export default function MembershipPage() {
                         handleChange
                       }
                       list="membership-gotram-options"
-                      placeholder="Select Gotram"
+                      placeholder="Select or enter Gotram"
                       autoComplete="off"
+                      maxLength={100}
                       className={getInputClass(
                         "gotram"
                       )}
@@ -2165,6 +1949,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* LOCATION */}
+
                   <div>
                     <label className={labelClass}>
                       Location *
@@ -2192,6 +1977,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* PHOTO */}
+
                   <div>
                     <label className={labelClass}>
                       Member Photo *
@@ -2200,6 +1986,7 @@ export default function MembershipPage() {
                     <div className="flex flex-col gap-3 sm:flex-row">
 
                       {/* CAMERA */}
+
                       <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
                         📷 Take Photo
 
@@ -2216,6 +2003,7 @@ export default function MembershipPage() {
                       </label>
 
                       {/* GALLERY */}
+
                       <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
                         🖼️ Choose Photo
 
@@ -2236,7 +2024,7 @@ export default function MembershipPage() {
                         <img
                           src={photoPreview}
                           alt="Selected member"
-                          className="h-32 w-32 rounded-2xl object-cover border border-rose-200 shadow-sm"
+                          className="h-32 w-32 rounded-2xl border border-rose-200 object-cover shadow-sm"
                         />
                       </div>
                     )}
@@ -2245,10 +2033,87 @@ export default function MembershipPage() {
                       field="photo"
                     />
                   </div>
+
+                  {/* EXISTING MAHASHABA MEMBER */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Are you an existing Mahashaba member? *
+                    </label>
+
+                    <select
+                      name="is_existing_mahashaba_member"
+                      value={
+                        formData.is_existing_mahashaba_member
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className={getInputClass(
+                        "is_existing_mahashaba_member"
+                      )}
+                    >
+                      <option value="">
+                        Select
+                      </option>
+
+                      <option value="Yes">
+                        Yes
+                      </option>
+
+                      <option value="No">
+                        No
+                      </option>
+                    </select>
+
+                    <ErrorMessage
+                      field="is_existing_mahashaba_member"
+                    />
+                  </div>
+
+                  {/* EXISTING SANGAM MEMBER */}
+
+                  <div>
+                    <label className={labelClass}>
+                      Are you an existing Sangam member? *
+                    </label>
+
+                    <select
+                      name="is_existing_sangam_member"
+                      value={
+                        formData.is_existing_sangam_member
+                      }
+                      onChange={
+                        handleChange
+                      }
+                      className={getInputClass(
+                        "is_existing_sangam_member"
+                      )}
+                    >
+                      <option value="">
+                        Select
+                      </option>
+
+                      <option value="Yes">
+                        Yes
+                      </option>
+
+                      <option value="No">
+                        No
+                      </option>
+                    </select>
+
+                    <ErrorMessage
+                      field="is_existing_sangam_member"
+                    />
+                  </div>
                 </div>
               </section>
 
-              {/* COMMUNITY MEMBERSHIP DETAILS */}
+              {/* =================================================
+                  COMMUNITY MEMBERSHIP DETAILS
+              ================================================= */}
+
               <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
 
                 <div className="mb-5">
@@ -2264,6 +2129,7 @@ export default function MembershipPage() {
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* STATE BODY */}
+
                   <div>
                     <label className={labelClass}>
                       State Body
@@ -2278,6 +2144,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* EXECUTIVE BODY */}
+
                   <div>
                     <label className={labelClass}>
                       Executive Body *
@@ -2317,6 +2184,7 @@ export default function MembershipPage() {
                   </div>
 
                   {/* DISTRICT */}
+
                   {[
                     "District Body",
                     "Mandal Body",
@@ -2377,6 +2245,7 @@ export default function MembershipPage() {
                   )}
 
                   {/* MANDAL */}
+
                   {[
                     "Mandal Body",
                     "Sangham Body",
@@ -2442,6 +2311,7 @@ export default function MembershipPage() {
                   )}
 
                   {/* SANGHAM */}
+
                   {formData.executive_body ===
                     "Sangham Body" && (
                     <div>
@@ -2481,9 +2351,10 @@ export default function MembershipPage() {
                   )}
 
                   {/* DESIGNATION */}
+
                   <div>
                     <label className={labelClass}>
-                      Designation *
+                      Position Details *
                     </label>
 
                     <select
@@ -2525,27 +2396,10 @@ export default function MembershipPage() {
                 </div>
               </section>
 
-              {/* MAHASHABA PAYMENT */}
-              {renderPaymentSection(
-                "Payment Details Of Mahashaba",
-                "mahashaba_payment_status",
-                "mahashaba_payment_method",
-                "mahashaba_receipt_number",
-                "mahashaba_amount_paid",
-                "mahashaba_payment_date"
-              )}
+              {/* =================================================
+                  SUBMIT
+              ================================================= */}
 
-              {/* SANGAM PAYMENT */}
-              {renderPaymentSection(
-                "Payment Details Of Sangam",
-                "sangam_payment_status",
-                "sangam_payment_method",
-                "sangam_receipt_number",
-                "sangam_amount_paid",
-                "sangam_payment_date"
-              )}
-
-              {/* SUBMIT */}
               <div className="flex flex-col items-center justify-center gap-3 border-t border-gray-100 pt-7">
 
                 <button
@@ -2568,10 +2422,10 @@ export default function MembershipPage() {
                   true and correct.
                 </p>
               </div>
-
             </form>
 
             {/* EXISTING MEMBERS */}
+
             <p className="mt-7 text-center text-sm text-gray-600">
               Already registered?
 
