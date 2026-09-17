@@ -2449,7 +2449,7 @@ export default function RegisterPage() {
 
                   </div>
 
-                  {/* SAFETY & SUPPORT */}
+                  {/* SAFETY & SUPPORT 
 
                   <div className="mt-6 rounded-2xl border border-pink-200 bg-white p-5 sm:p-6">
 
@@ -2465,7 +2465,7 @@ export default function RegisterPage() {
                       Please submit the details of any known volunteer/person from your area who can support our community matrimonial services.
                     </p>
 
-                  </div>
+                  </div>*/}
 
                   {/* AREA VOLUNTEER DETAILS */}
 
