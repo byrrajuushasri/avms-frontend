@@ -1221,31 +1221,42 @@ export default function RegisterPage() {
         data
       );
 
-      /* =====================================================
-         SUCCESS
-      ===================================================== */
+     /* =========================================================
+   SUCCESS
+========================================================= */
 
-      if (
-        response.ok &&
-        data.success
-      ) {
-        const matrimonialId =
-          data.data?.member_id ||
-          data.data
-            ?.matrimonial_member_id ||
-          "";
+if (response.ok && data.success) {
+  const matrimonialId =
+    data.data?.member_id ||
+    data.data?.matrimonial_member_id ||
+    "";
 
-        showGreenToast(
-          "Matrimonial registration successfully completed.",
-          matrimonialId
-        );
+  // Matrimony registration date
+  const registrationDate = new Date();
 
-        setTimeout(() => {
-          router.push("/search");
-        }, 1800);
+  // Free validity = 99 days
+  const expiryDate = new Date(registrationDate);
+  expiryDate.setDate(
+    expiryDate.getDate() + 99
+  );
 
-        return;
-      }
+  const formattedRegistrationDate =
+    registrationDate.toLocaleDateString("en-IN");
+
+  const formattedExpiryDate =
+    expiryDate.toLocaleDateString("en-IN");
+
+  showGreenToast(
+    `Matrimonial registration successfully completed. Free registration is valid for 99 days. Registration Date: ${formattedRegistrationDate}. Expiry Date: ${formattedExpiryDate}.`,
+    matrimonialId
+  );
+
+  setTimeout(() => {
+    router.push("/search");
+  }, 5000);
+
+  return;
+}
 
       /* =====================================================
          ALREADY REGISTERED

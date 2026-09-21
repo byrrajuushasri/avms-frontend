@@ -2007,20 +2007,7 @@ export default function MembershipPage() {
 
                       {/* CAMERA */}
 
-                      <label className="flex cursor-pointer items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700">
-                        📷 Take Photo
-
-                        <input
-                          type="file"
-                          name="photo"
-                          accept="image/jpeg,image/jpg,image/png,image/webp"
-                          capture="environment"
-                          onChange={
-                            handlePhotoChange
-                          }
-                          className="hidden"
-                        />
-                      </label>
+                     
 
                       {/* GALLERY */}
 

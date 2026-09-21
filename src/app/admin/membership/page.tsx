@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -11,9 +10,10 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaUser,
-  FaEye,
   FaEdit,
   FaTrash,
+  FaCheckCircle,
+  FaClock,
 } from "react-icons/fa";
 
 interface Member {
@@ -52,6 +52,20 @@ interface Member {
 
   created_at: string;
   updated_at: string;
+
+  // =========================================================
+  // MATRIMONY
+  // =========================================================
+
+  avs_id?: string | null;
+
+  matrimony_code?: string | null;
+
+  matrimony_authorised?: boolean;
+
+  matrimony_authorised_date?: string | null;
+
+  matrimony_expiry_date?: string | null;
 }
 
 const BACKEND_URL =
@@ -63,24 +77,50 @@ const ROWS_OPTIONS = [5, 10, 20, 50];
 export default function MembershipPage() {
   const router = useRouter();
 
-  const [members, setMembers] = useState<Member[]>([]);
-  const [openActionId, setOpenActionId] = useState<number | null>(null);
+  const [members, setMembers] =
+    useState<Member[]>([]);
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [openActionId, setOpenActionId] =
+    useState<number | null>(null);
 
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
+
+  const [search, setSearch] =
+    useState("");
+
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const [rowsPerPage, setRowsPerPage] =
+    useState(10);
 
   const [deleteLoading, setDeleteLoading] =
     useState<number | null>(null);
 
   // =========================================================
+  // MATRIMONY AUTHORISATION STATE
+  // =========================================================
+
+  const [authorizeMember, setAuthorizeMember] =
+    useState<Member | null>(null);
+
+  const [expiryDate, setExpiryDate] =
+    useState("");
+
+  const [authorizeLoading, setAuthorizeLoading] =
+    useState(false);
+
+  // =========================================================
   // PHOTO URL
   // =========================================================
 
-  const getPhotoUrl = (photo: string | null) => {
+  const getPhotoUrl = (
+    photo: string | null
+  ) => {
     if (!photo) return "";
 
     if (
@@ -91,7 +131,9 @@ export default function MembershipPage() {
     }
 
     return `${BACKEND_URL}${
-      photo.startsWith("/") ? "" : "/"
+      photo.startsWith("/")
+        ? ""
+        : "/"
     }${photo}`;
   };
 
@@ -100,12 +142,15 @@ export default function MembershipPage() {
   // =========================================================
 
   const getLoggedInUser = () => {
-    if (typeof window === "undefined") {
+    if (
+      typeof window === "undefined"
+    ) {
       return null;
     }
 
     try {
-      const userData = localStorage.getItem("user");
+      const userData =
+        localStorage.getItem("user");
 
       if (!userData) {
         return null;
@@ -136,27 +181,39 @@ export default function MembershipPage() {
           ? localStorage.getItem("token")
           : null;
 
-      const loggedInUser = getLoggedInUser();
+      const loggedInUser =
+        getLoggedInUser();
 
       console.log(
         "Logged-in User:",
         loggedInUser
       );
 
-      const role = loggedInUser?.role || "";
-      const sangham = loggedInUser?.sangham || "";
+      const role =
+        loggedInUser?.role || "";
 
-      const params = new URLSearchParams();
+      const sangham =
+        loggedInUser?.sangham || "";
+
+      const params =
+        new URLSearchParams();
 
       if (role) {
-        params.append("role", role);
+        params.append(
+          "role",
+          role
+        );
       }
 
       if (sangham) {
-        params.append("sangham", sangham);
+        params.append(
+          "sangham",
+          sangham
+        );
       }
 
-      const queryString = params.toString();
+      const queryString =
+        params.toString();
 
       const url =
         `${BACKEND_URL}/membership-register` +
@@ -169,20 +226,21 @@ export default function MembershipPage() {
         url
       );
 
-      const response = await fetch(url, {
-        method: "GET",
+      const response =
+        await fetch(url, {
+          method: "GET",
 
-        headers: {
-          ...(token
-            ? {
-                Authorization:
-                  `Bearer ${token}`,
-              }
-            : {}),
-        },
+          headers: {
+            ...(token
+              ? {
+                  Authorization:
+                    `Bearer ${token}`,
+                }
+              : {}),
+          },
 
-        cache: "no-store",
-      });
+          cache: "no-store",
+        });
 
       console.log(
         "GET MEMBERS STATUS:",
@@ -215,21 +273,33 @@ export default function MembershipPage() {
         result
       );
 
-      let memberList: Member[] = [];
+      let memberList: Member[] =
+        [];
 
-      if (Array.isArray(result)) {
+      if (
+        Array.isArray(result)
+      ) {
         memberList = result;
       } else if (
-        Array.isArray(result?.data)
+        Array.isArray(
+          result?.data
+        )
       ) {
-        memberList = result.data;
+        memberList =
+          result.data;
       } else if (
-        Array.isArray(result?.members)
+        Array.isArray(
+          result?.members
+        )
       ) {
-        memberList = result.members;
+        memberList =
+          result.members;
       }
 
-      setMembers(memberList);
+      setMembers(
+        memberList
+      );
+
       setCurrentPage(1);
     } catch (error) {
       console.error(
@@ -258,15 +328,18 @@ export default function MembershipPage() {
   }, []);
 
   // =========================================================
-  // CLOSE ACTION MENU WHEN CLICKING OUTSIDE
+  // CLOSE ACTION MENU
   // =========================================================
 
   useEffect(() => {
-    const handleClickOutside = () => {
-      setOpenActionId(null);
-    };
+    const handleClickOutside =
+      () => {
+        setOpenActionId(null);
+      };
 
-    if (openActionId !== null) {
+    if (
+      openActionId !== null
+    ) {
       document.addEventListener(
         "click",
         handleClickOutside
@@ -285,58 +358,100 @@ export default function MembershipPage() {
   // SEARCH
   // =========================================================
 
-  const filteredMembers = useMemo(() => {
-    const keyword =
-      search.trim().toLowerCase();
+  const filteredMembers =
+    useMemo(() => {
+      const keyword =
+        search
+          .trim()
+          .toLowerCase();
 
-    if (!keyword) {
-      return members;
-    }
+      if (!keyword) {
+        return members;
+      }
 
-    return members.filter((member) => {
-      return (
-        String(member.member_id || "")
-          .toLowerCase()
-          .includes(keyword) ||
+      return members.filter(
+        (member) => {
+          return (
+            String(
+              member.member_id || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.full_name || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.avs_id || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.mobile || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.matrimony_code ||
+                ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.email || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.full_name || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.occupation || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.mobile || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.executive_body || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.email || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.designation || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.occupation || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.district || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.executive_body ||
+                ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.mandal || "")
-          .toLowerCase()
-          .includes(keyword) ||
+            String(
+              member.designation || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
 
-        String(member.sangham || "")
-          .toLowerCase()
-          .includes(keyword)
+            String(
+              member.district || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
+
+            String(
+              member.mandal || ""
+            )
+              .toLowerCase()
+              .includes(keyword) ||
+
+            String(
+              member.sangham || ""
+            )
+              .toLowerCase()
+              .includes(keyword)
+          );
+        }
       );
-    });
-  }, [members, search]);
+    }, [
+      members,
+      search,
+    ]);
 
   // =========================================================
   // PAGINATION
@@ -345,26 +460,31 @@ export default function MembershipPage() {
   const totalItems =
     filteredMembers.length;
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      totalItems / rowsPerPage
-    )
-  );
+  const totalPages =
+    Math.max(
+      1,
+      Math.ceil(
+        totalItems /
+          rowsPerPage
+      )
+    );
 
-  const safeCurrentPage = Math.min(
-    currentPage,
-    totalPages
-  );
+  const safeCurrentPage =
+    Math.min(
+      currentPage,
+      totalPages
+    );
 
   const startIndex =
     (safeCurrentPage - 1) *
     rowsPerPage;
 
-  const endIndex = Math.min(
-    startIndex + rowsPerPage,
-    totalItems
-  );
+  const endIndex =
+    Math.min(
+      startIndex +
+        rowsPerPage,
+      totalItems
+    );
 
   const paginatedMembers =
     filteredMembers.slice(
@@ -417,7 +537,9 @@ export default function MembershipPage() {
 
       const token =
         typeof window !== "undefined"
-          ? localStorage.getItem("token")
+          ? localStorage.getItem(
+              "token"
+            )
           : null;
 
       const response =
@@ -440,30 +562,23 @@ export default function MembershipPage() {
       const result =
         await response
           .json()
-          .catch(() => ({}));
-
-      console.log(
-        "DELETE STATUS:",
-        response.status
-      );
-
-      console.log(
-        "DELETE RESPONSE:",
-        result
-      );
+          .catch(
+            () => ({})
+          );
 
       if (!response.ok) {
         throw new Error(
           result?.message ||
-          "Failed to delete member"
+            "Failed to delete member"
         );
       }
 
-      setMembers((prev) =>
-        prev.filter(
-          (member) =>
-            member.id !== id
-        )
+      setMembers(
+        (prev) =>
+          prev.filter(
+            (member) =>
+              member.id !== id
+          )
       );
 
       setOpenActionId(null);
@@ -488,13 +603,233 @@ export default function MembershipPage() {
   };
 
   // =========================================================
+  // OPEN MATRIMONY AUTHORISATION
+  // =========================================================
+
+  const openMatrimonyAuthorization =
+    (member: Member) => {
+      setOpenActionId(null);
+
+      if (
+        member.matrimony_authorised
+      ) {
+        alert(
+          `Matrimony already authorised.\n\nCode: ${
+            member.matrimony_code ||
+            "-"
+          }`
+        );
+
+        return;
+      }
+
+      if (
+        String(
+          member.status || ""
+        ).toLowerCase() !==
+        "active"
+      ) {
+        alert(
+          "Only Active members can be authorised for matrimony."
+        );
+
+        return;
+      }
+
+      setAuthorizeMember(
+        member
+      );
+
+      setExpiryDate("");
+      setError("");
+    };
+
+  // =========================================================
+  // AUTHORIZE MATRIMONY
+  // =========================================================
+
+  const handleAuthorizeMatrimony =
+    async () => {
+      if (!authorizeMember) {
+        return;
+      }
+
+      if (!expiryDate) {
+        alert(
+          "Please select matrimony expiry date."
+        );
+
+        return;
+      }
+
+      const confirmed =
+        window.confirm(
+          `Authorize matrimony for "${authorizeMember.full_name}"?\n\n` +
+          `Member ID: ${
+            authorizeMember.member_id
+          }\n` +
+          `AVS ID: ${
+            authorizeMember.avs_id ||
+            "-"
+          }\n` +
+          `Expiry Date: ${
+            formatDate(
+              expiryDate
+            )
+          }`
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        setAuthorizeLoading(
+          true
+        );
+
+        setError("");
+
+        const token =
+          typeof window !==
+          "undefined"
+            ? localStorage.getItem(
+                "token"
+              )
+            : null;
+
+        const response =
+          await fetch(
+            `${BACKEND_URL}/membership/member/${authorizeMember.id}/authorize-matrimony`,
+            {
+              method: "PATCH",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                ...(token
+                  ? {
+                      Authorization:
+                        `Bearer ${token}`,
+                    }
+                  : {}),
+              },
+
+              body: JSON.stringify({
+                expiryDate:
+                  expiryDate,
+              }),
+            }
+          );
+
+        const result =
+          await response
+            .json()
+            .catch(
+              () => ({})
+            );
+
+        console.log(
+          "AUTHORIZE STATUS:",
+          response.status
+        );
+
+        console.log(
+          "AUTHORIZE RESPONSE:",
+          result
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            result?.message ||
+              "Failed to authorize matrimony."
+          );
+        }
+
+        const updatedMember =
+          result?.member;
+
+        setMembers(
+          (prev) =>
+            prev.map(
+              (member) =>
+                member.id ===
+                authorizeMember.id
+                  ? {
+                      ...member,
+
+                      ...(updatedMember ||
+                        {}),
+
+                      matrimony_authorised:
+                        true,
+
+                      matrimony_code:
+                        updatedMember?.matrimony_code ||
+                        member.matrimony_code,
+
+                      matrimony_authorised_date:
+                        updatedMember?.matrimony_authorised_date ||
+                        new Date().toISOString(),
+
+                      matrimony_expiry_date:
+                        updatedMember?.matrimony_expiry_date ||
+                        expiryDate,
+                    }
+                  : member
+            )
+        );
+
+        const generatedCode =
+          updatedMember?.matrimony_code ||
+          "-";
+
+        setAuthorizeMember(
+          null
+        );
+
+        setExpiryDate("");
+
+        alert(
+          `Matrimony authorised successfully.\n\n` +
+          `Matrimony Code: ${generatedCode}\n` +
+          `Expiry Date: ${formatDate(
+            updatedMember?.matrimony_expiry_date ||
+              expiryDate
+          )}`
+        );
+      } catch (error) {
+        console.error(
+          "Authorize matrimony error:",
+          error
+        );
+
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Failed to authorize matrimony."
+        );
+      } finally {
+        setAuthorizeLoading(
+          false
+        );
+      }
+    };
+
+  // =========================================================
   // FORMAT DATE
   // =========================================================
 
   const formatDate = (
-    date: string | null | undefined
+    date:
+      | string
+      | null
+      | undefined
   ) => {
-    if (!date) return "-";
+    if (!date) {
+      return "-";
+    }
 
     try {
       return new Date(
@@ -513,11 +848,61 @@ export default function MembershipPage() {
   };
 
   // =========================================================
+  // MATRIMONY STATUS
+  // =========================================================
+
+  const getMatrimonyStatus =
+    (
+      member: Member
+    ) => {
+      if (
+        !member.matrimony_authorised
+      ) {
+        return "Not Authorised";
+      }
+
+      if (
+        member.matrimony_expiry_date
+      ) {
+        const expiry =
+          new Date(
+            member.matrimony_expiry_date
+          );
+
+        const today =
+          new Date();
+
+        expiry.setHours(
+          23,
+          59,
+          59,
+          999
+        );
+
+        today.setHours(
+          0,
+          0,
+          0,
+          0
+        );
+
+        if (
+          expiry < today
+        ) {
+          return "Expired";
+        }
+      }
+
+      return "Authorised";
+    };
+
+  // =========================================================
   // PAGE NUMBERS
   // =========================================================
 
   const getPageNumbers = () => {
-    const pages: number[] = [];
+    const pages: number[] =
+      [];
 
     const maxVisible = 5;
 
@@ -531,16 +916,22 @@ export default function MembershipPage() {
 
     let end = Math.min(
       totalPages,
-      start + maxVisible - 1
+      start +
+        maxVisible -
+        1
     );
 
     if (
-      end - start + 1 <
+      end -
+        start +
+        1 <
       maxVisible
     ) {
       start = Math.max(
         1,
-        end - maxVisible + 1
+        end -
+          maxVisible +
+          1
       );
     }
 
@@ -578,7 +969,9 @@ export default function MembershipPage() {
 
       <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
 
-        {/* HEADER */}
+        {/* =====================================================
+            HEADER
+        ===================================================== */}
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
@@ -616,7 +1009,9 @@ export default function MembershipPage() {
 
         </div>
 
-        {/* ERROR */}
+        {/* =====================================================
+            ERROR
+        ===================================================== */}
 
         {error && (
           <div
@@ -636,7 +1031,9 @@ export default function MembershipPage() {
           </div>
         )}
 
-        {/* MAIN CARD */}
+        {/* =====================================================
+            MAIN CARD
+        ===================================================== */}
 
         <div
           className="
@@ -649,7 +1046,9 @@ export default function MembershipPage() {
           "
         >
 
-          {/* TOOLBAR */}
+          {/* =================================================
+              TOOLBAR
+          ================================================= */}
 
           <div
             className="
@@ -702,7 +1101,7 @@ export default function MembershipPage() {
                     e.target.value
                   )
                 }
-                placeholder="Search name, email or phone..."
+                placeholder="Search member, AVS ID, matrimony code..."
                 className="
                   w-full
                   h-10
@@ -724,11 +1123,13 @@ export default function MembershipPage() {
 
           </div>
 
-          {/* TABLE */}
+          {/* =================================================
+              TABLE
+          ================================================= */}
 
           <div className="overflow-x-auto">
 
-            <table className="w-full min-w-[1150px]">
+            <table className="w-full min-w-[1500px]">
 
               <thead>
 
@@ -746,6 +1147,10 @@ export default function MembershipPage() {
 
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
                     Member
+                  </th>
+
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
+                    AVS ID
                   </th>
 
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 whitespace-nowrap">
@@ -772,6 +1177,7 @@ export default function MembershipPage() {
                     Status
                   </th>
 
+                  
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 whitespace-nowrap">
                     Actions
                   </th>
@@ -787,7 +1193,7 @@ export default function MembershipPage() {
                   <tr>
 
                     <td
-                      colSpan={9}
+                      colSpan={11}
                       className="px-6 py-16 text-center"
                     >
 
@@ -813,9 +1219,7 @@ export default function MembershipPage() {
                         </p>
 
                         <p className="text-xs text-gray-400 mt-1">
-                          Try searching with a
-                          different name, email
-                          or phone number.
+                          Try searching with a different member, AVS ID, name, email or phone number.
                         </p>
 
                       </div>
@@ -837,9 +1241,16 @@ export default function MembershipPage() {
                         index +
                         1;
 
+                      const matrimonyStatus =
+                        getMatrimonyStatus(
+                          member
+                        );
+
                       return (
                         <tr
-                          key={member.id}
+                          key={
+                            member.id
+                          }
                           className="
                             hover:bg-gray-50/70
                             transition
@@ -888,7 +1299,9 @@ export default function MembershipPage() {
                                       h-full
                                       object-cover
                                     "
-                                    onError={(e) => {
+                                    onError={(
+                                      e
+                                    ) => {
                                       e.currentTarget.style.display =
                                         "none";
                                     }}
@@ -913,7 +1326,10 @@ export default function MembershipPage() {
                                     max-w-[190px]
                                   "
                                 >
-                                  {member.full_name || "-"}
+                                  {
+                                    member.full_name ||
+                                    "-"
+                                  }
                                 </p>
 
                                 <p
@@ -923,7 +1339,10 @@ export default function MembershipPage() {
                                     mt-0.5
                                   "
                                 >
-                                  {member.member_id || "-"}
+                                  {
+                                    member.member_id ||
+                                    "-"
+                                  }
                                 </p>
 
                               </div>
@@ -932,6 +1351,14 @@ export default function MembershipPage() {
 
                           </td>
 
+                          {/* AVS ID */}
+
+                         <td className="px-4 py-3">
+  <p className="text-sm font-semibold text-gray-800 whitespace-nowrap">
+    {member.avs_id || "-"}
+  </p>
+</td>
+
                           {/* CONTACT */}
 
                           <td className="px-4 py-3">
@@ -939,7 +1366,10 @@ export default function MembershipPage() {
                             <div>
 
                               <p className="text-sm text-gray-700 whitespace-nowrap">
-                                {member.mobile || "-"}
+                                {
+                                  member.mobile ||
+                                  "-"
+                                }
                               </p>
 
                               <p
@@ -951,7 +1381,10 @@ export default function MembershipPage() {
                                   truncate
                                 "
                               >
-                                {member.email || "-"}
+                                {
+                                  member.email ||
+                                  "-"
+                                }
                               </p>
 
                             </div>
@@ -961,7 +1394,10 @@ export default function MembershipPage() {
                           {/* OCCUPATION */}
 
                           <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                            {member.occupation || "-"}
+                            {
+                              member.occupation ||
+                              "-"
+                            }
                           </td>
 
                           {/* EXECUTIVE BODY */}
@@ -981,7 +1417,10 @@ export default function MembershipPage() {
                                 whitespace-nowrap
                               "
                             >
-                              {member.executive_body || "-"}
+                              {
+                                member.executive_body ||
+                                "-"
+                              }
                             </span>
 
                           </td>
@@ -989,13 +1428,19 @@ export default function MembershipPage() {
                           {/* DESIGNATION */}
 
                           <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                            {member.designation || "-"}
+                            {
+                              member.designation ||
+                              "-"
+                            }
                           </td>
 
                           {/* GENDER */}
 
                           <td className="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">
-                            {member.gender || "-"}
+                            {
+                              member.gender ||
+                              "-"
+                            }
                           </td>
 
                           {/* STATUS */}
@@ -1012,7 +1457,8 @@ export default function MembershipPage() {
                                 font-semibold
                                 ${
                                   String(
-                                    member.status || ""
+                                    member.status ||
+                                      ""
                                   ).toLowerCase() ===
                                   "active"
                                     ? "bg-green-50 text-green-600"
@@ -1020,25 +1466,30 @@ export default function MembershipPage() {
                                 }
                               `}
                             >
-                              {member.status || "-"}
+                              {
+                                member.status ||
+                                "-"
+                              }
                             </span>
 
                           </td>
 
-                          {/* =================================================
-                              ACTIONS - 3 DOT MENU
-                          ================================================= */}
+                        
+
+                          {/* ACTIONS */}
 
                           <td className="px-4 py-3 text-center">
 
                             <div
                               className="relative inline-block"
-                              onClick={(e) =>
+                              onClick={(
+                                e
+                              ) =>
                                 e.stopPropagation()
                               }
                             >
 
-                              {/* 3 DOT BUTTON */}
+                              {/* 3 DOT */}
 
                               <button
                                 type="button"
@@ -1083,7 +1534,7 @@ export default function MembershipPage() {
                                     right-0
                                     top-10
                                     z-[100]
-                                    w-40
+                                    w-48
                                     bg-white
                                     border
                                     border-gray-200
@@ -1093,14 +1544,15 @@ export default function MembershipPage() {
                                     text-left
                                   "
                                 >
- 
 
                                   {/* EDIT */}
 
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      setOpenActionId(null);
+                                      setOpenActionId(
+                                        null
+                                      );
 
                                       router.push(
                                         `/admin/membership/edit/${member.id}`
@@ -1119,11 +1571,18 @@ export default function MembershipPage() {
                                       transition
                                     "
                                   >
+
                                     <FaEdit className="text-gray-400 text-sm" />
+
                                     <span>
                                       Edit
                                     </span>
+
                                   </button>
+
+                                  
+
+                                  
 
                                   {/* DELETE */}
 
@@ -1134,7 +1593,9 @@ export default function MembershipPage() {
                                       member.id
                                     }
                                     onClick={() => {
-                                      setOpenActionId(null);
+                                      setOpenActionId(
+                                        null
+                                      );
 
                                       handleDelete(
                                         member.id,
@@ -1225,7 +1686,9 @@ export default function MembershipPage() {
               </span>
 
               <select
-                value={rowsPerPage}
+                value={
+                  rowsPerPage
+                }
                 onChange={(e) =>
                   handleRowsChange(
                     Number(
@@ -1251,9 +1714,13 @@ export default function MembershipPage() {
                   (option) => (
                     <option
                       key={option}
-                      value={option}
+                      value={
+                        option
+                      }
                     >
-                      {option}
+                      {
+                        option
+                      }
                     </option>
                   )
                 )}
@@ -1261,12 +1728,19 @@ export default function MembershipPage() {
               </select>
 
               <span>
-                {totalItems === 0
+                {totalItems ===
+                0
                   ? "0"
-                  : startIndex + 1}
+                  : startIndex +
+                    1}
                 -
-                {endIndex} of{" "}
-                {totalItems}
+                {
+                  endIndex
+                }{" "}
+                of{" "}
+                {
+                  totalItems
+                }
               </span>
 
             </div>
@@ -1286,7 +1760,8 @@ export default function MembershipPage() {
               <button
                 type="button"
                 disabled={
-                  safeCurrentPage <= 1
+                  safeCurrentPage <=
+                  1
                 }
                 onClick={() =>
                   setCurrentPage(
@@ -1343,7 +1818,9 @@ export default function MembershipPage() {
                       }
                     `}
                   >
-                    {page}
+                    {
+                      page
+                    }
                   </button>
                 )
               )}
@@ -1392,7 +1869,298 @@ export default function MembershipPage() {
 
       </main>
 
+      {/* =====================================================
+          MATRIMONY AUTHORISATION MODAL
+      ===================================================== */}
+
+      {authorizeMember && (
+
+        <div
+          className="
+            fixed
+            inset-0
+            z-[200]
+            bg-black/40
+            flex
+            items-center
+            justify-center
+            p-4
+          "
+          onClick={() => {
+            if (
+              !authorizeLoading
+            ) {
+              setAuthorizeMember(
+                null
+              );
+
+              setExpiryDate("");
+            }
+          }}
+        >
+
+          <div
+            className="
+              w-full
+              max-w-md
+              bg-white
+              rounded-xl
+              shadow-2xl
+              border
+              border-gray-200
+              overflow-hidden
+            "
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+
+            {/* MODAL HEADER */}
+
+            <div
+              className="
+                px-5
+                py-4
+                border-b
+                border-gray-200
+              "
+            >
+
+              <h2 className="text-lg font-semibold text-gray-900">
+                Authorize Matrimony
+              </h2>
+
+              <p className="text-xs text-gray-500 mt-1">
+                Authorize this member for the matrimony process.
+              </p>
+
+            </div>
+
+            {/* MEMBER DETAILS */}
+
+            <div className="px-5 py-4">
+
+              <div
+                className="
+                  rounded-lg
+                  border
+                  border-gray-200
+                  bg-gray-50
+                  p-4
+                "
+              >
+
+                <div className="grid grid-cols-2 gap-3">
+
+                  <div>
+                    <p className="text-[11px] text-gray-400">
+                      Member ID
+                    </p>
+
+                    <p className="text-sm font-semibold text-gray-800 mt-0.5">
+                      {
+                        authorizeMember.member_id ||
+                        "-"
+                      }
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-gray-400">
+                      AVS ID
+                    </p>
+
+                    <p className="text-sm font-semibold text-gray-800 mt-0.5">
+                      {
+                        authorizeMember.avs_id ||
+                        "-"
+                      }
+                    </p>
+                  </div>
+
+                  <div className="col-span-2">
+
+                    <p className="text-[11px] text-gray-400">
+                      Name
+                    </p>
+
+                    <p className="text-sm font-semibold text-gray-800 mt-0.5">
+                      {
+                        authorizeMember.full_name ||
+                        "-"
+                      }
+                    </p>
+
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-gray-400">
+                      Mobile
+                    </p>
+
+                    <p className="text-sm text-gray-700 mt-0.5">
+                      {
+                        authorizeMember.mobile ||
+                        "-"
+                      }
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] text-gray-400">
+                      Gender
+                    </p>
+
+                    <p className="text-sm text-gray-700 mt-0.5">
+                      {
+                        authorizeMember.gender ||
+                        "-"
+                      }
+                    </p>
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* EXPIRY */}
+
+              <div className="mt-5">
+
+                <label
+                  htmlFor="matrimony-expiry"
+                  className="
+                    block
+                    text-sm
+                    font-semibold
+                    text-gray-700
+                    mb-2
+                  "
+                >
+                  Matrimony Expiry Date
+                </label>
+
+                <input
+                  id="matrimony-expiry"
+                  type="date"
+                  value={
+                    expiryDate
+                  }
+                  min={
+                    new Date()
+                      .toISOString()
+                      .split("T")[0]
+                  }
+                  onChange={(e) =>
+                    setExpiryDate(
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    h-11
+                    px-3
+                    rounded-lg
+                    border
+                    border-gray-200
+                    bg-white
+                    text-sm
+                    text-gray-700
+                    outline-none
+                    focus:border-[#8B1E3F]
+                    focus:ring-2
+                    focus:ring-[#8B1E3F]/10
+                  "
+                />
+
+                <p className="text-[11px] text-gray-400 mt-1.5">
+                  The matrimony code will be generated after authorization.
+                </p>
+
+              </div>
+
+            </div>
+
+            {/* MODAL FOOTER */}
+
+            <div
+              className="
+                px-5
+                py-4
+                border-t
+                border-gray-200
+                flex
+                justify-end
+                gap-3
+              "
+            >
+
+              <button
+                type="button"
+                disabled={
+                  authorizeLoading
+                }
+                onClick={() => {
+                  setAuthorizeMember(
+                    null
+                  );
+
+                  setExpiryDate(
+                    ""
+                  );
+                }}
+                className="
+                  px-4
+                  py-2.5
+                  rounded-lg
+                  border
+                  border-gray-200
+                  bg-white
+                  text-sm
+                  font-medium
+                  text-gray-600
+                  hover:bg-gray-50
+                  disabled:opacity-50
+                "
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  authorizeLoading ||
+                  !expiryDate
+                }
+                onClick={
+                  handleAuthorizeMatrimony
+                }
+                className="
+                  px-4
+                  py-2.5
+                  rounded-lg
+                  bg-[#8B1E3F]
+                  text-white
+                  text-sm
+                  font-semibold
+                  hover:bg-[#741934]
+                  disabled:opacity-50
+                  disabled:cursor-not-allowed
+                "
+              >
+                {authorizeLoading
+                  ? "Authorising..."
+                  : "Confirm Authorisation"}
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
   );
 }
-
