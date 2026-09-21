@@ -344,49 +344,69 @@ export default function MembershipPage() {
      LOAD DISTRICTS
   ========================================================= */
 
-  useEffect(() => {
-    const loadDistricts = async () => {
-      setLocationLoading(true);
+ useEffect(() => {
+  const loadDistricts = async () => {
+    setLocationLoading(true);
 
-      try {
-        const response = await fetch(
-          `${apiUrl}/locations/districts`
-        );
+    try {
+      console.log("Backend API URL:", apiUrl);
+      console.log(
+        "District API:",
+        `${apiUrl}/locations/districts`
+      );
 
-        if (!response.ok) {
-          throw new Error(
-            `Failed to load districts (${response.status})`
-          );
+      const response = await fetch(
+        `${apiUrl}/locations/districts`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          cache: "no-store",
         }
+      );
 
-        const result =
-          await response.json();
+      console.log(
+        "District response status:",
+        response.status
+      );
 
-        const data = Array.isArray(result)
-          ? result
-          : Array.isArray(result?.data)
-          ? result.data
-          : [];
-
-        setDistricts(data);
-      } catch (error) {
-        console.error(
-          "District loading error:",
-          error
+      if (!response.ok) {
+        throw new Error(
+          `Failed to load districts (${response.status} ${response.statusText})`
         );
-
-        toast.error(
-          "Unable to load districts"
-        );
-
-        setDistricts([]);
-      } finally {
-        setLocationLoading(false);
       }
-    };
 
-    loadDistricts();
-  }, [apiUrl]);
+      const result = await response.json();
+
+      console.log("District API response:", result);
+
+      const data = Array.isArray(result)
+        ? result
+        : Array.isArray(result?.data)
+        ? result.data
+        : [];
+
+      setDistricts(data);
+
+      if (data.length === 0) {
+        toast.error("No districts available");
+      }
+    } catch (error) {
+      console.error("District loading error:", error);
+
+      toast.error(
+        "Unable to load districts. Please try again."
+      );
+
+      setDistricts([]);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  loadDistricts();
+}, [apiUrl]);
 
   /* =========================================================
      LOAD MANDALS

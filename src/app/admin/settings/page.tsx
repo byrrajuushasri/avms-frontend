@@ -430,7 +430,7 @@ export default function SettingsPage() {
 
         const response =
           await fetch(
-            `${API_URL}/users/${user.id}`,
+            `${API_URL}/membership/member/${user.id}`,
             {
               method: "PATCH",
 
