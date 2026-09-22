@@ -21,29 +21,24 @@ type LocationItem = {
 };
 
 type FormData = {
-  /* BASIC DETAILS */
   full_name: string;
   surname: string;
   father_name: string;
   mobile: string;
   email: string;
   occupation: string;
- 
   gender: string;
   date_of_birth: string;
   gotram: string;
 
-  /* EXISTING MEMBERS */
   is_existing_mahashaba_member: string;
   is_existing_sangam_member: string;
 
-  /* LOCATION */
   location: string;
   district: string;
   mandal: string;
   sangham: string;
 
-  /* BODY */
   executive_body: string;
   designation: string;
 };
@@ -159,39 +154,6 @@ const gotramList = [
 ];
 
 /* =========================================================
-   EDUCATION LIST
-========================================================= */
-
-const educationList = [
-  "SSC",
-  "Intermediate",
-  "ITI",
-  "Diploma",
-  "B.A",
-  "B.Com",
-  "B.Sc",
-  "B.Tech",
-  "B.E",
-  "B.Pharmacy",
-  "LLB",
-  "M.A",
-  "M.Com",
-  "M.Sc",
-  "M.Tech",
-  "M.E",
-  "M.Pharmacy",
-  "MBA",
-  "MCA",
-  "LLM",
-  "MBBS",
-  "MD",
-  "CA",
-  "CMA",
-  "Ph.D",
-  "Other",
-];
-
-/* =========================================================
    EXECUTIVE BODY
 ========================================================= */
 
@@ -226,7 +188,6 @@ const initialFormData: FormData = {
   mobile: "",
   email: "",
   occupation: "",
- 
   gender: "",
   date_of_birth: "",
   gotram: "",
@@ -344,69 +305,86 @@ export default function MembershipPage() {
      LOAD DISTRICTS
   ========================================================= */
 
- useEffect(() => {
-  const loadDistricts = async () => {
-    setLocationLoading(true);
+  useEffect(() => {
+    const loadDistricts = async () => {
+      setLocationLoading(true);
 
-    try {
-      console.log("Backend API URL:", apiUrl);
-      console.log(
-        "District API:",
-        `${apiUrl}/locations/districts`
-      );
-
-      const response = await fetch(
-        `${apiUrl}/locations/districts`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-          cache: "no-store",
-        }
-      );
-
-      console.log(
-        "District response status:",
-        response.status
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load districts (${response.status} ${response.statusText})`
+      try {
+        console.log(
+          "Backend API URL:",
+          apiUrl
         );
+
+        const endpoint =
+          `${apiUrl}/locations/districts`;
+
+        console.log(
+          "District API:",
+          endpoint
+        );
+
+        const response = await fetch(
+          endpoint,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          }
+        );
+
+        console.log(
+          "District response status:",
+          response.status
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load districts (${response.status})`
+          );
+        }
+
+        const result =
+          await response.json();
+
+        console.log(
+          "District API response:",
+          result
+        );
+
+        const data: LocationItem[] =
+          Array.isArray(result)
+            ? result
+            : Array.isArray(result?.data)
+            ? result.data
+            : [];
+
+        setDistricts(data);
+
+        if (data.length === 0) {
+          toast.error(
+            "No districts available"
+          );
+        }
+      } catch (error) {
+        console.error(
+          "District loading error:",
+          error
+        );
+
+        toast.error(
+          "Unable to load districts. Please try again."
+        );
+
+        setDistricts([]);
+      } finally {
+        setLocationLoading(false);
       }
+    };
 
-      const result = await response.json();
-
-      console.log("District API response:", result);
-
-      const data = Array.isArray(result)
-        ? result
-        : Array.isArray(result?.data)
-        ? result.data
-        : [];
-
-      setDistricts(data);
-
-      if (data.length === 0) {
-        toast.error("No districts available");
-      }
-    } catch (error) {
-      console.error("District loading error:", error);
-
-      toast.error(
-        "Unable to load districts. Please try again."
-      );
-
-      setDistricts([]);
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
-  loadDistricts();
-}, [apiUrl]);
+    loadDistricts();
+  }, [apiUrl]);
 
   /* =========================================================
      LOAD MANDALS
@@ -416,12 +394,16 @@ export default function MembershipPage() {
     const selectedDistrict =
       districts.find(
         (district) =>
-          district.name ===
+          district.name
+            .trim()
+            .toLowerCase() ===
           formData.district
+            .trim()
+            .toLowerCase()
       );
 
     if (
-      !formData.district ||
+      !formData.district.trim() ||
       !selectedDistrict?.id
     ) {
       setMandals([]);
@@ -432,8 +414,28 @@ export default function MembershipPage() {
       setLocationLoading(true);
 
       try {
+        const endpoint =
+          `${apiUrl}/locations/districts/${selectedDistrict.id}/mandals`;
+
+        console.log(
+          "Mandal API:",
+          endpoint
+        );
+
         const response = await fetch(
-          `${apiUrl}/locations/districts/${selectedDistrict.id}/mandals`
+          endpoint,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          }
+        );
+
+        console.log(
+          "Mandal response status:",
+          response.status
         );
 
         if (!response.ok) {
@@ -445,13 +447,25 @@ export default function MembershipPage() {
         const result =
           await response.json();
 
-        const data = Array.isArray(result)
-          ? result
-          : Array.isArray(result?.data)
-          ? result.data
-          : [];
+        console.log(
+          "Mandal API response:",
+          result
+        );
+
+        const data: LocationItem[] =
+          Array.isArray(result)
+            ? result
+            : Array.isArray(result?.data)
+            ? result.data
+            : [];
 
         setMandals(data);
+
+        if (data.length === 0) {
+          toast.error(
+            `No mandals available for ${selectedDistrict.name}`
+          );
+        }
       } catch (error) {
         console.error(
           "Mandal loading error:",
@@ -494,7 +508,9 @@ export default function MembershipPage() {
   ) => {
     setErrors((prev) => {
       const updated = { ...prev };
+
       delete updated[field];
+
       return updated;
     });
   };
@@ -546,7 +562,6 @@ export default function MembershipPage() {
     if (!allowedTypes.includes(file.type)) {
       setPhoto(null);
       setPhotoPreview("");
-
       e.target.value = "";
 
       setFieldError(
@@ -567,7 +582,6 @@ export default function MembershipPage() {
     if (file.size > maxSize) {
       setPhoto(null);
       setPhotoPreview("");
-
       e.target.value = "";
 
       setFieldError(
@@ -608,6 +622,7 @@ export default function MembershipPage() {
     } = e.target;
 
     /* MOBILE */
+
     if (name === "mobile") {
       const onlyNumbers =
         value.replace(/\D/g, "");
@@ -645,6 +660,7 @@ export default function MembershipPage() {
     }
 
     /* FULL NAME */
+
     if (name === "full_name") {
       setFormData((prev) => ({
         ...prev,
@@ -685,6 +701,7 @@ export default function MembershipPage() {
     }
 
     /* SURNAME */
+
     if (name === "surname") {
       setFormData((prev) => ({
         ...prev,
@@ -715,6 +732,7 @@ export default function MembershipPage() {
     }
 
     /* FATHER NAME */
+
     if (name === "father_name") {
       setFormData((prev) => ({
         ...prev,
@@ -745,6 +763,7 @@ export default function MembershipPage() {
     }
 
     /* EMAIL */
+
     if (name === "email") {
       setFormData((prev) => ({
         ...prev,
@@ -776,6 +795,7 @@ export default function MembershipPage() {
     }
 
     /* OCCUPATION */
+
     if (name === "occupation") {
       setFormData((prev) => ({
         ...prev,
@@ -788,15 +808,16 @@ export default function MembershipPage() {
           "Occupation is required"
         );
       } else {
-        clearFieldError("occupation");
+        clearFieldError(
+          "occupation"
+        );
       }
 
       return;
     }
 
-    
-
     /* LOCATION */
+
     if (name === "location") {
       setFormData((prev) => ({
         ...prev,
@@ -816,6 +837,7 @@ export default function MembershipPage() {
     }
 
     /* GOTRAM */
+
     if (name === "gotram") {
       setFormData((prev) => ({
         ...prev,
@@ -835,6 +857,7 @@ export default function MembershipPage() {
     }
 
     /* DOB */
+
     if (name === "date_of_birth") {
       setFormData((prev) => ({
         ...prev,
@@ -846,6 +869,7 @@ export default function MembershipPage() {
           "date_of_birth",
           "Date of birth is required"
         );
+
         return;
       }
 
@@ -854,6 +878,7 @@ export default function MembershipPage() {
           "date_of_birth",
           "Date of birth cannot be in the future"
         );
+
         return;
       }
 
@@ -875,6 +900,7 @@ export default function MembershipPage() {
     }
 
     /* EXISTING MEMBER FIELDS */
+
     if (
       name ===
         "is_existing_mahashaba_member" ||
@@ -899,6 +925,7 @@ export default function MembershipPage() {
     }
 
     /* GENDER */
+
     if (name === "gender") {
       setFormData((prev) => ({
         ...prev,
@@ -918,6 +945,7 @@ export default function MembershipPage() {
     }
 
     /* DESIGNATION */
+
     if (name === "designation") {
       setFormData((prev) => ({
         ...prev,
@@ -939,6 +967,7 @@ export default function MembershipPage() {
     }
 
     /* DEFAULT */
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -950,14 +979,14 @@ export default function MembershipPage() {
   };
 
   /* =========================================================
-     DISTRICT
+     DISTRICT CHANGE
   ========================================================= */
 
   const handleDistrictChange = (
     e: ChangeEvent<HTMLSelectElement>
   ) => {
     const district =
-      e.target.value;
+      e.target.value.trim();
 
     setFormData((prev) => ({
       ...prev,
@@ -983,14 +1012,14 @@ export default function MembershipPage() {
   };
 
   /* =========================================================
-     MANDAL
+     MANDAL CHANGE
   ========================================================= */
 
   const handleMandalChange = (
     e: ChangeEvent<HTMLSelectElement>
   ) => {
     const mandal =
-      e.target.value;
+      e.target.value.trim();
 
     setFormData((prev) => ({
       ...prev,
@@ -1003,7 +1032,7 @@ export default function MembershipPage() {
   };
 
   /* =========================================================
-     SANGHAM
+     SANGHAM CHANGE
   ========================================================= */
 
   const handleSanghamChange = (
@@ -1028,7 +1057,7 @@ export default function MembershipPage() {
   };
 
   /* =========================================================
-     EXECUTIVE BODY
+     EXECUTIVE BODY CHANGE
   ========================================================= */
 
   const handleExecutiveBodyChange = (
@@ -1037,55 +1066,24 @@ export default function MembershipPage() {
     const executive_body =
       e.target.value;
 
-    setFormData((prev) => {
-      if (
-        executive_body ===
-        "State Body"
-      ) {
-        return {
-          ...prev,
-          executive_body,
-          district: "",
-          mandal: "",
-          sangham: "",
-        };
-      }
+    /*
+      IMPORTANT:
+      Whenever Executive Body changes,
+      clear all hierarchy values.
 
-      if (
-        executive_body ===
-        "District Body"
-      ) {
-        return {
-          ...prev,
-          executive_body,
-          mandal: "",
-          sangham: "",
-        };
-      }
+      This avoids old District/Mandal/Sangham
+      values remaining when body changes.
+    */
 
-      if (
-        executive_body ===
-        "Mandal Body"
-      ) {
-        return {
-          ...prev,
-          executive_body,
-          sangham: "",
-        };
-      }
+    setFormData((prev) => ({
+      ...prev,
+      executive_body,
+      district: "",
+      mandal: "",
+      sangham: "",
+    }));
 
-      return {
-        ...prev,
-        executive_body,
-      };
-    });
-
-    if (
-      executive_body ===
-      "State Body"
-    ) {
-      setMandals([]);
-    }
+    setMandals([]);
 
     clearFieldError(
       "executive_body"
@@ -1107,19 +1105,52 @@ export default function MembershipPage() {
   ========================================================= */
 
   const validateForm = (): boolean => {
-    const newErrors: ErrorState =
-      {};
+    const newErrors: ErrorState = {};
 
-    /* FULL NAME */
+    /* BASIC VALUES */
+
     const name =
       formData.full_name.trim();
+
+    const surname =
+      formData.surname.trim();
+
+    const fatherName =
+      formData.father_name.trim();
+
+    const email =
+      formData.email.trim();
+
+    const occupation =
+      formData.occupation.trim();
+
+    const location =
+      formData.location.trim();
+
+    const gotram =
+      formData.gotram.trim();
+
+    const district =
+      formData.district.trim();
+
+    const mandal =
+      formData.mandal.trim();
+
+    const sangham =
+      formData.sangham.trim();
+
+    const executiveBody =
+      formData.executive_body.trim();
+
+    const designation =
+      formData.designation.trim();
+
+    /* FULL NAME */
 
     if (!name) {
       newErrors.full_name =
         "Full name is required";
-    } else if (
-      name.length < 3
-    ) {
+    } else if (name.length < 3) {
       newErrors.full_name =
         "Minimum 3 characters required";
     } else if (
@@ -1130,8 +1161,6 @@ export default function MembershipPage() {
     }
 
     /* SURNAME */
-    const surname =
-      formData.surname.trim();
 
     if (!surname) {
       newErrors.surname =
@@ -1146,8 +1175,6 @@ export default function MembershipPage() {
     }
 
     /* FATHER NAME */
-    const fatherName =
-      formData.father_name.trim();
 
     if (!fatherName) {
       newErrors.father_name =
@@ -1162,9 +1189,10 @@ export default function MembershipPage() {
     }
 
     /* MOBILE */
+
     if (
       !/^[6-9]\d{9}$/.test(
-        formData.mobile
+        formData.mobile.trim()
       )
     ) {
       newErrors.mobile =
@@ -1172,58 +1200,51 @@ export default function MembershipPage() {
     }
 
     /* EMAIL */
+
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (
-      !formData.email.trim()
-    ) {
+    if (!email) {
       newErrors.email =
         "Email address is required";
     } else if (
-      !emailRegex.test(
-        formData.email.trim()
-      )
+      !emailRegex.test(email)
     ) {
       newErrors.email =
         "Enter a valid email address";
     }
 
     /* OCCUPATION */
-    if (
-      !formData.occupation.trim()
-    ) {
+
+    if (!occupation) {
       newErrors.occupation =
         "Occupation is required";
     }
- 
 
     /* LOCATION */
-    if (
-      !formData.location.trim()
-    ) {
+
+    if (!location) {
       newErrors.location =
         "Location is required";
     }
 
     /* GOTRAM */
-    if (
-      !formData.gotram.trim()
-    ) {
+
+    if (!gotram) {
       newErrors.gotram =
         "Gotram is required";
     }
 
     /* GENDER */
-    if (!formData.gender) {
+
+    if (!formData.gender.trim()) {
       newErrors.gender =
         "Please select gender";
     }
 
     /* DOB */
-    if (
-      !formData.date_of_birth
-    ) {
+
+    if (!formData.date_of_birth) {
       newErrors.date_of_birth =
         "Date of birth is required";
     } else if (
@@ -1242,75 +1263,87 @@ export default function MembershipPage() {
     }
 
     /* PHOTO */
+
     if (!photo) {
       newErrors.photo =
         "Member photo is required";
     }
 
     /* EXISTING MAHASHABA */
+
     if (
-      !formData.is_existing_mahashaba_member
+      !formData.is_existing_mahashaba_member.trim()
     ) {
       newErrors.is_existing_mahashaba_member =
         "Please select Yes or No";
     }
 
     /* EXISTING SANGAM */
+
     if (
-      !formData.is_existing_sangam_member
+      !formData.is_existing_sangam_member.trim()
     ) {
       newErrors.is_existing_sangam_member =
         "Please select Yes or No";
     }
 
     /* EXECUTIVE BODY */
-    if (
-      !formData.executive_body
-    ) {
+
+    if (!executiveBody) {
       newErrors.executive_body =
         "Please select Executive Body";
     }
 
     /* DESIGNATION */
-    if (!formData.designation) {
+
+    if (!designation) {
       newErrors.designation =
         "Please select Designation";
     }
 
-    /* DISTRICT */
+    /* =====================================================
+       BODY-SPECIFIC VALIDATION
+
+       State Body:
+       Nothing required
+
+       District Body:
+       District required
+
+       Mandal Body:
+       District + Mandal required
+
+       Sangham Body:
+       District + Mandal + Sangham required
+    ===================================================== */
+
     if (
       [
         "District Body",
         "Mandal Body",
         "Sangham Body",
-      ].includes(
-        formData.executive_body
-      ) &&
-      !formData.district
+      ].includes(executiveBody) &&
+      !district
     ) {
       newErrors.district =
         "Please select District";
     }
 
-    /* MANDAL */
     if (
       [
         "Mandal Body",
         "Sangham Body",
-      ].includes(
-        formData.executive_body
-      ) &&
-      !formData.mandal
+      ].includes(executiveBody) &&
+      !mandal
     ) {
       newErrors.mandal =
         "Please select Mandal";
     }
 
-    /* SANGHAM */
     if (
-      formData.executive_body ===
+      executiveBody ===
         "Sangham Body" &&
-      !formData.sangham.trim()
+      !sangham
     ) {
       newErrors.sangham =
         "Please enter Sangham";
@@ -1319,8 +1352,7 @@ export default function MembershipPage() {
     setErrors(newErrors);
 
     if (
-      Object.keys(newErrors).length >
-      0
+      Object.keys(newErrors).length > 0
     ) {
       toast.error(
         "Please correct the highlighted fields"
@@ -1343,7 +1375,9 @@ export default function MembershipPage() {
 
     if (loading) return;
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     setLoading(true);
 
@@ -1354,17 +1388,27 @@ export default function MembershipPage() {
 
     try {
       const executiveBody =
-        formData.executive_body?.trim() ||
+        formData.executive_body.trim() ||
         "State Body";
 
       const designation =
-        formData.designation?.trim() ||
+        formData.designation.trim() ||
         "Member";
+
+      const district =
+        formData.district.trim();
+
+      const mandal =
+        formData.mandal.trim();
+
+      const sangham =
+        formData.sangham.trim();
 
       const body =
         new FormData();
 
       /* BASIC */
+
       body.append(
         "full_name",
         formData.full_name.trim()
@@ -1395,11 +1439,9 @@ export default function MembershipPage() {
         formData.occupation.trim()
       );
 
-     
-
       body.append(
         "gender",
-        formData.gender
+        formData.gender.trim()
       );
 
       body.append(
@@ -1408,23 +1450,26 @@ export default function MembershipPage() {
       );
 
       /* GOTRAM */
+
       body.append(
         "gotram",
         formData.gotram.trim()
       );
 
       /* EXISTING MEMBERS */
+
       body.append(
         "is_existing_mahashaba_member",
-        formData.is_existing_mahashaba_member
+        formData.is_existing_mahashaba_member.trim()
       );
 
       body.append(
         "is_existing_sangam_member",
-        formData.is_existing_sangam_member
+        formData.is_existing_sangam_member.trim()
       );
 
       /* LOCATION */
+
       body.append(
         "location",
         formData.location.trim()
@@ -1432,20 +1477,21 @@ export default function MembershipPage() {
 
       body.append(
         "district",
-        formData.district || ""
+        district
       );
 
       body.append(
         "mandal",
-        formData.mandal || ""
+        mandal
       );
 
       body.append(
         "sangham",
-        formData.sangham.trim()
+        sangham
       );
 
       /* BODY */
+
       body.append(
         "executive_body",
         executiveBody
@@ -1457,6 +1503,7 @@ export default function MembershipPage() {
       );
 
       /* PHOTO */
+
       if (photo) {
         body.append(
           "photo",
@@ -1464,8 +1511,49 @@ export default function MembershipPage() {
         );
       }
 
+      /* DEBUG */
+
       console.log(
-        "Submitting membership registration..."
+        "===================================="
+      );
+
+      console.log(
+        "MEMBERSHIP REGISTRATION"
+      );
+
+      console.log(
+        "Backend:",
+        apiUrl
+      );
+
+      console.log(
+        "Executive Body:",
+        executiveBody
+      );
+
+      console.log(
+        "District:",
+        district
+      );
+
+      console.log(
+        "Mandal:",
+        mandal
+      );
+
+      console.log(
+        "Sangham:",
+        sangham
+      );
+
+      console.log(
+        "Father Name:",
+        formData.father_name
+      );
+
+      console.log(
+        "Gotram:",
+        formData.gotram
       );
 
       console.log(
@@ -1474,25 +1562,7 @@ export default function MembershipPage() {
       );
 
       console.log(
-        "Father Name:",
-        formData.father_name
-      );
-
-      
-
-      console.log(
-        "Gotram:",
-        formData.gotram
-      );
-
-      console.log(
-        "Existing Mahashaba:",
-        formData.is_existing_mahashaba_member
-      );
-
-      console.log(
-        "Existing Sangam:",
-        formData.is_existing_sangam_member
+        "===================================="
       );
 
       const apiEndpoint =
@@ -1517,7 +1587,7 @@ export default function MembershipPage() {
           "content-type"
         ) || "";
 
-      let data: any = null;
+      let data: unknown = null;
 
       if (
         contentType.includes(
@@ -1540,15 +1610,24 @@ export default function MembershipPage() {
         data
       );
 
+      const responseData =
+        data as {
+          message?: string | string[];
+          member_id?: string;
+          data?: {
+            member_id?: string;
+          };
+        };
+
       if (!response.ok) {
         throw new Error(
           Array.isArray(
-            data?.message
+            responseData.message
           )
-            ? data.message.join(
+            ? responseData.message.join(
                 ", "
               )
-            : data?.message ||
+            : responseData.message ||
                 `Registration failed (${response.status})`
         );
       }
@@ -1558,8 +1637,8 @@ export default function MembershipPage() {
       );
 
       const memberId =
-        data?.member_id ||
-        data?.data?.member_id ||
+        responseData.member_id ||
+        responseData.data?.member_id ||
         "";
 
       toast.success(
@@ -1574,13 +1653,13 @@ export default function MembershipPage() {
       );
 
       /* RESET */
+
       setFormData({
         ...initialFormData,
       });
 
       setPhoto(null);
       setPhotoPreview("");
-
       setErrors({});
       setMandals([]);
     } catch (err) {
@@ -1634,9 +1713,7 @@ export default function MembershipPage() {
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
-          {/* =================================================
-              HEADER
-          ================================================= */}
+          {/* HEADER */}
 
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
             <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
@@ -1656,9 +1733,7 @@ export default function MembershipPage() {
 
           <div className="space-y-7 p-5 sm:p-8">
 
-            {/* =================================================
-                FORM
-            ================================================= */}
+            {/* FORM */}
 
             <form
               onSubmit={handleSubmit}
@@ -1925,7 +2000,6 @@ export default function MembershipPage() {
                       field="occupation"
                     />
                   </div>
- 
 
                   {/* GOTRAM */}
 
@@ -2004,11 +2078,6 @@ export default function MembershipPage() {
                     </label>
 
                     <div className="flex flex-col gap-3 sm:flex-row">
-
-                      
-
-                      {/* GALLERY */}
-
                       <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
                         🖼️ Choose Photo
 
@@ -2219,7 +2288,8 @@ export default function MembershipPage() {
                         )}
                       >
                         <option value="">
-                          {locationLoading
+                          {locationLoading &&
+                          districts.length === 0
                             ? "Loading Districts..."
                             : "Select District"}
                         </option>
@@ -2271,24 +2341,24 @@ export default function MembershipPage() {
                           handleMandalChange
                         }
                         disabled={
-                          !formData.district ||
-                          mandals.length === 0
+                          !formData.district.trim() ||
+                          locationLoading
                         }
                         className={`${getInputClass(
                           "mandal"
                         )} ${
-                          !formData.district ||
-                          mandals.length === 0
+                          !formData.district.trim() ||
+                          locationLoading
                             ? "cursor-not-allowed bg-gray-100"
                             : ""
                         }`}
                       >
                         <option value="">
-                          {!formData.district
+                          {!formData.district.trim()
                             ? "Select District First"
                             : locationLoading
                             ? "Loading Mandals..."
-                            : mandals.length
+                            : mandals.length > 0
                             ? "Select Mandal"
                             : "No Mandals Available"}
                         </option>
@@ -2336,14 +2406,14 @@ export default function MembershipPage() {
                         placeholder="Enter Sangham Name"
                         maxLength={150}
                         disabled={
-                          !formData.district ||
-                          !formData.mandal
+                          !formData.district.trim() ||
+                          !formData.mandal.trim()
                         }
                         className={`${getInputClass(
                           "sangham"
                         )} ${
-                          !formData.district ||
-                          !formData.mandal
+                          !formData.district.trim() ||
+                          !formData.mandal.trim()
                             ? "cursor-not-allowed bg-gray-100"
                             : ""
                         }`}
@@ -2428,8 +2498,6 @@ export default function MembershipPage() {
                 </p>
               </div>
             </form>
-
- 
           </div>
         </div>
       </div>
