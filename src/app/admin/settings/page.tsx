@@ -28,86 +28,42 @@ interface LoggedInUser {
 }
 
 export default function SettingsPage() {
-  const [user, setUser] =
-    useState<LoggedInUser | null>(null);
+  const [user, setUser] = useState<LoggedInUser | null>(null);
 
-  const [name, setName] =
-    useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [role, setRole] = useState("");
 
-  const [email, setEmail] =
-    useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [mobile, setMobile] =
-    useState("");
+  const [loading, setLoading] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
 
-  const [role, setRole] =
-    useState("");
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
 
-  const [
-    currentPassword,
-    setCurrentPassword,
-  ] = useState("");
-
-  const [
-    newPassword,
-    setNewPassword,
-  ] = useState("");
-
-  const [
-    confirmPassword,
-    setConfirmPassword,
-  ] = useState("");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [
-    savingProfile,
-    setSavingProfile,
-  ] = useState(false);
-
-  const [
-    savingPassword,
-    setSavingPassword,
-  ] = useState(false);
-
-  const [
-    profileMessage,
-    setProfileMessage,
-  ] = useState("");
-
-  const [
-    profileError,
-    setProfileError,
-  ] = useState("");
-
-  const [
-    passwordMessage,
-    setPasswordMessage,
-  ] = useState("");
-
-  const [
-    passwordError,
-    setPasswordError,
-  ] = useState("");
+  const [passwordMessage, setPasswordMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   /* =========================================================
      API URL
-
-     Same backend as Login
+     LIVE RAILWAY BACKEND
   ========================================================= */
 
-  const API_URL =
+  const API_URL = (
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000";
+    "https://avms-backend-production.up.railway.app"
+  ).replace(/\/$/, "");
 
   /* =========================================================
-     SET USER DATA
+     APPLY USER DATA
   ========================================================= */
 
-  const applyUserData = (
-    userData: LoggedInUser
-  ) => {
+  const applyUserData = (userData: LoggedInUser) => {
     setUser(userData);
 
     setName(
@@ -116,9 +72,7 @@ export default function SettingsPage() {
         ""
     );
 
-    setEmail(
-      userData.email || ""
-    );
+    setEmail(userData.email || "");
 
     setMobile(
       userData.mobile ||
@@ -142,17 +96,15 @@ export default function SettingsPage() {
       try {
         setLoading(true);
 
-        /* ===================================================
-           GET STORED USER
-        =================================================== */
-
         const storedUser =
           localStorage.getItem("user");
 
         const token =
-          localStorage.getItem(
-            "access_token"
-          );
+          localStorage.getItem("access_token");
+
+        console.log(
+          "================================="
+        );
 
         console.log(
           "SETTINGS API URL:",
@@ -165,7 +117,7 @@ export default function SettingsPage() {
         );
 
         /* ===================================================
-           FIRST USE LOCAL STORAGE USER
+           LOAD LOCAL STORAGE USER FIRST
         =================================================== */
 
         if (storedUser) {
@@ -178,9 +130,7 @@ export default function SettingsPage() {
               parsedUser
             );
 
-            applyUserData(
-              parsedUser
-            );
+            applyUserData(parsedUser);
           } catch (error) {
             console.error(
               "Invalid stored user:",
@@ -191,8 +141,6 @@ export default function SettingsPage() {
 
         /* ===================================================
            NO TOKEN
-
-           Stored user can still be displayed.
         =================================================== */
 
         if (!token) {
@@ -239,22 +187,13 @@ export default function SettingsPage() {
 
         /* ===================================================
            401
-
-           Keep localStorage user.
         =================================================== */
 
-        if (
-          response.status === 401
-        ) {
+        if (response.status === 401) {
           console.error(
             "AUTH ME UNAUTHORIZED:",
             data
           );
-
-          /*
-           * Do not immediately delete token.
-           * We need to debug backend JWT validation.
-           */
 
           return;
         }
@@ -265,12 +204,8 @@ export default function SettingsPage() {
 
         if (!response.ok) {
           throw new Error(
-            Array.isArray(
-              data?.message
-            )
-              ? data.message.join(
-                  ", "
-                )
+            Array.isArray(data?.message)
+              ? data.message.join(", ")
               : data?.message ||
                   "Failed to load profile."
           );
@@ -280,12 +215,10 @@ export default function SettingsPage() {
            SERVER USER
         =================================================== */
 
-        const latestUser:
-          LoggedInUser = data;
+        const latestUser: LoggedInUser =
+          data;
 
-        applyUserData(
-          latestUser
-        );
+        applyUserData(latestUser);
 
         /* ===================================================
            UPDATE LOCAL STORAGE
@@ -293,9 +226,7 @@ export default function SettingsPage() {
 
         localStorage.setItem(
           "user",
-          JSON.stringify(
-            latestUser
-          )
+          JSON.stringify(latestUser)
         );
       } catch (error) {
         console.error(
@@ -313,7 +244,7 @@ export default function SettingsPage() {
   }, []);
 
   /* =========================================================
-     UPDATE LOCAL STORAGE
+     UPDATE LOCAL STORAGE USER
   ========================================================= */
 
   const updateLocalStorageUser = (
@@ -321,41 +252,29 @@ export default function SettingsPage() {
   ) => {
     try {
       const storedUser =
-        localStorage.getItem(
-          "user"
-        );
+        localStorage.getItem("user");
 
-      const currentUser:
-        LoggedInUser =
+      const currentUser: LoggedInUser =
         storedUser
-          ? JSON.parse(
-              storedUser
-            )
+          ? JSON.parse(storedUser)
           : user || {};
 
-      const updatedUser:
-        LoggedInUser = {
+      const updatedUser: LoggedInUser = {
         ...currentUser,
         ...updatedData,
       };
 
       localStorage.setItem(
         "user",
-        JSON.stringify(
-          updatedUser
-        )
+        JSON.stringify(updatedUser)
       );
 
       localStorage.setItem(
         "admin",
-        JSON.stringify(
-          updatedUser
-        )
+        JSON.stringify(updatedUser)
       );
 
-      setUser(
-        updatedUser
-      );
+      setUser(updatedUser);
     } catch (error) {
       console.error(
         "Failed to update localStorage:",
@@ -368,125 +287,101 @@ export default function SettingsPage() {
      PROFILE UPDATE
   ========================================================= */
 
-  const handleProfileSubmit =
-    async (
-      e: React.FormEvent<HTMLFormElement>
-    ) => {
-      e.preventDefault();
+  const handleProfileSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
 
-      setProfileMessage("");
-      setProfileError("");
+    setProfileMessage("");
+    setProfileError("");
 
-      if (!user?.id) {
-        setProfileError(
-          "Logged-in user ID was not found."
-        );
-        return;
-      }
+    if (!user?.id) {
+      setProfileError(
+        "Logged-in user ID was not found."
+      );
+      return;
+    }
 
-      if (!name.trim()) {
-        setProfileError(
-          "Please enter admin name."
-        );
-        return;
-      }
+    if (!name.trim()) {
+      setProfileError(
+        "Please enter admin name."
+      );
+      return;
+    }
 
-      if (!email.trim()) {
-        setProfileError(
-          "Please enter email address."
-        );
-        return;
-      }
+    if (!email.trim()) {
+      setProfileError(
+        "Please enter email address."
+      );
+      return;
+    }
 
-      if (!mobile.trim()) {
-        setProfileError(
-          "Please enter mobile number."
-        );
-        return;
-      }
+    if (!mobile.trim()) {
+      setProfileError(
+        "Please enter mobile number."
+      );
+      return;
+    }
 
-      const token =
-        localStorage.getItem(
-          "access_token"
-        );
+    if (!/^[6-9]\d{9}$/.test(mobile.trim())) {
+      setProfileError(
+        "Please enter a valid 10-digit mobile number."
+      );
+      return;
+    }
 
-      if (!token) {
-        setProfileError(
-          "Login session expired. Please login again."
-        );
-        return;
-      }
+    const token =
+      localStorage.getItem(
+        "access_token"
+      );
 
-      try {
-        setSavingProfile(
-          true
-        );
+    if (!token) {
+      setProfileError(
+        "Login session expired. Please login again."
+      );
+      return;
+    }
 
-        /*
-         * IMPORTANT:
-         * This route must exist in your Users/Membership
-         * controller.
-         */
+    try {
+      setSavingProfile(true);
 
-        const response =
-          await fetch(
-            `${API_URL}/membership/member/${user.id}`,
-            {
-              method: "PATCH",
+      const updateUrl =
+        `${API_URL}/membership/member/${user.id}`;
 
-              headers: {
-                "Content-Type":
-                  "application/json",
+      console.log(
+        "================================="
+      );
 
-                Authorization:
-                  `Bearer ${token}`,
-              },
+      console.log(
+        "PROFILE UPDATE API:",
+        updateUrl
+      );
 
-              body: JSON.stringify({
-                full_name:
-                  name.trim(),
+      console.log(
+        "PROFILE UPDATE USER ID:",
+        user.id
+      );
 
-                email:
-                  email.trim(),
+      console.log(
+        "PROFILE UPDATE TOKEN EXISTS:",
+        !!token
+      );
 
-                mobile:
-                  mobile.trim(),
-              }),
-            }
-          );
+      const response = await fetch(
+        updateUrl,
+        {
+          method: "PATCH",
 
-        const data =
-          await response.json();
+          headers: {
+            "Content-Type":
+              "application/json",
 
-        console.log(
-          "PROFILE UPDATE STATUS:",
-          response.status
-        );
+            Authorization:
+              `Bearer ${token}`,
+          },
 
-        console.log(
-          "PROFILE UPDATE RESPONSE:",
-          data
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            Array.isArray(
-              data?.message
-            )
-              ? data.message.join(
-                  ", "
-                )
-              : data?.message ||
-                  "Failed to update profile."
-          );
-        }
-
-        updateLocalStorageUser(
-          {
+          body: JSON.stringify({
             full_name:
-              name.trim(),
-
-            name:
               name.trim(),
 
             email:
@@ -494,220 +389,256 @@ export default function SettingsPage() {
 
             mobile:
               mobile.trim(),
+          }),
+        }
+      );
 
-            phone:
-              mobile.trim(),
-          }
-        );
+      const responseText =
+        await response.text();
 
-        setProfileMessage(
-          "Admin profile updated successfully."
-        );
-      } catch (error: any) {
-        console.error(
-          "Profile update error:",
-          error
-        );
+      let data: any = {};
 
-        setProfileError(
-          error?.message ||
-            "Failed to update profile."
-        );
-      } finally {
-        setSavingProfile(
-          false
+      try {
+        data = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch {
+        data = {
+          message: responseText,
+        };
+      }
+
+      console.log(
+        "PROFILE UPDATE STATUS:",
+        response.status
+      );
+
+      console.log(
+        "PROFILE UPDATE RESPONSE:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data?.message)
+            ? data.message.join(", ")
+            : data?.message ||
+                `Failed to update profile. Status: ${response.status}`
         );
       }
-    };
+
+      /* ===================================================
+         UPDATE LOCAL STORAGE
+      =================================================== */
+
+      updateLocalStorageUser({
+        full_name:
+          name.trim(),
+
+        name:
+          name.trim(),
+
+        email:
+          email.trim(),
+
+        mobile:
+          mobile.trim(),
+
+        phone:
+          mobile.trim(),
+      });
+
+      setProfileMessage(
+        data?.message ||
+          "Admin profile updated successfully."
+      );
+    } catch (error: any) {
+      console.error(
+        "Profile update error:",
+        error
+      );
+
+      setProfileError(
+        error?.message ||
+          "Failed to update profile."
+      );
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   /* =========================================================
      CHANGE PASSWORD
   ========================================================= */
 
-  const handlePasswordSubmit =
-    async (
-      e: React.FormEvent<HTMLFormElement>
-    ) => {
-      e.preventDefault();
+  const handlePasswordSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
 
-      setPasswordMessage("");
-      setPasswordError("");
+    setPasswordMessage("");
+    setPasswordError("");
 
-      if (!user?.id) {
-        setPasswordError(
-          "Logged-in user was not found."
+    if (!user?.id) {
+      setPasswordError(
+        "Logged-in user was not found."
+      );
+      return;
+    }
+
+    if (!currentPassword) {
+      setPasswordError(
+        "Please enter current password."
+      );
+      return;
+    }
+
+    if (!newPassword) {
+      setPasswordError(
+        "Please enter new password."
+      );
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError(
+        "New password must contain at least 6 characters."
+      );
+      return;
+    }
+
+    if (!confirmPassword) {
+      setPasswordError(
+        "Please confirm your new password."
+      );
+      return;
+    }
+
+    if (
+      newPassword !==
+      confirmPassword
+    ) {
+      setPasswordError(
+        "New password and confirm password do not match."
+      );
+      return;
+    }
+
+    if (
+      currentPassword ===
+      newPassword
+    ) {
+      setPasswordError(
+        "New password must be different from current password."
+      );
+      return;
+    }
+
+    const token =
+      localStorage.getItem(
+        "access_token"
+      );
+
+    if (!token) {
+      setPasswordError(
+        "Login session expired. Please login again."
+      );
+      return;
+    }
+
+    try {
+      setSavingPassword(true);
+
+      const passwordUrl =
+        `${API_URL}/auth/change-password`;
+
+      console.log(
+        "CHANGE PASSWORD API:",
+        passwordUrl
+      );
+
+      console.log(
+        "CHANGE PASSWORD TOKEN EXISTS:",
+        !!token
+      );
+
+      const response =
+        await fetch(
+          passwordUrl,
+          {
+            method: "PATCH",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`,
+            },
+
+            body: JSON.stringify({
+              currentPassword,
+              newPassword,
+            }),
+          }
         );
-        return;
-      }
 
-      if (!currentPassword) {
-        setPasswordError(
-          "Please enter current password."
-        );
-        return;
-      }
+      const responseText =
+        await response.text();
 
-      if (!newPassword) {
-        setPasswordError(
-          "Please enter new password."
-        );
-        return;
-      }
-
-      if (
-        newPassword.length < 6
-      ) {
-        setPasswordError(
-          "New password must contain at least 6 characters."
-        );
-        return;
-      }
-
-      if (!confirmPassword) {
-        setPasswordError(
-          "Please confirm your new password."
-        );
-        return;
-      }
-
-      if (
-        newPassword !==
-        confirmPassword
-      ) {
-        setPasswordError(
-          "New password and confirm password do not match."
-        );
-        return;
-      }
-
-      if (
-        currentPassword ===
-        newPassword
-      ) {
-        setPasswordError(
-          "New password must be different from current password."
-        );
-        return;
-      }
-
-      /* =====================================================
-         TOKEN
-      ===================================================== */
-
-      const token =
-        localStorage.getItem(
-          "access_token"
-        );
-
-      if (!token) {
-        setPasswordError(
-          "Login session expired. Please login again."
-        );
-        return;
-      }
+      let data: any = {};
 
       try {
-        setSavingPassword(
-          true
-        );
+        data = responseText
+          ? JSON.parse(responseText)
+          : {};
+      } catch {
+        data = {
+          message: responseText,
+        };
+      }
 
-        console.log(
-          "CHANGE PASSWORD API:",
-          `${API_URL}/auth/change-password`
-        );
+      console.log(
+        "CHANGE PASSWORD STATUS:",
+        response.status
+      );
 
-        console.log(
-          "CHANGE PASSWORD TOKEN EXISTS:",
-          !!token
-        );
+      console.log(
+        "CHANGE PASSWORD RESPONSE:",
+        data
+      );
 
-        /* ===================================================
-           CORRECT BACKEND ROUTE
-        =================================================== */
-
-        const response =
-          await fetch(
-            `${API_URL}/auth/change-password`,
-            {
-              method: "PATCH",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-
-                Authorization:
-                  `Bearer ${token}`,
-              },
-
-              body: JSON.stringify({
-                currentPassword,
-                newPassword,
-              }),
-            }
-          );
-
-        const data =
-          await response.json();
-
-        console.log(
-          "CHANGE PASSWORD STATUS:",
-          response.status
-        );
-
-        console.log(
-          "CHANGE PASSWORD RESPONSE:",
-          data
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            Array.isArray(
-              data?.message
-            )
-              ? data.message.join(
-                  ", "
-                )
-              : data?.message ||
-                  "Failed to update password."
-          );
-        }
-
-        /* ===================================================
-           CLEAR PASSWORD FIELDS
-        =================================================== */
-
-        setCurrentPassword(
-          ""
-        );
-
-        setNewPassword(
-          ""
-        );
-
-        setConfirmPassword(
-          ""
-        );
-
-        setPasswordMessage(
-          data?.message ||
-            "Password updated successfully."
-        );
-      } catch (error: any) {
-        console.error(
-          "Password update error:",
-          error
-        );
-
-        setPasswordError(
-          error?.message ||
-            "Failed to update password."
-        );
-      } finally {
-        setSavingPassword(
-          false
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data?.message)
+            ? data.message.join(", ")
+            : data?.message ||
+                `Failed to update password. Status: ${response.status}`
         );
       }
-    };
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setPasswordMessage(
+        data?.message ||
+          "Password updated successfully."
+      );
+    } catch (error: any) {
+      console.error(
+        "Password update error:",
+        error
+      );
+
+      setPasswordError(
+        error?.message ||
+          "Failed to update password."
+      );
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   /* =========================================================
      LOADING
@@ -716,9 +647,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-
         <div className="flex flex-col items-center gap-3">
-
           <div
             className="
               w-8
@@ -734,9 +663,7 @@ export default function SettingsPage() {
           <div className="text-sm text-gray-500">
             Loading settings...
           </div>
-
         </div>
-
       </div>
     );
   }
@@ -748,7 +675,6 @@ export default function SettingsPage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-
         <div
           className="
             bg-white
@@ -762,7 +688,6 @@ export default function SettingsPage() {
             w-full
           "
         >
-
           <div
             className="
               w-14
@@ -785,9 +710,7 @@ export default function SettingsPage() {
           <p className="mt-2 text-sm text-gray-500">
             Please login again to access your administrator settings.
           </p>
-
         </div>
-
       </div>
     );
   }
@@ -798,17 +721,12 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-
         <div className="max-w-6xl mx-auto">
 
-          {/* =================================================
-              HEADER
-          ================================================= */}
+          {/* HEADER */}
 
           <div className="mb-7">
-
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Settings
             </h1>
@@ -816,12 +734,9 @@ export default function SettingsPage() {
             <p className="text-sm text-gray-500 mt-1">
               Manage your administrator profile and account settings.
             </p>
-
           </div>
 
-          {/* =================================================
-              MAIN CARD
-          ================================================= */}
+          {/* MAIN CARD */}
 
           <div
             className="
@@ -834,12 +749,9 @@ export default function SettingsPage() {
             "
           >
 
-            {/* =================================================
-                PROFILE HEADER
-            ================================================= */}
+            {/* PROFILE HEADER */}
 
             <div className="px-6 sm:px-8 py-6 border-b border-gray-100">
-
               <div className="flex items-center gap-3">
 
                 <div
@@ -857,7 +769,6 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-
                   <h2 className="text-lg font-semibold text-gray-900">
                     Admin Profile
                   </h2>
@@ -865,23 +776,14 @@ export default function SettingsPage() {
                   <p className="text-sm text-gray-500 mt-0.5">
                     Update your administrator account information.
                   </p>
-
                 </div>
 
               </div>
-
             </div>
 
-            {/* =================================================
-                PROFILE FORM
-            ================================================= */}
+            {/* PROFILE FORM */}
 
-            <form
-              onSubmit={
-                handleProfileSubmit
-              }
-            >
-
+            <form onSubmit={handleProfileSubmit}>
               <div className="px-6 sm:px-8 py-7">
 
                 {profileMessage && (
@@ -922,16 +824,14 @@ export default function SettingsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                  {/* Name */}
+                  {/* NAME */}
 
                   <div>
-
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Admin Name
                     </label>
 
                     <div className="relative">
-
                       <FaUser
                         className="
                           absolute
@@ -947,17 +847,9 @@ export default function SettingsPage() {
                         type="text"
                         value={name}
                         onChange={(e) => {
-                          setName(
-                            e.target.value
-                          );
-
-                          setProfileMessage(
-                            ""
-                          );
-
-                          setProfileError(
-                            ""
-                          );
+                          setName(e.target.value);
+                          setProfileMessage("");
+                          setProfileError("");
                         }}
                         placeholder="Enter admin name"
                         className="
@@ -979,21 +871,17 @@ export default function SettingsPage() {
                           focus:ring-[#8B1E3F]/10
                         "
                       />
-
                     </div>
-
                   </div>
 
-                  {/* Email */}
+                  {/* EMAIL */}
 
                   <div>
-
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address
                     </label>
 
                     <div className="relative">
-
                       <FaEnvelope
                         className="
                           absolute
@@ -1009,17 +897,9 @@ export default function SettingsPage() {
                         type="email"
                         value={email}
                         onChange={(e) => {
-                          setEmail(
-                            e.target.value
-                          );
-
-                          setProfileMessage(
-                            ""
-                          );
-
-                          setProfileError(
-                            ""
-                          );
+                          setEmail(e.target.value);
+                          setProfileMessage("");
+                          setProfileError("");
                         }}
                         placeholder="Enter email address"
                         className="
@@ -1041,21 +921,17 @@ export default function SettingsPage() {
                           focus:ring-[#8B1E3F]/10
                         "
                       />
-
                     </div>
-
                   </div>
 
-                  {/* Mobile */}
+                  {/* MOBILE */}
 
                   <div>
-
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Mobile Number
                     </label>
 
                     <div className="relative">
-
                       <FaPhone
                         className="
                           absolute
@@ -1070,18 +946,17 @@ export default function SettingsPage() {
                       <input
                         type="tel"
                         value={mobile}
+                        maxLength={10}
                         onChange={(e) => {
-                          setMobile(
-                            e.target.value
-                          );
+                          const value =
+                            e.target.value.replace(
+                              /\D/g,
+                              ""
+                            );
 
-                          setProfileMessage(
-                            ""
-                          );
-
-                          setProfileError(
-                            ""
-                          );
+                          setMobile(value);
+                          setProfileMessage("");
+                          setProfileError("");
                         }}
                         placeholder="Enter mobile number"
                         className="
@@ -1103,15 +978,12 @@ export default function SettingsPage() {
                           focus:ring-[#8B1E3F]/10
                         "
                       />
-
                     </div>
-
                   </div>
 
-                  {/* Role */}
+                  {/* ROLE */}
 
                   <div>
-
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Role
                     </label>
@@ -1134,20 +1006,16 @@ export default function SettingsPage() {
                         cursor-not-allowed
                       "
                     />
-
                   </div>
 
                 </div>
 
-                {/* Save */}
+                {/* SAVE */}
 
                 <div className="mt-7 pt-6 border-t border-gray-100">
-
                   <button
                     type="submit"
-                    disabled={
-                      savingProfile
-                    }
+                    disabled={savingProfile}
                     className="
                       inline-flex
                       items-center
@@ -1165,24 +1033,18 @@ export default function SettingsPage() {
                       disabled:cursor-not-allowed
                     "
                   >
-
                     <FaSave className="text-xs" />
 
                     {savingProfile
                       ? "Saving..."
                       : "Save Profile"}
-
                   </button>
-
                 </div>
 
               </div>
-
             </form>
 
-            {/* =================================================
-                PASSWORD SECTION
-            ================================================= */}
+            {/* PASSWORD SECTION */}
 
             <div className="border-t border-gray-100">
 
@@ -1205,7 +1067,6 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-
                     <h2 className="text-lg font-semibold text-gray-900">
                       Change Password
                     </h2>
@@ -1213,12 +1074,9 @@ export default function SettingsPage() {
                     <p className="text-sm text-gray-500 mt-0.5">
                       Update your administrator login password.
                     </p>
-
                   </div>
 
                 </div>
-
-                {/* Success */}
 
                 {passwordMessage && (
                   <div
@@ -1238,8 +1096,6 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {/* Error */}
-
                 {passwordError && (
                   <div
                     className="
@@ -1258,39 +1114,27 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                <form
-                  onSubmit={
-                    handlePasswordSubmit
-                  }
-                >
+                <form onSubmit={handlePasswordSubmit}>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-                    {/* Current */}
+                    {/* CURRENT */}
 
                     <div>
-
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Current Password
                       </label>
 
                       <input
                         type="password"
-                        value={
-                          currentPassword
-                        }
+                        value={currentPassword}
                         onChange={(e) => {
                           setCurrentPassword(
                             e.target.value
                           );
 
-                          setPasswordMessage(
-                            ""
-                          );
-
-                          setPasswordError(
-                            ""
-                          );
+                          setPasswordMessage("");
+                          setPasswordError("");
                         }}
                         placeholder="Current password"
                         autoComplete="current-password"
@@ -1311,34 +1155,25 @@ export default function SettingsPage() {
                           focus:ring-[#8B1E3F]/10
                         "
                       />
-
                     </div>
 
-                    {/* New */}
+                    {/* NEW */}
 
                     <div>
-
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         New Password
                       </label>
 
                       <input
                         type="password"
-                        value={
-                          newPassword
-                        }
+                        value={newPassword}
                         onChange={(e) => {
                           setNewPassword(
                             e.target.value
                           );
 
-                          setPasswordMessage(
-                            ""
-                          );
-
-                          setPasswordError(
-                            ""
-                          );
+                          setPasswordMessage("");
+                          setPasswordError("");
                         }}
                         placeholder="New password"
                         autoComplete="new-password"
@@ -1359,34 +1194,25 @@ export default function SettingsPage() {
                           focus:ring-[#8B1E3F]/10
                         "
                       />
-
                     </div>
 
-                    {/* Confirm */}
+                    {/* CONFIRM */}
 
                     <div>
-
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Confirm Password
                       </label>
 
                       <input
                         type="password"
-                        value={
-                          confirmPassword
-                        }
+                        value={confirmPassword}
                         onChange={(e) => {
                           setConfirmPassword(
                             e.target.value
                           );
 
-                          setPasswordMessage(
-                            ""
-                          );
-
-                          setPasswordError(
-                            ""
-                          );
+                          setPasswordMessage("");
+                          setPasswordError("");
                         }}
                         placeholder="Confirm password"
                         autoComplete="new-password"
@@ -1407,18 +1233,13 @@ export default function SettingsPage() {
                           focus:ring-[#8B1E3F]/10
                         "
                       />
-
                     </div>
 
                   </div>
 
-                  {/* Update */}
-
                   <button
                     type="submit"
-                    disabled={
-                      savingPassword
-                    }
+                    disabled={savingPassword}
                     className="
                       mt-6
                       inline-flex
@@ -1437,27 +1258,21 @@ export default function SettingsPage() {
                       disabled:cursor-not-allowed
                     "
                   >
-
                     <FaLock className="text-xs" />
 
                     {savingPassword
                       ? "Updating..."
                       : "Update Password"}
-
                   </button>
 
                 </form>
 
               </div>
-
             </div>
 
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }
