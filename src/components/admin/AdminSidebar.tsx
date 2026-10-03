@@ -55,55 +55,8 @@ const menu = [
     ],
   },
 
-  {
-    name: "Executive Bodies",
-    path: "/admin/executive-bodies",
-    icon: FaBuilding,
-    roles: [
-      "super_admin",
-      "sangam_admin",
-    ],
-  },
-
-  {
-    name: "Media",
-    path: "/admin/media",
-    icon: FaPhotoVideo,
-    roles: [
-      "super_admin",
-      "sangam_admin",
-    ],
-  },
-
-  {
-    name: "Temples",
-    path: "/admin/temples",
-    icon: FaPhotoVideo,
-    roles: [
-      "super_admin",
-     
-    ],
-  },
-
-  {
-    name: "Temples Events",
-    path: "/admin/temple-events",
-    icon: FaPhotoVideo,
-    roles: [
-      "super_admin",
-     
-    ],
-  },
-
-  {
-    name: "Satrams",
-    path: "/admin/satrams",
-    icon: FaPhotoVideo,
-    roles: [
-      "super_admin",
-     
-    ],
-  },
+  
+ 
 
   {
     name: "Settings",

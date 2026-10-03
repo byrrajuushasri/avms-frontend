@@ -301,8 +301,6 @@ const emptySibling = (): Sibling => ({
 
 /* =========================================================
    GOTRAM INPUT
-   - Same field can SELECT or TYPE
-   - No separate Other field
 ========================================================= */
 
 function GotramSelect({
@@ -391,11 +389,17 @@ export default function RegisterPage() {
   const [verificationError, setVerificationError] =
     useState("");
 
+  /* MOBILE ONLY */
+
   const [verificationData, setVerificationData] =
     useState({
       mobile: "",
-      email: "",
     });
+
+  /* VERIFIED MEMBER DETAILS */
+
+  const [verificationMember, setVerificationMember] =
+    useState<any>(null);
 
   /* =========================================================
      CONSENT
@@ -444,7 +448,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     profile_category: "Professional",
 
-    father_name: "",
+     
     mother_name: "",
 
     father_gotram: "",
@@ -501,12 +505,11 @@ export default function RegisterPage() {
   const handleVerificationChange = (
     e: ChangeEvent<HTMLInputElement>
   ) => {
-    const { name, value } = e.target;
+    const { value } = e.target;
 
-    setVerificationData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setVerificationData({
+      mobile: value,
+    });
 
     setVerificationError("");
   };
@@ -613,7 +616,7 @@ export default function RegisterPage() {
   };
 
   /* =========================================================
-     CHECK MEMBER
+     CHECK MEMBER - MOBILE ONLY
   ========================================================= */
 
   const handleCheckMember = async () => {
@@ -622,12 +625,16 @@ export default function RegisterPage() {
     const mobile =
       verificationData.mobile.trim();
 
-    const email =
-      verificationData.email.trim();
-
-    if (!mobile && !email) {
+    if (!mobile) {
       setVerificationError(
-        "Please enter Mobile Number or Email."
+        "Please enter your registered Mobile Number."
+      );
+      return;
+    }
+
+    if (!/^[6-9]\d{9}$/.test(mobile)) {
+      setVerificationError(
+        "Please enter a valid 10-digit Indian Mobile Number."
       );
       return;
     }
@@ -637,6 +644,7 @@ export default function RegisterPage() {
     setVerificationMessage("");
     setMemberVerified(false);
     setMemberId("");
+    setVerificationMember(null);
 
     try {
       const response = await fetch(
@@ -647,8 +655,7 @@ export default function RegisterPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            mobile: mobile || undefined,
-            email: email || undefined,
+            mobile,
           }),
         }
       );
@@ -660,6 +667,10 @@ export default function RegisterPage() {
         "CHECK MEMBER RESPONSE:",
         data
       );
+
+      /* =====================================================
+         ALREADY REGISTERED
+      ===================================================== */
 
       if (data.alreadyRegistered) {
         const matrimonialId =
@@ -675,6 +686,10 @@ export default function RegisterPage() {
         return;
       }
 
+      /* =====================================================
+         VERIFICATION FAILED
+      ===================================================== */
+
       if (
         !response.ok ||
         !data.success ||
@@ -688,14 +703,15 @@ export default function RegisterPage() {
         return;
       }
 
+      /* =====================================================
+         VERIFIED MEMBER
+      ===================================================== */
+
       const member =
-        data.data;
+        data.data || {};
 
       const verifiedMobile =
         member.mobile || mobile;
-
-      const verifiedEmail =
-        member.email || email;
 
       setMemberVerified(true);
 
@@ -703,13 +719,14 @@ export default function RegisterPage() {
         member.member_id || ""
       );
 
+      setVerificationMember(member);
+
       setVerificationMessage(
         "Member verified successfully. You can now complete the Matrimonial form."
       );
 
       setVerificationData({
         mobile: verifiedMobile,
-        email: verifiedEmail,
       });
     } catch (error) {
       console.error(
@@ -748,10 +765,7 @@ export default function RegisterPage() {
     const verifiedMobile =
       verificationData.mobile.trim();
 
-    const verifiedEmail =
-      verificationData.email.trim();
-
-    if (!verifiedMobile && !verifiedEmail) {
+    if (!verifiedMobile) {
       alert(
         "Membership verification details are missing. Please verify again."
       );
@@ -774,12 +788,7 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!formData.father_name.trim()) {
-      alert(
-        "Please enter Father's Name."
-      );
-      return;
-    }
+     
 
     if (!formData.mother_name.trim()) {
       alert(
@@ -904,7 +913,10 @@ export default function RegisterPage() {
       const formDataToSend =
         new FormData();
 
-      /* MEMBERSHIP */
+      /* =====================================================
+         MEMBERSHIP
+         MOBILE ONLY
+      ===================================================== */
 
       formDataToSend.append(
         "member_id",
@@ -916,15 +928,8 @@ export default function RegisterPage() {
         verifiedMobile
       );
 
-      formDataToSend.append(
-        "email",
-        verifiedEmail
-      );
-
       /* =====================================================
          GOTRAM
-         Selected OR manually typed value
-         goes directly to backend
       ===================================================== */
 
       const fatherGotram =
@@ -944,9 +949,7 @@ export default function RegisterPage() {
         profile_category:
           formData.profile_category,
 
-        father_name:
-          formData.father_name,
-
+         
         mother_name:
           formData.mother_name,
 
@@ -1076,8 +1079,7 @@ export default function RegisterPage() {
       );
 
       /* =====================================================
-         AREA VOLUNTEER / PREFERENCE DETAILS
-         UI STATE NAMES ARE KEPT EXACTLY THE SAME
+         AREA VOLUNTEER
       ===================================================== */
 
       formDataToSend.append(
@@ -1097,7 +1099,6 @@ export default function RegisterPage() {
 
       /* =====================================================
          PREFERENCE BACKEND FIELD NAMES
-         These use the existing UI values.
       ===================================================== */
 
       formDataToSend.append(
@@ -1129,7 +1130,6 @@ export default function RegisterPage() {
         {
           memberId,
           mobile: verifiedMobile,
-          email: verifiedEmail,
           fatherGotram,
           motherGotram,
           grandmotherGotram,
@@ -1252,7 +1252,9 @@ export default function RegisterPage() {
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
 
-      {/* GREEN TOAST */}
+      {/* =====================================================
+          GREEN TOAST
+      ===================================================== */}
 
       {toast.show && (
         <div className="fixed right-5 top-5 z-[9999] w-[calc(100%-40px)] max-w-md animate-[slideIn_0.3s_ease-out]">
@@ -1305,7 +1307,9 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* BACKGROUND */}
+      {/* =====================================================
+          BACKGROUND
+      ===================================================== */}
 
       <div className="absolute -left-56 top-20 h-[500px] w-[500px] rounded-full bg-pink-200/40 blur-[120px]" />
 
@@ -1315,13 +1319,17 @@ export default function RegisterPage() {
 
       <FaHeart className="absolute bottom-24 right-16 text-8xl text-rose-300 opacity-20" />
 
-      {/* MAIN CARD */}
+      {/* =====================================================
+          MAIN CARD
+      ===================================================== */}
 
       <div className="relative z-10 flex justify-center px-4 py-10 sm:px-6">
 
         <div className="w-full max-w-6xl rounded-3xl border border-pink-100 bg-white/95 p-5 shadow-[0_20px_60px_rgba(233,30,99,0.12)] backdrop-blur sm:p-8 lg:p-10">
 
-          {/* HEADER */}
+          {/* =================================================
+              HEADER
+          ================================================= */}
 
           <div className="mb-8 text-center">
 
@@ -1335,7 +1343,9 @@ export default function RegisterPage() {
 
           </div>
 
-          {/* MEMBERSHIP VERIFICATION */}
+          {/* =================================================
+              MEMBERSHIP VERIFICATION
+          ================================================= */}
 
           <div className="mb-10 rounded-2xl border border-pink-200 bg-pink-50/60 p-5">
 
@@ -1352,14 +1362,16 @@ export default function RegisterPage() {
                 </h3>
 
                 <p className="text-xs text-gray-500">
-                  Enter your registered Mobile Number or Email
+                  Enter your registered Mobile Number
                 </p>
 
               </div>
 
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            {/* MOBILE + VERIFY */}
+
+            <div className="grid gap-4 md:grid-cols-2">
 
               {/* MOBILE */}
 
@@ -1382,36 +1394,9 @@ export default function RegisterPage() {
                     memberVerified
                   }
                   placeholder="Enter Mobile Number"
-                  className={`${inputClass} ${
-                    memberVerified
-                      ? "cursor-not-allowed bg-gray-100"
-                      : ""
-                  }`}
-                />
-
-              </div>
-
-              {/* EMAIL */}
-
-              <div>
-
-                <label className={labelClass}>
-                  Registered Email
-                </label>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={
-                    verificationData.email
-                  }
-                  onChange={
-                    handleVerificationChange
-                  }
-                  disabled={
-                    memberVerified
-                  }
-                  placeholder="Enter Email"
+                  maxLength={10}
+                  inputMode="numeric"
+                  autoComplete="tel"
                   className={`${inputClass} ${
                     memberVerified
                       ? "cursor-not-allowed bg-gray-100"
@@ -1451,32 +1436,83 @@ export default function RegisterPage() {
 
             </div>
 
+            {/* =================================================
+                VERIFICATION ERROR
+            ================================================= */}
+
             {verificationError && (
               <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                 {verificationError}
               </div>
             )}
 
-            {verificationMessage && (
-              <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+            {/* =================================================
+                VERIFIED MEMBER DETAILS
+            ================================================= */}
 
-                <div>
+            {verificationMessage && (
+              <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-700">
+
+                <div className="font-medium">
                   {verificationMessage}
                 </div>
 
-                {memberId && (
-                  <div className="mt-1 font-bold">
-                    Membership ID:{" "}
-                    {memberId}
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+
+                  {/* MEMBER NAME */}
+
+                  <div className="rounded-lg bg-white p-3">
+
+                    <p className="text-xs text-gray-500">
+                      Member Name
+                    </p>
+
+                    <p className="mt-1 font-bold text-gray-800">
+                      {verificationMember?.full_name ||
+                        "-"}
+                    </p>
+
                   </div>
-                )}
+
+                  {/* FATHER NAME */}
+
+                  <div className="rounded-lg bg-white p-3">
+
+                    <p className="text-xs text-gray-500">
+                      Father Name
+                    </p>
+
+                    <p className="mt-1 font-bold text-gray-800">
+                      {verificationMember?.father_name ||
+                        "-"}
+                    </p>
+
+                  </div>
+
+                  {/* MEMBERSHIP ID */}
+
+                  <div className="rounded-lg bg-white p-3">
+
+                    <p className="text-xs text-gray-500">
+                      Membership ID
+                    </p>
+
+                    <p className="mt-1 font-bold text-[#8B1E3F]">
+                      {memberId || "-"}
+                    </p>
+
+                  </div>
+
+                </div>
 
               </div>
             )}
 
           </div>
 
-          {/* MATRIMONIAL FORM */}
+          {/* =================================================
+              MATRIMONIAL FORM
+          ================================================= */}
 
           <div
             className={
@@ -1548,27 +1584,6 @@ export default function RegisterPage() {
                   )}
 
                 </select>
-
-              </div>
-
-              {/* FATHER NAME */}
-
-              <div>
-
-                <label className={labelClass}>
-                  Father's Name
-                </label>
-
-                <input
-                  type="text"
-                  name="father_name"
-                  value={
-                    formData.father_name
-                  }
-                  onChange={handleChange}
-                  placeholder="Father's Name"
-                  className={inputClass}
-                />
 
               </div>
 
@@ -1940,7 +1955,9 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* BROTHER DETAILS */}
+              {/* =================================================
+                  BROTHER DETAILS
+              ================================================= */}
 
               <div className="md:col-span-2">
 
@@ -1998,8 +2015,6 @@ export default function RegisterPage() {
 
                             <div className="grid gap-4 md:grid-cols-2">
 
-                              {/* NAME */}
-
                               <div>
 
                                 <label className={labelClass}>
@@ -2025,8 +2040,6 @@ export default function RegisterPage() {
                                 />
 
                               </div>
-
-                              {/* AGE */}
 
                               <div>
 
@@ -2055,8 +2068,6 @@ export default function RegisterPage() {
                                 />
 
                               </div>
-
-                              {/* MARITAL STATUS */}
 
                               <div>
 
@@ -2095,8 +2106,6 @@ export default function RegisterPage() {
                                 </select>
 
                               </div>
-
-                              {/* OCCUPATION */}
 
                               <div>
 
@@ -2137,7 +2146,9 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* SISTER DETAILS */}
+              {/* =================================================
+                  SISTER DETAILS
+              ================================================= */}
 
               <div className="md:col-span-2">
 
@@ -2195,8 +2206,6 @@ export default function RegisterPage() {
 
                             <div className="grid gap-4 md:grid-cols-2">
 
-                              {/* NAME */}
-
                               <div>
 
                                 <label className={labelClass}>
@@ -2222,8 +2231,6 @@ export default function RegisterPage() {
                                 />
 
                               </div>
-
-                              {/* AGE */}
 
                               <div>
 
@@ -2252,8 +2259,6 @@ export default function RegisterPage() {
                                 />
 
                               </div>
-
-                              {/* MARITAL STATUS */}
 
                               <div>
 
@@ -2292,8 +2297,6 @@ export default function RegisterPage() {
                                 </select>
 
                               </div>
-
-                              {/* OCCUPATION */}
 
                               <div>
 
@@ -2423,8 +2426,6 @@ export default function RegisterPage() {
                     </div>
 
                   </div>
-
-                  
 
                   {/* SERVICE & REGISTRATION */}
 
@@ -2592,56 +2593,62 @@ export default function RegisterPage() {
                   </div>
 
                 </div>
-{/* CONSENT */}
 
-                  <div
-                    className={`mt-5 rounded-2xl border-2 p-5 transition ${
-                      consent
-                        ? "border-green-300 bg-green-50"
-                        : "border-rose-300 bg-rose-50"
-                    }`}
-                  >
+                {/* =================================================
+                    CONSENT
+                ================================================= */}
 
-                    <label className="flex cursor-pointer items-start gap-3">
+                <div
+                  className={`mt-5 rounded-2xl border-2 p-5 transition ${
+                    consent
+                      ? "border-green-300 bg-green-50"
+                      : "border-rose-300 bg-rose-50"
+                  }`}
+                >
 
-                      <input
-                        type="checkbox"
-                        checked={consent}
-                        onChange={(e) =>
-                          setConsent(
-                            e.target.checked
-                          )
-                        }
-                        className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-700"
-                      />
+                  <label className="flex cursor-pointer items-start gap-3">
 
-                      <span className="text-sm font-medium leading-6 text-gray-800 sm:text-base">
+                    <input
+                      type="checkbox"
+                      checked={consent}
+                      onChange={(e) =>
+                        setConsent(
+                          e.target.checked
+                        )
+                      }
+                      className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-700"
+                    />
 
-                        I/We hereby confirm that I/We have read, understood and accepted the above declaration and agree to provide my/our consent for registration on this matrimonial website.
+                    <span className="text-sm font-medium leading-6 text-gray-800 sm:text-base">
 
-                        <span className="font-bold text-red-600">
-                          {" "}*
-                        </span>
+                      I/We hereby confirm that I/We have read, understood and accepted the above declaration and agree to provide my/our consent for registration on this matrimonial website.
 
+                      <span className="font-bold text-red-600">
+                        {" "}*
                       </span>
 
-                    </label>
+                    </span>
 
-                    {!consent ? (
-                      <p className="ml-8 mt-3 text-xs text-red-600 sm:text-sm">
-                        Please accept the declaration by selecting the tick mark before submitting the registration.
-                      </p>
-                    ) : (
-                      <p className="ml-8 mt-3 flex items-center gap-2 text-xs font-medium text-green-700 sm:text-sm">
-                        <FaCheckCircle />
-                        Consent accepted successfully.
-                      </p>
-                    )}
+                  </label>
 
-                  </div>
+                  {!consent ? (
+                    <p className="ml-8 mt-3 text-xs text-red-600 sm:text-sm">
+                      Please accept the declaration by selecting the tick mark before submitting the registration.
+                    </p>
+                  ) : (
+                    <p className="ml-8 mt-3 flex items-center gap-2 text-xs font-medium text-green-700 sm:text-sm">
+                      <FaCheckCircle />
+                      Consent accepted successfully.
+                    </p>
+                  )}
+
+                </div>
+
               </div>
 
-              {/* SUBMIT */}
+              {/* =================================================
+                  SUBMIT
+              ================================================= */}
 
               <div className="mt-6 flex justify-center md:col-span-2">
 
@@ -2672,7 +2679,9 @@ export default function RegisterPage() {
 
       </div>
 
-      {/* TOAST ANIMATION */}
+      {/* =====================================================
+          TOAST ANIMATION
+      ===================================================== */}
 
       <style jsx>{`
         @keyframes slideIn {
