@@ -1,31 +1,18 @@
-
 "use client";
 
 import React, {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
 import {
-  Eye,
   Download,
-  X,
   Search,
   ChevronLeft,
   ChevronRight,
   User,
-  Phone,
-  Mail,
-  MapPin,
-  Briefcase,
-  Calendar,
-  CreditCard,
-  Building2,
-  Users,
-  ShieldCheck,
 } from "lucide-react";
 
 // =========================================================
@@ -59,6 +46,7 @@ interface Member {
   email?: string;
 
   gender?: string;
+
   dob?: string;
   date_of_birth?: string;
 
@@ -67,10 +55,7 @@ interface Member {
 
   occupation?: string;
 
-  // =======================================================
   // LOCATION
-  // =======================================================
-
   location?: string | null;
   state?: string | null;
   district?: string | null;
@@ -78,35 +63,22 @@ interface Member {
   sangham?: string | null;
   sangam?: string | null;
 
-  // =======================================================
   // GOTRAM
-  // =======================================================
-
   gotram?: string | null;
 
-  // =======================================================
   // EXECUTIVE
-  // =======================================================
-
   executive_body?: string;
   designation?: string;
-
   status?: string;
 
-  // =======================================================
   // MAHASHABA PAYMENT
-  // =======================================================
-
   mahashaba_payment_status?: string;
   mahashaba_payment_method?: string;
   mahashaba_amount?: number | string | null;
   mahashaba_amount_paid?: number | string | null;
   mahashaba_payment_date?: string;
 
-  // =======================================================
   // SANGAM PAYMENT
-  // =======================================================
-
   sangam_payment_status?: string;
   sangam_payment_method?: string;
   sangam_amount?: number | string | null;
@@ -160,10 +132,7 @@ const getGotram = (member: Member): string => {
 // =========================================================
 
 const getLocation = (member: Member): string => {
-  // =======================================================
-  // FIRST PRIORITY: members.location
-  // =======================================================
-
+  // FIRST PRIORITY
   if (
     member.location !== undefined &&
     member.location !== null &&
@@ -172,10 +141,7 @@ const getLocation = (member: Member): string => {
     return String(member.location).trim();
   }
 
-  // =======================================================
-  // FALLBACK LOCATION
-  // =======================================================
-
+  // FALLBACK
   const parts = [
     member.sangham ?? member.sangam,
     member.mandal,
@@ -311,15 +277,7 @@ const createDownloadCard = (
     ["occupation"]
   );
 
-  // =======================================================
-  // GOTRAM
-  // =======================================================
-
   const gotram = getGotram(member);
-
-  // =======================================================
-  // LOCATION
-  // =======================================================
 
   const location = getLocation(member);
 
@@ -398,9 +356,11 @@ const createDownloadCard = (
 <html>
 <head>
 <meta charset="UTF-8" />
+
 <title>Membership Details - ${name}</title>
 
 <style>
+
 * {
   box-sizing: border-box;
 }
@@ -530,6 +490,7 @@ body {
 }
 
 @media print {
+
   body {
     padding: 0;
     background: #fff;
@@ -538,9 +499,11 @@ body {
   .card {
     border: none;
   }
+
 }
 
 @media(max-width: 600px) {
+
   body {
     padding: 10px;
   }
@@ -552,7 +515,9 @@ body {
   .grid {
     grid-template-columns: 1fr;
   }
+
 }
+
 </style>
 
 </head>
@@ -562,22 +527,29 @@ body {
 <div class="card">
 
   <div class="header">
+
     <h1>ARYA VYSYA MAHASABHA</h1>
+
     <p>Membership Details</p>
+
   </div>
 
   <div class="member-header">
 
     ${
       photoUrl
-        ? `<img
+        ? `
+          <img
             class="photo"
             src="${photoUrl}"
             alt="${name}"
-          />`
-        : `<div class="photo-placeholder">
+          />
+        `
+        : `
+          <div class="photo-placeholder">
             No Photo
-          </div>`
+          </div>
+        `
     }
 
     <div class="member-name">
@@ -793,6 +765,7 @@ body {
 // =========================================================
 
 export default function MembershipDetailsPage() {
+
   const [members, setMembers] =
     useState<Member[]>([]);
 
@@ -808,14 +781,8 @@ export default function MembershipDetailsPage() {
   const [currentPage, setCurrentPage] =
     useState(1);
 
-  const [selectedMember, setSelectedMember] =
-    useState<Member | null>(null);
-
   const [downloadingId, setDownloadingId] =
     useState<string | number | null>(null);
-
-  const modalRef =
-    useRef<HTMLDivElement | null>(null);
 
   // =======================================================
   // FETCH MEMBERS
@@ -823,7 +790,9 @@ export default function MembershipDetailsPage() {
 
   const fetchMembers = useCallback(
     async () => {
+
       try {
+
         setLoading(true);
         setError("");
 
@@ -840,19 +809,20 @@ export default function MembershipDetailsPage() {
           "================================="
         );
 
-        const response =
-          await fetch(
-            MEMBERS_API,
-            {
-              method: "GET",
-              cache: "no-store",
-            }
-          );
+        const response = await fetch(
+          MEMBERS_API,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
 
         if (!response.ok) {
+
           throw new Error(
             `Failed to fetch members (${response.status})`
           );
+
         }
 
         const data =
@@ -866,27 +836,39 @@ export default function MembershipDetailsPage() {
         let memberList: Member[] = [];
 
         if (Array.isArray(data)) {
+
           memberList = data;
+
         } else if (
           Array.isArray(data?.data)
         ) {
+
           memberList = data.data;
+
         } else if (
           Array.isArray(data?.members)
         ) {
+
           memberList = data.members;
+
         } else if (
           Array.isArray(data?.results)
         ) {
+
           memberList = data.results;
+
         } else if (
           Array.isArray(data?.items)
         ) {
+
           memberList = data.items;
+
         } else if (
           Array.isArray(data?.result)
         ) {
+
           memberList = data.result;
+
         }
 
         console.log(
@@ -904,8 +886,15 @@ export default function MembershipDetailsPage() {
           memberList[0]?.gotram
         );
 
+        console.log(
+          "PHOTO SAMPLE:",
+          memberList[0]?.photo
+        );
+
         setMembers(memberList);
+
       } catch (err) {
+
         console.error(
           "Members API error:",
           err
@@ -918,15 +907,21 @@ export default function MembershipDetailsPage() {
             ? err.message
             : "Unable to load members."
         );
+
       } finally {
+
         setLoading(false);
+
       }
+
     },
     []
   );
 
   useEffect(() => {
+
     fetchMembers();
+
   }, [fetchMembers]);
 
   // =======================================================
@@ -935,6 +930,7 @@ export default function MembershipDetailsPage() {
 
   const filteredMembers =
     useMemo(() => {
+
       const keyword =
         search
           .trim()
@@ -946,30 +942,45 @@ export default function MembershipDetailsPage() {
 
       return members.filter(
         (member) => {
+
           const values = [
+
             member.member_id,
+
             member.full_name,
+
             member.name,
+
             member.mobile,
+
             member.phone,
+
             member.email,
+
             member.gender,
+
             member.occupation,
 
-            // GOTRAM
             member.gotram,
 
-            // LOCATION
             member.location,
+
             member.state,
+
             member.district,
+
             member.mandal,
+
             member.sangham,
+
             member.sangam,
 
             member.executive_body,
+
             member.designation,
+
             member.status,
+
           ];
 
           return values.some(
@@ -978,8 +989,10 @@ export default function MembershipDetailsPage() {
                 .toLowerCase()
                 .includes(keyword)
           );
+
         }
       );
+
     }, [members, search]);
 
   // =======================================================
@@ -1013,44 +1026,10 @@ export default function MembershipDetailsPage() {
     );
 
   useEffect(() => {
+
     setCurrentPage(1);
+
   }, [search]);
-
-  // =======================================================
-  // MODAL
-  // =======================================================
-
-  useEffect(() => {
-    if (!selectedMember) {
-      return;
-    }
-
-    const handleKeyDown = (
-      event: KeyboardEvent
-    ) => {
-      if (event.key === "Escape") {
-        setSelectedMember(null);
-      }
-    };
-
-    document.addEventListener(
-      "keydown",
-      handleKeyDown
-    );
-
-    document.body.style.overflow =
-      "hidden";
-
-    return () => {
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown
-      );
-
-      document.body.style.overflow =
-        "";
-    };
-  }, [selectedMember]);
 
   // =======================================================
   // DOWNLOAD
@@ -1060,6 +1039,7 @@ export default function MembershipDetailsPage() {
     async (
       member: Member
     ) => {
+
       const id =
         member.member_id ??
         member.id ??
@@ -1067,6 +1047,7 @@ export default function MembershipDetailsPage() {
         Math.random();
 
       try {
+
         setDownloadingId(id);
 
         const html =
@@ -1117,16 +1098,24 @@ export default function MembershipDetailsPage() {
         URL.revokeObjectURL(
           url
         );
+
       } catch (err) {
+
         console.error(
           "Download error:",
           err
         );
+
       } finally {
+
         setTimeout(() => {
+
           setDownloadingId(null);
+
         }, 500);
+
       }
+
     };
 
   // =======================================================
@@ -1171,11 +1160,12 @@ export default function MembershipDetailsPage() {
   // =======================================================
 
   return (
+
     <div className="min-h-screen bg-gray-50 text-gray-900">
 
-      {/* ================================================= */}
-      {/* PAGE HEADER */}
-      {/* ================================================= */}
+      {/* =================================================
+          PAGE HEADER
+      ================================================= */}
 
       <div className="border-b border-gray-200 bg-white">
 
@@ -1190,7 +1180,7 @@ export default function MembershipDetailsPage() {
               </h1>
 
               <p className="mt-1 text-sm text-gray-500">
-                View and download registered member details
+                View registered member details
               </p>
 
             </div>
@@ -1211,9 +1201,9 @@ export default function MembershipDetailsPage() {
 
       </div>
 
-      {/* ================================================= */}
-      {/* CONTENT */}
-      {/* ================================================= */}
+      {/* =================================================
+          CONTENT
+      ================================================= */}
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
 
@@ -1247,6 +1237,7 @@ export default function MembershipDetailsPage() {
         {/* ERROR */}
 
         {error && (
+
           <div className="mb-5 rounded-md border border-red-200 bg-white px-4 py-3 text-sm text-red-700">
 
             {error}
@@ -1259,6 +1250,7 @@ export default function MembershipDetailsPage() {
             </button>
 
           </div>
+
         )}
 
         {/* LOADING */}
@@ -1279,10 +1271,7 @@ export default function MembershipDetailsPage() {
 
           <div className="rounded-lg border border-gray-200 bg-white py-16 text-center">
 
-            <Users
-              size={42}
-              className="mx-auto mb-3 text-gray-300"
-            />
+            <UsersIcon />
 
             <h3 className="font-semibold text-gray-700">
               No members found
@@ -1298,15 +1287,15 @@ export default function MembershipDetailsPage() {
 
           <>
 
-            {/* ================================================= */}
-            {/* DESKTOP TABLE */}
-            {/* ================================================= */}
+            {/* =================================================
+                DESKTOP TABLE
+            ================================================= */}
 
             <div className="hidden overflow-hidden rounded-lg border border-gray-200 bg-white md:block">
 
               <div className="overflow-x-auto">
 
-                <table className="w-full min-w-[1100px] border-collapse">
+                <table className="w-full min-w-[1050px] border-collapse">
 
                   <thead>
 
@@ -1334,10 +1323,6 @@ export default function MembershipDetailsPage() {
 
                       <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
                         Status
-                      </th>
-
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
-                        Actions
                       </th>
 
                     </tr>
@@ -1473,13 +1458,11 @@ export default function MembershipDetailsPage() {
                               ) !== "" && (
 
                                 <p className="mt-1 text-xs text-gray-500">
-
                                   {getValue(
                                     member,
                                     ["district"],
                                     ""
                                   )}
-
                                 </p>
 
                               )}
@@ -1491,21 +1474,17 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <p className="text-sm text-gray-800">
-
                                 {getValue(
                                   member,
                                   ["designation"]
                                 )}
-
                               </p>
 
                               <p className="mt-1 text-xs text-gray-500">
-
                                 {getValue(
                                   member,
                                   ["executive_body"]
                                 )}
-
                               </p>
 
                             </td>
@@ -1515,44 +1494,17 @@ export default function MembershipDetailsPage() {
                             <td className="px-4 py-4">
 
                               <span className="inline-flex rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700">
-
                                 {getStatus(
                                   member
                                 )}
-
                               </span>
-
-                            </td>
-
-                            {/* ACTIONS */}
-
-                            <td className="px-4 py-4">
-
-                              <div className="flex justify-end gap-2">
-
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedMember(
-                                      member
-                                    )
-                                  }
-                                  className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                                >
-
-                                  <Eye size={15} />
-
-                                  View
-
-                                </button>
-
-                              </div>
 
                             </td>
 
                           </tr>
 
                         );
+
                       }
                     )}
 
@@ -1564,9 +1516,9 @@ export default function MembershipDetailsPage() {
 
             </div>
 
-            {/* ================================================= */}
-            {/* MOBILE CARDS */}
-            {/* ================================================= */}
+            {/* =================================================
+                MOBILE CARDS
+            ================================================= */}
 
             <div className="space-y-4 md:hidden">
 
@@ -1627,29 +1579,22 @@ export default function MembershipDetailsPage() {
                         <div className="min-w-0 flex-1">
 
                           <h3 className="truncate font-semibold text-gray-900">
-
                             {getMemberName(
                               member
                             )}
-
                           </h3>
 
                           <p className="mt-1 text-xs text-gray-500">
-
                             ID:{" "}
-
                             {getMemberId(
                               member
                             )}
-
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
-
                             {getMobile(
                               member
                             )}
-
                           </p>
 
                         </div>
@@ -1665,11 +1610,9 @@ export default function MembershipDetailsPage() {
                           </p>
 
                           <p className="mt-1 text-sm font-medium text-gray-700">
-
                             {getGotram(
                               member
                             )}
-
                           </p>
 
                         </div>
@@ -1681,11 +1624,9 @@ export default function MembershipDetailsPage() {
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
-
                             {getLocation(
                               member
                             )}
-
                           </p>
 
                         </div>
@@ -1697,12 +1638,10 @@ export default function MembershipDetailsPage() {
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
-
                             {getValue(
                               member,
                               ["district"]
                             )}
-
                           </p>
 
                         </div>
@@ -1714,35 +1653,33 @@ export default function MembershipDetailsPage() {
                           </p>
 
                           <p className="mt-1 text-sm text-gray-700">
-
                             {getValue(
                               member,
                               ["designation"]
                             )}
+                          </p>
 
+                        </div>
+
+                        <div>
+
+                          <p className="text-xs text-gray-400">
+                            Status
+                          </p>
+
+                          <p className="mt-1 text-sm text-gray-700">
+                            {getStatus(
+                              member
+                            )}
                           </p>
 
                         </div>
 
                       </div>
 
-                      <div className="mt-4 flex gap-2">
+                      {/* DOWNLOAD ONLY */}
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setSelectedMember(
-                              member
-                            )
-                          }
-                          className="flex flex-1 items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-700"
-                        >
-
-                          <Eye size={16} />
-
-                          View
-
-                        </button>
+                      <div className="mt-4">
 
                         <button
                           type="button"
@@ -1755,7 +1692,7 @@ export default function MembershipDetailsPage() {
                             downloadingId ===
                             id
                           }
-                          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-gray-800 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+                          className="flex w-full items-center justify-center gap-2 rounded-md bg-gray-800 px-3 py-2.5 text-sm font-medium text-white disabled:opacity-60"
                         >
 
                           <Download size={16} />
@@ -1772,14 +1709,15 @@ export default function MembershipDetailsPage() {
                     </div>
 
                   );
+
                 }
               )}
 
             </div>
 
-            {/* ================================================= */}
-            {/* PAGINATION */}
-            {/* ================================================= */}
+            {/* =================================================
+                PAGINATION
+            ================================================= */}
 
             <div className="mt-5 flex flex-col gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 
@@ -1883,599 +1821,28 @@ export default function MembershipDetailsPage() {
 
       </main>
 
-      {/* ===================================================== */}
-      {/* MEMBER DETAILS MODAL */}
-      {/* ===================================================== */}
-
-      {selectedMember && (
-
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onMouseDown={(event) => {
-
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              setSelectedMember(
-                null
-              );
-            }
-
-          }}
-        >
-
-          <div
-            ref={modalRef}
-            className="max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl"
-          >
-
-            {/* MODAL HEADER */}
-
-            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-
-              <div>
-
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Member Details
-                </h2>
-
-                <p className="mt-1 text-xs text-gray-500">
-
-                  {getMemberId(
-                    selectedMember
-                  )}
-
-                </p>
-
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedMember(
-                    null
-                  )
-                }
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-              >
-
-                <X size={20} />
-
-              </button>
-
-            </div>
-
-            {/* MODAL CONTENT */}
-
-            <div className="max-h-[calc(92vh-140px)] overflow-y-auto">
-
-              {/* MEMBER TOP */}
-
-              <div className="border-b border-gray-200 p-5">
-
-                <div className="flex flex-col gap-5 sm:flex-row">
-
-                  {getPhotoUrl(
-                    selectedMember
-                  ) ? (
-
-                    <img
-                      src={
-                        getPhotoUrl(
-                          selectedMember
-                        ) as string
-                      }
-                      alt={getMemberName(
-                        selectedMember
-                      )}
-                      className="h-32 w-28 rounded-md border border-gray-200 object-cover"
-                      onError={(
-                        event
-                      ) => {
-                        event.currentTarget.style.display =
-                          "none";
-                      }}
-                    />
-
-                  ) : (
-
-                    <div className="flex h-32 w-28 items-center justify-center rounded-md border border-gray-200 bg-gray-50">
-
-                      <User
-                        size={38}
-                        className="text-gray-400"
-                      />
-
-                    </div>
-
-                  )}
-
-                  <div className="flex-1">
-
-                    <h3 className="text-2xl font-bold text-gray-900">
-
-                      {getMemberName(
-                        selectedMember
-                      )}
-
-                    </h3>
-
-                    <p className="mt-2 text-sm text-gray-500">
-
-                      Member ID:{" "}
-
-                      <span className="font-semibold text-gray-800">
-
-                        {getMemberId(
-                          selectedMember
-                        )}
-
-                      </span>
-
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-
-                      <span className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-700">
-
-                        {getStatus(
-                          selectedMember
-                        )}
-
-                      </span>
-
-                      <span className="rounded-md border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700">
-
-                        Gotram:{" "}
-                        {getGotram(
-                          selectedMember
-                        )}
-
-                      </span>
-
-                      {getValue(
-                        selectedMember,
-                        ["designation"],
-                        ""
-                      ) !== "" && (
-
-                        <span className="rounded-md border border-gray-300 px-3 py-1 text-xs text-gray-700">
-
-                          {getValue(
-                            selectedMember,
-                            ["designation"]
-                          )}
-
-                        </span>
-
-                      )}
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* PERSONAL */}
-
-              <div className="border-b border-gray-200 p-5">
-
-                <div className="mb-4 flex items-center gap-2">
-
-                  <User
-                    size={18}
-                    className="text-gray-600"
-                  />
-
-                  <h3 className="font-semibold text-gray-900">
-                    Personal Details
-                  </h3>
-
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-                  <DetailItem
-                    icon={<User size={16} />}
-                    label="Full Name"
-                    value={getMemberName(
-                      selectedMember
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={<User size={16} />}
-                    label="Gender"
-                    value={getValue(
-                      selectedMember,
-                      ["gender"]
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={<Calendar size={16} />}
-                    label="Date of Birth"
-                    value={formatDate(
-                      getValue(
-                        selectedMember,
-                        [
-                          "dob",
-                          "date_of_birth",
-                        ],
-                        ""
-                      )
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={<Phone size={16} />}
-                    label="Mobile"
-                    value={getMobile(
-                      selectedMember
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={<Mail size={16} />}
-                    label="Email"
-                    value={getValue(
-                      selectedMember,
-                      ["email"]
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={
-                      <Briefcase size={16} />
-                    }
-                    label="Occupation"
-                    value={getValue(
-                      selectedMember,
-                      ["occupation"]
-                    )}
-                  />
-
-                  {/* GOTRAM */}
-
-                  <DetailItem
-                    icon={<ShieldCheck size={16} />}
-                    label="Gotram"
-                    value={getGotram(
-                      selectedMember
-                    )}
-                  />
-
-                  {/* LOCATION */}
-
-                  <DetailItem
-                    icon={<MapPin size={16} />}
-                    label="Location"
-                    value={getLocation(
-                      selectedMember
-                    )}
-                  />
-
-                </div>
-
-              </div>
-
-              {/* LOCATION */}
-
-              <div className="border-b border-gray-200 p-5">
-
-                <div className="mb-4 flex items-center gap-2">
-
-                  <MapPin
-                    size={18}
-                    className="text-gray-600"
-                  />
-
-                  <h3 className="font-semibold text-gray-900">
-                    Location Details
-                  </h3>
-
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-                  <DetailItem
-                    icon={<MapPin size={16} />}
-                    label="Location"
-                    value={getLocation(
-                      selectedMember
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={<MapPin size={16} />}
-                    label="District"
-                    value={getValue(
-                      selectedMember,
-                      ["district"]
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={<MapPin size={16} />}
-                    label="Mandal"
-                    value={getValue(
-                      selectedMember,
-                      ["mandal"]
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={
-                      <Building2 size={16} />
-                    }
-                    label="Sangham"
-                    value={getValue(
-                      selectedMember,
-                      [
-                        "sangham",
-                        "sangam",
-                      ]
-                    )}
-                  />
-
-                </div>
-
-              </div>
-
-              {/* EXECUTIVE BODY */}
-
-              <div className="border-b border-gray-200 p-5">
-
-                <div className="mb-4 flex items-center gap-2">
-
-                  <ShieldCheck
-                    size={18}
-                    className="text-gray-600"
-                  />
-
-                  <h3 className="font-semibold text-gray-900">
-                    Executive Body
-                  </h3>
-
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-                  <DetailItem
-                    icon={
-                      <Building2 size={16} />
-                    }
-                    label="Executive Body"
-                    value={getValue(
-                      selectedMember,
-                      ["executive_body"]
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={
-                      <ShieldCheck size={16} />
-                    }
-                    label="Designation"
-                    value={getValue(
-                      selectedMember,
-                      ["designation"]
-                    )}
-                  />
-
-                  <DetailItem
-                    icon={
-                      <ShieldCheck size={16} />
-                    }
-                    label="Status"
-                    value={getStatus(
-                      selectedMember
-                    )}
-                  />
-
-                </div>
-
-              </div>
-
-              {/* PAYMENTS */}
-
-              <div className="p-5">
-
-                <div className="mb-4 flex items-center gap-2">
-
-                  <CreditCard
-                    size={18}
-                    className="text-gray-600"
-                  />
-
-                  <h3 className="font-semibold text-gray-900">
-                    Payment Details
-                  </h3>
-
-                </div>
-
-                <div className="grid gap-5 lg:grid-cols-2">
-
-                  {/* MAHASHABA */}
-
-                  <div className="rounded-md border border-gray-200 p-4">
-
-                    <h4 className="mb-4 font-semibold text-gray-800">
-                      Mahashaba Payment
-                    </h4>
-
-                    <div className="space-y-3">
-
-                      <DetailItem
-                        icon={
-                          <CreditCard size={16} />
-                        }
-                        label="Status"
-                        value={getValue(
-                          selectedMember,
-                          [
-                            "mahashaba_payment_status",
-                          ]
-                        )}
-                      />
-
-                      <DetailItem
-                        icon={
-                          <CreditCard size={16} />
-                        }
-                        label="Method"
-                        value={getValue(
-                          selectedMember,
-                          [
-                            "mahashaba_payment_method",
-                          ]
-                        )}
-                      />
-
-                      <DetailItem
-                        icon={
-                          <CreditCard size={16} />
-                        }
-                        label="Amount"
-                        value={formatAmount(
-                          selectedMember
-                            .mahashaba_amount ??
-                            selectedMember
-                              .mahashaba_amount_paid
-                        )}
-                      />
-
-                      <DetailItem
-                        icon={
-                          <Calendar size={16} />
-                        }
-                        label="Payment Date"
-                        value={formatDate(
-                          selectedMember
-                            .mahashaba_payment_date
-                        )}
-                      />
-
-                    </div>
-
-                  </div>
-
-                  {/* SANGAM */}
-
-                  <div className="rounded-md border border-gray-200 p-4">
-
-                    <h4 className="mb-4 font-semibold text-gray-800">
-                      Sangam Payment
-                    </h4>
-
-                    <div className="space-y-3">
-
-                      <DetailItem
-                        icon={
-                          <CreditCard size={16} />
-                        }
-                        label="Status"
-                        value={getValue(
-                          selectedMember,
-                          [
-                            "sangam_payment_status",
-                          ]
-                        )}
-                      />
-
-                      <DetailItem
-                        icon={
-                          <CreditCard size={16} />
-                        }
-                        label="Method"
-                        value={getValue(
-                          selectedMember,
-                          [
-                            "sangam_payment_method",
-                          ]
-                        )}
-                      />
-
-                      <DetailItem
-                        icon={
-                          <CreditCard size={16} />
-                        }
-                        label="Amount"
-                        value={formatAmount(
-                          selectedMember
-                            .sangam_amount ??
-                            selectedMember
-                              .sangam_amount_paid
-                        )}
-                      />
-
-                      <DetailItem
-                        icon={
-                          <Calendar size={16} />
-                        }
-                        label="Payment Date"
-                        value={formatDate(
-                          selectedMember
-                            .sangam_payment_date
-                        )}
-                      />
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
     </div>
+
   );
 }
 
 // =========================================================
-// DETAIL ITEM
+// EMPTY STATE ICON
 // =========================================================
 
-function DetailItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function UsersIcon() {
+
   return (
-    <div className="flex gap-3">
 
-      <div className="mt-0.5 shrink-0 text-gray-400">
-        {icon}
-      </div>
+    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200">
 
-      <div className="min-w-0">
-
-        <p className="text-xs text-gray-400">
-          {label}
-        </p>
-
-        <p className="mt-1 break-words text-sm font-medium text-gray-800">
-          {value || "-"}
-        </p>
-
-      </div>
+      <User
+        size={22}
+        className="text-gray-300"
+      />
 
     </div>
-  );
-}
 
+  );
+
+}

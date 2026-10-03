@@ -1,8 +1,9 @@
+
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
+import type { IconType } from "react-icons";
 import {
   FaBars,
   FaCalendarAlt,
@@ -11,9 +12,6 @@ import {
   FaEnvelope,
   FaHome,
   FaInfoCircle,
-  FaSignInAlt,
-  FaTimes,
-  FaUserPlus,
   FaUsers,
   FaCrown,
   FaHandsHelping,
@@ -21,231 +19,51 @@ import {
   FaUtensils,
   FaImages,
   FaUserTie,
+  FaTimes,
+  FaUserPlus,
 } from "react-icons/fa";
-
-/* =========================================================
-   MENU TYPE
-========================================================= */
 
 type MenuItem = {
   label: string;
   href?: string;
-  icon?: any;
+  icon?: IconType;
   children?: MenuItem[];
 };
 
-/* =========================================================
-   MENU ITEMS
-========================================================= */
-
 const menuItems: MenuItem[] = [
-  {
-    label: "Home",
-    href: "/",
-    icon: FaHome,
-  },
-
-  {
-    label: "About Us",
-    href: "/about",
-    icon: FaInfoCircle,
-  },
-
+  { label: "Home", href: "/", icon: FaHome },
+  { label: "About Us", href: "/about", icon: FaInfoCircle },
   {
     label: "Membership",
     icon: FaCrown,
     children: [
-      
-         
-          {
-            label: "Members Registration",
-            href: "/membership",
-          },
-          {
-            label: "Existing Members",
-            href: "/membership/details",
-          },
-       
+      { label: "Members Registration", href: "/membership" },
+      { label: "Existing Members", href: "/membership/details" },
     ],
   },
-
-  {
-    label: "Executive Bodies",
-    icon: FaUserTie,
-    children: [
-      {
-        label: "State Body",
-        href: "/election-body/state",
-      },
-      {
-        label: "District Body",
-        href: "/election-body/district",
-      },
-      {
-        label: "Mandal Body",
-        href: "/election-body/mandal",
-      },
-      {
-        label: "Sangam Body",
-        href: "/election-body/sangam",
-      },
-    ],
-  },
-
   {
     label: "Matrimony",
     icon: FaUsers,
     children: [
-      {
-        label: "Matrimony",
-        href: "/matrimony",
-      },
-       {
-        label: "Matrimony Registration",
-        href: "/register",
-      },
-      {
-        label: "Search Profiles",
-        href: "/search",
-      },
-      {
-        label: "Success Stories",
-        href: "/success-stories",
-      },
-    ],
-  },
-
-  {
-    label: "Welfare",
-    icon: FaHandsHelping,
-    children: [
-      {
-        label: "Health",
-        href: "/welfare/health",
-      },
-      {
-        label: "Education",
-        href: "/welfare/education",
-      },
-      {
-        label: "Employment",
-        href: "/welfare/employment",
-      },
-    ],
-  },
-
-  {
-    label: "Temples",
-    icon: FaUniversity,
-    children: [
-      {
-        label: "Temples",
-        href: "/temples",
-      },
-      {
-        label: "Temple Events",
-        href: "/temples/events",
-      },
-    ],
-  },
-
-  {
-    label: "Satrams",
-    href: "/satrams",
-    icon: FaUtensils,
-     
-  },
-
-  {
-    label: "Media",
-    href: "/media/news",
-    icon: FaImages,
-  },
    
-
-  {
-    label: "Contact",
-    href: "/contact",
-    icon: FaEnvelope,
-     
+      { label: "Matrimony Registration", href: "/register" },
+      { label: "Search Profiles", href: "/search" },
+      { label: "Success Stories", href: "/success-stories" },
+    ],
   },
+  { label: "Contact", href: "/contact", icon: FaEnvelope },
 ];
 
-/* =========================================================
-   DESKTOP LINK STYLE
-========================================================= */
-
-const desktopLinkClass = `
-  flex
-  min-h-[50px]
-  w-full
-  items-center
-  justify-center
-  gap-1.5
-  border-r
-  border-[#a52a3d]
-  px-2
-  font-serif
-  text-[13px]
-  font-medium
-  text-white
-  transition-all
-  duration-200
-  hover:bg-[#650014]
-  xl:text-[14px]
-`;
-
-/* =========================================================
-   MOBILE LINK STYLE
-========================================================= */
-
-const mobileLinkClass = `
-  flex
-  min-h-[50px]
-  items-center
-  gap-3
-  px-5
-  py-3.5
-  font-serif
-  text-[15px]
-  font-medium
-  text-[#800018]
-  transition-all
-  duration-200
-  hover:bg-[#fff5df]
-  active:bg-[#fff5df]
-  sm:text-[16px]
-`;
-
-/* =========================================================
-   HEADER
-========================================================= */
+const maroon = "#800018";
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
-
   const [today, setToday] = useState("");
-
-  /*
-   * IMPORTANT:
-   * Using Set allows multiple nested dropdowns
-   * to stay open independently.
-   */
-  const [mobileDropdowns, setMobileDropdowns] =
-    useState<Set<string>>(new Set());
-
-  const [desktopDropdown, setDesktopDropdown] =
-    useState<string | null>(null);
-
-  /* =========================================================
-     DATE
-  ========================================================= */
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const date = new Date();
-
     setToday(
-      date.toLocaleDateString("en-IN", {
+      new Date().toLocaleDateString("en-IN", {
         weekday: "long",
         day: "2-digit",
         month: "long",
@@ -254,982 +72,304 @@ export default function Header() {
     );
   }, []);
 
-  /* =========================================================
-     MOBILE DROPDOWN TOGGLE
-  ========================================================= */
-
-  const toggleMobileDropdown = (key: string) => {
-    setMobileDropdowns((current) => {
-      const next = new Set(current);
-
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-
+  const toggle = (key: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   };
 
-  /* =========================================================
-     CLOSE MOBILE MENU
-  ========================================================= */
-
-  const closeMobileMenu = () => {
-    setOpen(false);
-    setMobileDropdowns(new Set());
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setExpanded(new Set());
   };
 
-  /* =========================================================
-     DESKTOP CHILDREN
-  ========================================================= */
-
-  const DesktopChildren = ({
+  function DesktopDropdown({
     items,
     level = 0,
   }: {
     items: MenuItem[];
     level?: number;
-  }) => {
+  }) {
     return (
       <div
-        className={
+        className={`absolute ${
           level === 0
-            ? `
-              absolute
-              left-0
-              top-full
-              z-[9999]
-              min-w-[235px]
-              overflow-visible
-              rounded-b-lg
-              border
-              border-[#ead9b5]
-              bg-white
-              shadow-2xl
-            `
-            : `
-              absolute
-              left-full
-              top-0
-              z-[10000]
-              min-w-[220px]
-              overflow-visible
-              rounded-lg
-              border
-              border-[#ead9b5]
-              bg-white
-              shadow-2xl
-            `
-        }
+            ? "left-0 top-full"
+            : "left-full top-0"
+        } z-[100] min-w-[230px] rounded-b-lg border border-[#eadbb9] bg-white py-2 shadow-xl`}
       >
         {items.map((child) => {
-          const hasChildren =
-            !!child.children &&
-            child.children.length > 0;
-
-          if (hasChildren) {
-            return (
-              <div
-                key={child.label}
-                className="group relative"
-              >
-                <div
-                  className="
-                    flex
-                    min-h-[42px]
-                    w-full
-                    cursor-pointer
-                    items-center
-                    justify-between
-                    gap-5
-                    border-b
-                    border-gray-100
-                    px-4
-                    py-2.5
-                    text-sm
-                    font-semibold
-                    text-gray-700
-                    transition
-                    hover:bg-[#fff7e6]
-                    hover:text-[#800018]
-                  "
-                >
-                  <span>{child.label}</span>
-
-                  <FaChevronRight
-                    className="
-                      shrink-0
-                      text-[9px]
-                    "
-                  />
-                </div>
-
-                <div
-                  className="
-                    invisible
-                    absolute
-                    left-full
-                    top-0
-                    z-[10000]
-                    opacity-0
-                    transition-all
-                    duration-150
-                    group-hover:visible
-                    group-hover:opacity-100
-                  "
-                >
-                  <DesktopChildren
-                    items={child.children!}
-                    level={level + 1}
-                  />
-                </div>
-              </div>
-            );
-          }
+          const hasChildren = !!child.children?.length;
 
           return (
-            <Link
-              key={child.label}
-              href={child.href || "#"}
-              className="
-                flex
-                min-h-[42px]
-                items-center
-                border-b
-                border-gray-100
-                px-4
-                py-2.5
-                text-sm
-                text-gray-700
-                transition-all
-                duration-150
-                hover:bg-[#fff7e6]
-                hover:pl-5
-                hover:text-[#800018]
-              "
-            >
-              {child.label}
-            </Link>
+            <div key={child.label} className="group/sub relative">
+              {hasChildren ? (
+                <>
+                  <div className="flex cursor-pointer items-center justify-between px-5 py-3 text-sm text-gray-700 transition hover:bg-[#fff8e9] hover:text-[#800018]">
+                    {child.label}
+                    <FaChevronRight className="text-[10px]" />
+                  </div>
+                  <div className="invisible absolute left-full top-0 z-[110] opacity-0 transition group-hover/sub:visible group-hover/sub:opacity-100 group-focus-within/sub:visible group-focus-within/sub:opacity-100">
+                    <DesktopDropdown
+                      items={child.children!}
+                      level={level + 1}
+                    />
+                  </div>
+                </>
+              ) : (
+                <Link
+                  href={child.href || "/"}
+                  className="block border-b border-gray-50 px-5 py-3 text-sm text-gray-700 transition last:border-0 hover:bg-[#fff8e9] hover:pl-6 hover:text-[#800018]"
+                >
+                  {child.label}
+                </Link>
+              )}
+            </div>
           );
         })}
       </div>
     );
-  };
+  }
 
-  /* =========================================================
-     MOBILE CHILDREN
-  ========================================================= */
-
-  const MobileChildren = ({
+  function MobileChildren({
     items,
+    parentKey,
     level = 0,
-    parentKey = "",
   }: {
     items: MenuItem[];
+    parentKey: string;
     level?: number;
-    parentKey?: string;
-  }) => {
+  }) {
     return (
       <div
-        className={
+        className={`${
           level === 0
-            ? "bg-[#fffaf0]"
-            : "ml-4 border-l-2 border-[#eadfca] bg-[#fffdf7]"
-        }
+            ? "bg-[#fffaf1]"
+            : "ml-4 border-l-2 border-[#e8d6ad] bg-white"
+        }`}
       >
         {items.map((child) => {
-          const hasChildren =
-            !!child.children &&
-            child.children.length > 0;
+          const key = `${parentKey}/${child.label}`;
+          const hasChildren = !!child.children?.length;
+          const isOpen = expanded.has(key);
 
-          /*
-           * Unique key for every nested level.
-           *
-           * Example:
-           * Membership
-           * Membership/State Membership
-           * Membership/State Membership/New Members
-           */
-          const key = parentKey
-            ? `${parentKey}/${child.label}`
-            : child.label;
-
-          const isOpen =
-            mobileDropdowns.has(key);
-
-          /* =================================================
-             CHILD WITH MORE CHILDREN
-          ================================================== */
-
-          if (hasChildren) {
-            return (
-              <div key={key}>
+          return (
+            <div key={key}>
+              {hasChildren ? (
                 <button
                   type="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    toggleMobileDropdown(key);
-                  }}
-                  className="
-                    flex
-                    min-h-[48px]
-                    w-full
-                    items-center
-                    justify-between
-                    border-t
-                    border-[#eadfca]
-                    px-6
-                    py-3
-                    text-left
-                    font-serif
-                    text-[14px]
-                    font-medium
-                    text-[#690015]
-                    transition-all
-                    duration-200
-                    hover:bg-[#f8edcf]
-                    active:bg-[#f8edcf]
-                    sm:text-[15px]
-                  "
+                  onClick={() => toggle(key)}
+                  className="flex min-h-12 w-full items-center justify-between border-t border-[#f0e6d3] px-6 py-3 text-left text-sm font-medium text-[#800018] hover:bg-[#fff1d6]"
                 >
-                  <span className="
-                    flex
-                    min-w-0
-                    items-center
-                    gap-3
-                  ">
+                  <span className="flex items-center gap-3">
                     <FaChevronRight
-                      className={`
-                        shrink-0
-                        text-[9px]
-                        transition-transform
-                        duration-200
-                        ${
-                          isOpen
-                            ? "rotate-90"
-                            : ""
-                        }
-                      `}
+                      className={`text-[10px] transition ${
+                        isOpen ? "rotate-90" : ""
+                      }`}
                     />
-
-                    <span>
-                      {child.label}
-                    </span>
+                    {child.label}
                   </span>
-
                   <FaChevronDown
-                    className={`
-                      shrink-0
-                      text-[10px]
-                      transition-transform
-                      duration-200
-                      ${
-                        isOpen
-                          ? "rotate-180"
-                          : ""
-                      }
-                    `}
+                    className={`text-[10px] transition ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
+              ) : (
+                <Link
+                  href={child.href || "/"}
+                  onClick={closeMobile}
+                  className="flex min-h-12 items-center gap-3 border-t border-[#f0e6d3] px-8 py-3 text-sm text-[#800018] hover:bg-[#fff1d6]"
+                >
+                  <FaChevronRight className="text-[9px]" />
+                  {child.label}
+                </Link>
+              )}
 
-                {/* NESTED CHILD */}
-
-                {isOpen && (
-                  <MobileChildren
-                    items={child.children!}
-                    level={level + 1}
-                    parentKey={key}
-                  />
-                )}
-              </div>
-            );
-          }
-
-          /* =================================================
-             FINAL LINK
-          ================================================== */
-
-          return (
-            <Link
-              key={key}
-              href={child.href || "#"}
-              onClick={closeMobileMenu}
-              className="
-                flex
-                min-h-[46px]
-                items-center
-                gap-3
-                border-t
-                border-[#eadfca]
-                px-8
-                py-3
-                font-serif
-                text-[14px]
-                text-[#690015]
-                transition-all
-                duration-200
-                hover:bg-[#f8edcf]
-                active:bg-[#f8edcf]
-                sm:text-[15px]
-              "
-            >
-              <FaChevronRight
-                className="
-                  shrink-0
-                  text-[9px]
-                "
-              />
-
-              <span>
-                {child.label}
-              </span>
-            </Link>
+              {hasChildren && isOpen && (
+                <MobileChildren
+                  items={child.children!}
+                  parentKey={key}
+                  level={level + 1}
+                />
+              )}
+            </div>
           );
         })}
       </div>
     );
-  };
-
-  /* =========================================================
-     RETURN
-  ========================================================= */
+  }
 
   return (
-    <header className="w-full bg-white">
+    <header className="relative z-50 w-full bg-white font-serif">
+      {/* Top accent */}
+      <div className="h-1 bg-[#800018]" />
 
-      {/* =====================================================
-          TOP RED LINE
-      ====================================================== */}
-
-      <div className="h-[3px] bg-[#800018]" />
-
-      {/* =====================================================
-          TOP INFORMATION
-      ====================================================== */}
-
-      <div className="border-b border-gray-200 bg-[#fafafa]">
-        <div
-          className="
-            mx-auto
-            flex
-            min-h-[34px]
-            max-w-[1900px]
-            items-center
-            justify-between
-            gap-2
-            px-3
-            sm:min-h-[38px]
-            sm:px-4
-          "
-        >
-
-          {/* DATE */}
-
-          <div
-            className="
-              flex
-              min-w-0
-              items-center
-              gap-1.5
-              text-[#800018]
-              sm:gap-2
-            "
-          >
-            <FaCalendarAlt
-              className="
-                shrink-0
-                text-[11px]
-                sm:text-[13px]
-              "
-            />
-
-            <span
-              className="
-                truncate
-                font-serif
-                text-[10px]
-                sm:text-[13px]
-              "
-            >
-              {today ||
-                "Monday, 17 August 2026"}
+      {/* Top information bar */}
+      <div className="border-b border-[#eee8df] bg-[#faf8f4]">
+        <div className="mx-auto flex min-h-9 max-w-[1500px] items-center justify-between gap-2 px-4">
+          <div className="flex min-w-0 items-center gap-2 text-[11px] text-[#800018] sm:text-xs">
+            <FaCalendarAlt className="shrink-0" />
+            <span className="truncate">
+              {today || "Aarya Vysya Matrimony"}
             </span>
           </div>
-
-          {/* EMAIL */}
-
-          <div
-            className="
-              hidden
-              items-center
-              gap-4
-              text-[#800018]
-              lg:flex
-            "
+          <a
+            href="mailto:noreply@aaryavysyamahasabha.com"
+            className="hidden items-center gap-2 text-xs text-[#800018] transition hover:text-[#b18a43] sm:flex"
           >
-            <div
-              className="
-                flex
-                items-center
-                gap-1.5
-              "
-            >
-              <FaEnvelope
-                className="text-[12px]"
-              />
-
-              <span
-                className="
-                  font-serif
-                  text-[13px]
-                "
-              >
-                info@aryavysyamatrimony.com
-              </span>
-            </div>
-          </div>
- 
-
-        
-
-         
+            <FaEnvelope />
+            noreply@aaryavysyamahasabha.com
+          </a>
         </div>
       </div>
 
-      {/* =====================================================
-          LOGO SECTION
-      ====================================================== */}
-
-      <div className="relative bg-white">
-        <div
-          className="
-            mx-auto
-            flex
-            min-h-[76px]
-            w-full
-            max-w-[1900px]
-            items-center
-            justify-center
-            px-7
-            py-2
-            sm:min-h-[105px]
-            sm:px-10
-            sm:py-3
-            md:min-h-[125px]
-            md:px-4
-          "
-        >
-
-          {/* LOGOS + CENTER */}
-
-          <div
-            className="
-              flex
-              w-full
-              items-center
-              justify-center
-              gap-[5px]
-              sm:gap-4
-              md:gap-6
-              lg:gap-8
-            "
+      {/* Main brand section */}
+      <div className="bg-white">
+        <div className="relative mx-auto flex min-h-[92px] max-w-[1500px] items-center justify-center px-14 py-3 sm:min-h-[112px] md:px-6">
+          <Link
+            href="/"
+            onClick={closeMobile}
+            className="flex flex-col items-center text-center"
           >
+            
+            <h1 className="text-xl font-bold leading-tight text-[#800018] sm:text-3xl md:text-4xl">
+              Aarya Vysya Matrimony
+            </h1>
+            
+          </Link>
 
-            {/* LEFT LOGO */}
+          <Link
+            href="/register"
+            className="absolute right-5 hidden items-center gap-2 rounded-md bg-[#800018] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#610013] md:flex"
+          >
+            <FaUserPlus />
+            Register
+          </Link>
 
-            <Link
-              href="/"
-              onClick={closeMobileMenu}
-              className="shrink-0"
-            >
-              <img
-                src="/images/logo.png"
-                alt="Telangana State Aarya Vysya Mahasabha"
-                className="
-                  h-[36px]
-                  w-[36px]
-                  object-contain
-                  sm:h-[70px]
-                  sm:w-[70px]
-                  md:h-[88px]
-                  md:w-[88px]
-                  lg:h-[100px]
-                  lg:w-[100px]
-                "
-              />
-            </Link>
-
-            {/* CENTER CONTENT */}
-
-            <Link
-              href="/"
-              onClick={closeMobileMenu}
-              className="
-                flex
-                min-w-0
-                max-w-[205px]
-                flex-col
-                items-center
-                justify-center
-                text-center
-                sm:max-w-[500px]
-                md:max-w-[700px]
-                lg:max-w-[850px]
-              "
-            >
-              <h1
-                className="
-                  font-serif
-                  text-[8px]
-                  font-bold
-                  leading-tight
-                  text-[#9b1746]
-                  sm:text-[18px]
-                  md:text-[22px]
-                  lg:text-[26px]
-                "
-              >
-                Telangana State Aarya Vysya Mahasabha
-              </h1>
-
-              <h2
-                className="
-                  mt-[1px]
-                  font-serif
-                  text-[7px]
-                  font-bold
-                  leading-tight
-                  text-[#9b1746]
-                  sm:text-[14px]
-                  md:text-[17px]
-                  lg:text-[20px]
-                "
-              >
-                తెలంగాణ రాష్ట్ర ఆర్యవైశ్య మహాసభ
-              </h2>
-
-              <p
-                className="
-                  mt-[2px]
-                  max-w-[195px]
-                  font-serif
-                  text-[5px]
-                  leading-tight
-                  text-[#64748b]
-                  sm:mt-2
-                  sm:max-w-none
-                  sm:text-[11px]
-                  md:text-[13px]
-                  lg:text-[15px]
-                "
-              >
-                Vysya Bhavan 6-2-648 Chintal Basti
-                Khairatabad,Hyderabad 500 004 
-                <br />
-               Registration no:363/2015
-              </p>
-            </Link>
-
-            {/* RIGHT LOGO */}
-
-            <Link
-              href="/"
-              onClick={closeMobileMenu}
-              className="shrink-0"
-            >
-              <img
-                src="/images/logo2.jpg"
-                alt="Vasavi Ammavaru"
-                className="
-                  h-[36px]
-                  w-[36px]
-                  object-contain
-                  sm:h-[70px]
-                  sm:w-[70px]
-                  md:h-[88px]
-                  md:w-[88px]
-                  lg:h-[100px]
-                  lg:w-[100px]
-                "
-              />
-            </Link>
-          </div>
-
-          {/* =================================================
-              MOBILE MENU BUTTON
-          ================================================== */}
-
+          {/* Mobile toggle */}
           <button
             type="button"
             onClick={() => {
-              setOpen((current) => !current);
-              setMobileDropdowns(new Set());
+              setMobileOpen((prev) => !prev);
+              setExpanded(new Set());
             }}
-            className="
-              absolute
-              right-1.5
-              top-1/2
-              flex
-              h-9
-              w-9
-              -translate-y-1/2
-              items-center
-              justify-center
-              rounded-md
-              text-[18px]
-              text-[#800018]
-              transition
-              hover:bg-[#fff5df]
-              active:bg-[#fff5df]
-              md:hidden
-            "
-            aria-label={
-              open
-                ? "Close menu"
-                : "Open menu"
-            }
-            aria-expanded={open}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            className="absolute right-3 flex h-10 w-10 items-center justify-center rounded-md text-xl text-[#800018] transition hover:bg-[#fff5e5] md:hidden"
           >
-            {open ? (
-              <FaTimes />
-            ) : (
-              <FaBars />
-            )}
+            {mobileOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
       </div>
 
-      {/* =====================================================
-          DESKTOP NAVIGATION
-      ====================================================== */}
-
-      <div
-        className="
-          hidden
-          bg-[#800018]
-          md:block
-        "
-      >
-        <nav
-          className="
-            mx-auto
-            flex
-            min-h-[50px]
-            max-w-[1900px]
-            items-stretch
-            px-2
-            xl:px-3
-          "
-        >
+      {/* Desktop navigation */}
+      <nav className="hidden border-y border-[#a34b59] bg-[#800018] md:block">
+        <div className="mx-auto flex min-h-[52px] max-w-[1500px] items-stretch justify-center px-3">
           {menuItems.map((item) => {
             const Icon = item.icon;
-
-            const hasChildren =
-              !!item.children &&
-              item.children.length > 0;
+            const hasChildren = !!item.children?.length;
 
             return (
               <div
                 key={item.label}
-                className="
-                  relative
-                  flex-1
-                "
-                onMouseEnter={() => {
-                  if (hasChildren) {
-                    setDesktopDropdown(
-                      item.label
-                    );
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (hasChildren) {
-                    setDesktopDropdown(null);
-                  }
-                }}
+                className="group relative flex"
               >
                 {hasChildren ? (
                   <button
                     type="button"
-                    className={
-                      desktopLinkClass
-                    }
                     aria-haspopup="true"
-                    aria-expanded={
-                      desktopDropdown ===
-                      item.label
-                    }
+                    className="flex min-h-[52px] items-center justify-center gap-2 border-r border-white/15 px-5 text-[13px] font-medium text-white transition hover:bg-[#650014] focus:bg-[#650014] xl:px-7 xl:text-sm"
                   >
-                    {Icon && (
-                      <Icon
-                        className="
-                          shrink-0
-                          text-[15px]
-                        "
-                      />
-                    )}
-
-                    <span>
-                      {item.label}
-                    </span>
-
-                    <FaChevronDown
-                      className="
-                        shrink-0
-                        text-[9px]
-                      "
-                    />
+                    {Icon && <Icon className="text-sm" />}
+                    {item.label}
+                    <FaChevronDown className="text-[9px] transition group-hover:rotate-180 group-focus-within:rotate-180" />
                   </button>
                 ) : (
                   <Link
-                    href={item.href || "#"}
-                    className={
-                      desktopLinkClass
-                    }
+                    href={item.href || "/"}
+                    className="flex min-h-[52px] items-center justify-center gap-2 border-r border-white/15 px-5 text-[13px] font-medium text-white transition hover:bg-[#650014] xl:px-7 xl:text-sm"
                   >
-                    {Icon && (
-                      <Icon
-                        className="
-                          shrink-0
-                          text-[15px]
-                        "
-                      />
-                    )}
-
-                    <span>
-                      {item.label}
-                    </span>
+                    {Icon && <Icon className="text-sm" />}
+                    {item.label}
                   </Link>
                 )}
 
-                {hasChildren &&
-                  desktopDropdown ===
-                    item.label && (
-                    <DesktopChildren
-                      items={item.children!}
-                    />
-                  )}
+                {hasChildren && (
+                  <div className="invisible absolute left-0 top-full z-[100] pt-0 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                    <DesktopDropdown items={item.children!} />
+                  </div>
+                )}
               </div>
             );
           })}
-        </nav>
-      </div>
+        </div>
+      </nav>
 
-      {/* =====================================================
-          MOBILE MENU
-      ====================================================== */}
-
-      {open && (
-        <div
-          className="
-            border-t
-            border-gray-200
-            bg-white
-            shadow-xl
-            md:hidden
-          "
-        >
-          <div
-            className="
-              max-h-[calc(100vh-100px)]
-              overflow-y-auto
-              overscroll-contain
-              pb-2
-            "
-          >
+      {/* Mobile navigation */}
+      {mobileOpen && (
+        <div className="absolute left-0 right-0 top-full z-[100] max-h-[calc(100vh-80px)] overflow-y-auto border-t border-[#eadbb9] bg-white shadow-xl md:hidden">
+          <div>
             {menuItems.map((item) => {
               const Icon = item.icon;
-
-              const hasChildren =
-                !!item.children &&
-                item.children.length > 0;
-
-              const isExpanded =
-                mobileDropdowns.has(
-                  item.label
-                );
+              const hasChildren = !!item.children?.length;
+              const isOpen = expanded.has(item.label);
 
               return (
                 <div
                   key={item.label}
-                  className="
-                    border-b
-                    border-gray-200
-                  "
+                  className="border-b border-[#f0e8dc]"
                 >
-                  {/* =================================================
-                      MAIN MOBILE MENU ITEM
-                  ================================================== */}
-
                   {hasChildren ? (
                     <button
                       type="button"
-                      onClick={() =>
-                        toggleMobileDropdown(
-                          item.label
-                        )
-                      }
-                      className="
-                        flex
-                        min-h-[52px]
-                        w-full
-                        items-center
-                        justify-between
-                        px-5
-                        py-3.5
-                        text-left
-                        font-serif
-                        text-[15px]
-                        font-medium
-                        text-[#800018]
-                        transition
-                        hover:bg-[#fff5df]
-                        active:bg-[#fff5df]
-                        sm:text-[16px]
-                      "
+                      onClick={() => toggle(item.label)}
+                      className="flex min-h-[54px] w-full items-center justify-between px-5 py-3 text-left text-[15px] font-semibold text-[#800018] transition hover:bg-[#fff7e8]"
                     >
-                      <span
-                        className="
-                          flex
-                          min-w-0
-                          items-center
-                          gap-3
-                        "
-                      >
-                        {Icon && (
-                          <Icon
-                            className="
-                              w-[18px]
-                              shrink-0
-                            "
-                          />
-                        )}
-
-                        <span>
-                          {item.label}
-                        </span>
+                      <span className="flex items-center gap-3">
+                        {Icon && <Icon className="w-5" />}
+                        {item.label}
                       </span>
-
                       <FaChevronDown
-                        className={`
-                          shrink-0
-                          text-[11px]
-                          transition-transform
-                          duration-200
-                          ${
-                            isExpanded
-                              ? "rotate-180"
-                              : ""
-                          }
-                        `}
+                        className={`text-xs transition ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
                       />
                     </button>
                   ) : (
                     <Link
-                      href={item.href || "#"}
-                      onClick={
-                        closeMobileMenu
-                      }
-                      className={
-                        mobileLinkClass
-                      }
+                      href={item.href || "/"}
+                      onClick={closeMobile}
+                      className="flex min-h-[54px] items-center gap-3 px-5 py-3 text-[15px] font-semibold text-[#800018] transition hover:bg-[#fff7e8]"
                     >
-                      {Icon && (
-                        <Icon
-                          className="
-                            w-[18px]
-                            shrink-0
-                          "
-                        />
-                      )}
-
-                      <span>
-                        {item.label}
-                      </span>
+                      {Icon && <Icon className="w-5" />}
+                      {item.label}
                     </Link>
                   )}
 
-                  {/* =================================================
-                      FIRST LEVEL CHILDREN
-                  ================================================== */}
-
-                  {hasChildren &&
-                    isExpanded && (
-                      <MobileChildren
-                        items={item.children!}
-                        level={0}
-                        parentKey={item.label}
-                      />
-                    )}
+                  {hasChildren && isOpen && (
+                    <MobileChildren
+                      items={item.children!}
+                      parentKey={item.label}
+                    />
+                  )}
                 </div>
               );
             })}
+          </div>
 
-            {/* =================================================
-                MOBILE LOGIN REGISTER
-            ================================================== */}
-
-            <div
-              className="
-                grid
-                grid-cols-2
-                gap-3
-                p-4
-              "
+          <div className="p-4">
+            <Link
+              href="/register"
+              onClick={closeMobile}
+              className="flex min-h-12 items-center justify-center gap-2 rounded-md bg-[#800018] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#610013]"
             >
-              <Link
-                href="/login"
-                onClick={closeMobileMenu}
-                className="
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-lg
-                  border-2
-                  border-[#800018]
-                  py-3
-                  font-serif
-                  text-sm
-                  font-semibold
-                  text-[#800018]
-                  transition
-                  hover:bg-[#fff5df]
-                "
-              >
-                <FaSignInAlt />
-
-                Login
-              </Link>
-
-              <Link
-                href="/register"
-                onClick={closeMobileMenu}
-                className="
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  rounded-lg
-                  bg-[#ae001b]
-                  py-3
-                  font-serif
-                  text-sm
-                  font-semibold
-                  text-white
-                  transition
-                  hover:bg-[#800018]
-                "
-              >
-                <FaUserPlus />
-
-                Register
-              </Link>
-            </div>
+              <FaUserPlus />
+              Matrimony Registration
+            </Link>
           </div>
         </div>
       )}

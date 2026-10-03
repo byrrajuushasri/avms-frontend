@@ -1,161 +1,249 @@
-"use client";
-
 import Image from "next/image";
+import Link from "next/link";
 import {
-  FaEye,
-  FaBullseye,
   FaUsers,
-  FaHandsHelping,
+  FaHeart,
+  FaShieldAlt,
+  FaAward,
+  FaHandshake,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 export default function AboutPage() {
   return (
-    <main className="bg-white">
+    <main className="bg-[#fffaf9]">
 
-      {/* =====================================================
-          ABOUT US
-      ====================================================== */}
-      <section className="py-16 lg:py-20">
+     
 
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 lg:grid-cols-2">
+      {/* About Section */}
 
-          {/* IMAGE */}
-          <div className="relative overflow-hidden rounded-3xl">
-            <Image
-              src="/about/about.png"
-              alt="Aarya Vysya Mahasabha"
-              width={700}
-              height={550}
-              priority
-              className="h-auto w-full rounded-3xl object-cover"
-            />
-          </div>
+      <section className="py-20">
 
-          {/* CONTENT */}
+        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+
           <div>
- 
-            <h1 className="mt-3 font-serif text-3xl font-bold leading-tight text-[#800018] sm:text-4xl">
-              Aarya Vysya Mahasabha
-            </h1>
 
-            <div className="mt-6 space-y-5 text-[16px] leading-8 text-gray-600">
+            <Image
+              src="/about/about-img.png"
+              alt="About"
+              width={600}
+              height={500}
+              className="rounded-3xl shadow-2xl"
+            />
 
-              <p>
-                Aarya Vysya Mahasabha is a community-oriented organization
-                committed to the unity, welfare and development of the
-                Aarya Vysya community.
-              </p>
-
-              <p>
-                Our organization provides a common platform for community
-                members to connect, support one another and participate in
-                social, educational, cultural, spiritual and welfare
-                activities.
-              </p>
-
-              <p>
-                We believe that unity, service and cooperation are the
-                foundation of a strong and prosperous community. Through
-                collective efforts, we work towards creating opportunities
-                and supporting the needs of our community members.
-              </p>
-
-            </div>
-
-            
           </div>
 
-        </div>
+          <div>
 
-      </section>
+            <span className="text-rose-600 font-semibold uppercase tracking-widest">
+              Who We Are
+            </span>
 
-
-      {/* =====================================================
-          VISION & MISSION
-      ====================================================== */}
-      <section className="border-t border-gray-100 bg-[#fffaf9] py-16 lg:py-20">
-
-        <div className="mx-auto max-w-7xl px-6">
-
-          {/* Heading */}
-          <div className="mb-12 text-center">
-
-            
-
-            <h2 className="mt-3 font-serif text-2xl   text-[#800018] sm:text-2xl">
-              Vision & Mission
+            <h2 className="text-2xl  text-rose-600 mt-3">
+              Trusted Matrimony Platform
             </h2>
 
-            <p className="mx-auto mt-4 max-w-2xl leading-7 text-gray-500">
-              Working together for the welfare, unity and progress
-              of the Aarya Vysya community.
+            <p className="mt-6 text-gray-600 leading-8">
+              Arya Vysya Matrimony is a dedicated matrimonial platform
+              created exclusively for the Arya Vysya community. Our mission
+              is to help families find genuine life partners through a secure,
+              verified, and easy-to-use platform.
+            </p>
+
+            <p className="mt-5 text-gray-600 leading-8">
+              We combine traditional family values with modern technology to
+              provide safe matchmaking for brides and grooms across India and abroad.
             </p>
 
           </div>
 
+        </div>
 
-          {/* Vision & Mission Cards */}
-          <div className="grid gap-8 md:grid-cols-2">
+      </section>
+{/* Leadership Team 
 
-            {/* VISION */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl lg:p-10">
+<section className="py-20 bg-white">
+  <div className="max-w-7xl mx-auto px-6">
 
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#fff1f3] text-3xl text-[#800018]">
-                <FaEye />
+    <div className="text-center mb-14">
+      <h2 className="text-2xl  text-rose-600">
+        Our Leadership Team
+      </h2>
+
+      <p className="text-gray-500 mt-3">
+        Meet the dedicated leaders serving the Arya Vysya community.
+      </p>
+    </div>
+
+    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+      {[
+        {
+          img: "/about/president.jpg",
+          name: "Sri Raman Rao",
+          role: "President",
+        },
+        {
+          img: "/about/vice-president.jpg",
+          name: "Sri Srinivas",
+          role: "Vice President",
+        },
+        {
+          img: "/about/secretary.jpg",
+          name: "Sri Prasad",
+          role: "General Secretary",
+        },
+        {
+          img: "/about/treasurer.jpg",
+          name: "Sri Rajesh",
+          role: "Treasurer",
+        },
+      ].map((leader, index) => (
+        <div
+          key={index}
+          className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden text-center"
+        >
+          <Image
+            src={leader.img}
+            alt={leader.name}
+            width={350}
+            height={350}
+            className="w-full h-72 object-cover"
+          />
+
+          <div className="p-6">
+            <h3 className="text-xl font-bold text-gray-800">
+              {leader.name}
+            </h3>
+
+            <p className="text-rose-600 font-semibold mt-2">
+              {leader.role}
+            </p>
+
+            <p className="text-gray-500 mt-3 text-sm">
+              Serving the Arya Vysya community with dedication,
+              integrity, and commitment.
+            </p>
+          </div>
+        </div>
+      ))}
+
+    </div>
+  </div>
+</section> */}
+      {/* Features */}
+
+      <section className="py-20 bg-white">
+
+        <div className="max-w-7xl mx-auto px-6">
+
+          <div className="text-center">
+
+            <h2 className="text-2xl  text-rose-600">
+              Why Choose Us
+            </h2>
+
+            <p className="text-gray-500 mt-4">
+              Trusted by thousands of Arya Vysya families.
+            </p>
+
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
+
+            {[
+              {
+                icon: <FaShieldAlt />,
+                title: "Verified Profiles",
+                desc: "Every profile goes through verification for better trust.",
+              },
+              {
+                icon: <FaUsers />,
+                title: "Large Community",
+                desc: "Thousands of active bride and groom profiles.",
+              },
+              {
+                icon: <FaHeart />,
+                title: "Successful Matches",
+                desc: "Helping families find their perfect life partner.",
+              },
+              {
+                icon: <FaAward />,
+                title: "Premium Service",
+                desc: "Dedicated support and premium membership benefits.",
+              },
+              {
+                icon: <FaHandshake />,
+                title: "Trusted Support",
+                desc: "Friendly customer support for every member.",
+              },
+              {
+                icon: <FaCheckCircle />,
+                title: "100% Secure",
+                desc: "Your personal information is protected with privacy controls.",
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-[#fff7f8] rounded-2xl p-8 text-center shadow hover:shadow-xl transition"
+              >
+                <div className="text-5xl text-rose-600 flex justify-center mb-5">
+                  {item.icon}
+                </div>
+
+                <h3 className="text-xl font-bold">
+                  {item.title}
+                </h3>
+
+                <p className="text-gray-600 mt-3">
+                  {item.desc}
+                </p>
+
               </div>
-
-              <span className="mt-6 block text-sm font-semibold uppercase tracking-widest text-[#a00018]">
-                Our Vision
-              </span>
-
-              
-
-              <p className="mt-5 leading-8 text-gray-600">
-                Our vision is to build a strong, united and prosperous
-                Aarya Vysya community where every member has opportunities
-                to grow, contribute and live with dignity.
-              </p>
-
-              <p className="mt-4 leading-8 text-gray-600">
-                We aim to preserve our values, culture and traditions while
-                encouraging education, employment, social responsibility
-                and community development for future generations.
-              </p>
-
-            </div>
-
-
-            {/* MISSION */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl lg:p-10">
-
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#fff4df] text-3xl text-[#a00018]">
-                <FaBullseye />
-              </div>
-
-              <span className="mt-6 block text-sm font-semibold uppercase tracking-widest text-[#a00018]">
-                Our Mission
-              </span>
-
-             
-              <p className="mt-5 leading-8 text-gray-600">
-                Our mission is to connect community members and create a
-                platform for cooperation, service and mutual support.
-              </p>
-
-              <p className="mt-4 leading-8 text-gray-600">
-                We work towards supporting families, encouraging education
-                and employment, promoting cultural values and extending
-                assistance to people in need through meaningful community
-                initiatives.
-              </p>
-
-            </div>
+            ))}
 
           </div>
 
         </div>
 
       </section>
+
+      {/* Statistics */}
+
+      <section className="py-20">
+
+        <div className="max-w-7xl mx-auto px-6">
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+
+            {[
+              ["25,000+", "Registered Members"],
+              ["15,000+", "Verified Profiles"],
+              ["10,000+", "Happy Marriages"],
+              ["24/7", "Customer Support"],
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-2xl shadow-lg p-8 text-center"
+              >
+                <h2 className="text-4xl font-bold text-rose-600">
+                  {item[0]}
+                </h2>
+
+                <p className="mt-3 text-gray-500">
+                  {item[1]}
+                </p>
+
+              </div>
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+      
 
     </main>
   );
