@@ -24,7 +24,7 @@ export default function AboutPage() {
           <div>
 
           <Image
-  src="/about/about-img.webp"
+  src="/about/about-img.png"
   alt="About"
   width={600}
   height={500}
