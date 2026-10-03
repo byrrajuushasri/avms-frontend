@@ -23,14 +23,13 @@ export default function AboutPage() {
 
           <div>
 
-            <Image
-              src="/about/about-img.png"
-              alt="About"
-              width={600}
-              height={500}
-              className="rounded-3xl shadow-2xl"
-            />
-
+          <Image
+  src="/about/about-img.webp"
+  alt="About"
+  width={600}
+  height={500}
+  className="rounded-3xl shadow-2xl"
+/>
           </div>
 
           <div>
