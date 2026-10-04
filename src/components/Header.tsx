@@ -64,10 +64,6 @@ const menuItems: MenuItem[] = [
         href: "/register",
       },
       {
-        label: "Search Profiles",
-        href: "/search",
-      },
-      {
         label: "Success Stories",
         href: "/success-stories",
       },
