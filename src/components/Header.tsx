@@ -63,10 +63,6 @@ const menuItems: MenuItem[] = [
         label: "Matrimony Registration",
         href: "/register",
       },
-      {
-        label: "Success Stories",
-        href: "/success-stories",
-      },
     ],
   },
 
