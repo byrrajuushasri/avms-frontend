@@ -51,10 +51,7 @@ const menuItems: MenuItem[] = [
         label: "Members Registration",
         href: "/membership",
       },
-      {
-        label: "Existing Members",
-        href: "/membership/details",
-      },
+       
     ],
   },
 
