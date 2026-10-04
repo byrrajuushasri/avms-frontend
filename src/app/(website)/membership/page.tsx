@@ -2431,7 +2431,7 @@ export default function MembershipPage() {
               </div>
             </form>
 
-            {/* EXISTING MEMBERS */}
+            {/* EXISTING MEMBERS 
 
             <p className="mt-7 text-center text-sm text-gray-600">
               Already registered?
@@ -2442,7 +2442,7 @@ export default function MembershipPage() {
               >
                 Existing Members
               </a>
-            </p>
+            </p>*/}
           </div>
         </div>
       </div>
