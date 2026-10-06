@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -77,7 +78,9 @@ const menuItems: MenuItem[] = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(
+    new Set()
+  );
 
   /* =======================================================
      TOGGLE MOBILE MENU
@@ -358,252 +361,73 @@ export default function Header() {
       <div className="h-[4px] bg-[#800018]" />
 
       {/* =====================================================
-          TRADITIONAL TELUGU MARRIAGE PANDIRI
+          TRADITIONAL HEADER DECORATION
       ====================================================== */}
 
-      <section
-        className="
-          relative
-          overflow-hidden
-          border-b
-          border-[#d4af37]
-          bg-white
-        "
-      >
-        {/* =================================================
-            THORANAM
-        ================================================== */}
+<div
+  className="
+    border-b
+    border-[#f1eadf]
+    bg-white
+    px-3
+    py-1
+  "
+>
+  <div
+    className="
+      mx-auto
+      grid
+      max-w-[1500px]
+      grid-cols-3
+      items-center
+      text-center
+      text-[#800018]
+    "
+  >
+    {/* LEFT - KALYANAMASTU */}
 
-        <div
-          className="
-            relative
-            h-[76px]
-            w-full
-            overflow-hidden
-            xs:h-[82px]
-            sm:h-[105px]
-            md:h-[135px]
-            lg:h-[155px]
-          "
-        >
-          {/* LEFT THORANAM */}
+    <div
+      className="
+        justify-self-start
+        whitespace-nowrap
+        text-[9px]
+        font-semibold
+        sm:text-[11px]
+      "
+    >
+      కళ్యాణమస్తు
+    </div>
 
-          <img
-            src="/images/mamidi-thoranam.png"
-            alt="Traditional Telugu mango leaf toranam"
-            className="
-              absolute
-              left-0
-              top-0
-              h-[58px]
-              w-[50%]
-              object-cover
-              object-left-top
-              sm:h-[75px]
-              md:h-[95px]
-              lg:h-[110px]
-            "
-          />
+    {/* CENTER - HARI OM */}
 
-          {/* RIGHT THORANAM */}
+    <div
+      className="
+        justify-self-center
+        whitespace-nowrap
+        text-[9px]
+        font-medium
+        sm:text-[11px]
+      "
+    >
+      హరి ఓం
+    </div>
 
-          <img
-            src="/images/mamidi-thoranam.png"
-            alt="Traditional Telugu mango leaf toranam"
-            className="
-              absolute
-              right-0
-              top-0
-              h-[58px]
-              w-[50%]
-              scale-x-[-1]
-              object-cover
-              object-right-top
-              sm:h-[75px]
-              md:h-[95px]
-              lg:h-[110px]
-            "
-          />
+    {/* RIGHT - AVIGHNAMASTU */}
 
-          {/* CENTER GOLD LINE */}
+    <div
+      className="
+        justify-self-end
+        whitespace-nowrap
+        text-[9px]
+        font-semibold
+        sm:text-[11px]
+      "
+    >
+      అవిఘ్నమస్తు
+    </div>
+  </div>
+</div>
 
-          <div
-            className="
-              absolute
-              left-1/2
-              top-0
-              z-20
-              h-[3px]
-              w-[45%]
-              -translate-x-1/2
-              bg-[#d4af37]
-              sm:h-[4px]
-            "
-          />
-        </div>
-
-        {/* =================================================
-            TELUGU BLESSINGS
-        ================================================== */}
-
-        <div
-          className="
-            pointer-events-none
-            absolute
-            left-0
-            right-0
-            top-[38px]
-            z-30
-            grid
-            grid-cols-3
-            items-start
-            px-1
-            sm:top-[58px]
-            sm:px-4
-            md:top-[92px]
-            md:px-16
-            lg:px-24
-          "
-        >
-          {/* LEFT */}
-
-          <div className="flex justify-center">
-            <div
-              className="
-                rounded-full
-                border
-                border-[#d4af37]
-                bg-[#fffaf0]/95
-                px-1.5
-                py-0.5
-                shadow-sm
-                sm:px-3
-                sm:py-1
-                md:px-5
-              "
-            >
-              <span
-                className="
-                  whitespace-nowrap
-                  text-[9px]
-                  text-[#800018]
-                  xs:text-[10px]
-                  sm:text-sm
-                  md:text-base
-                "
-              >
-                శ్రీరస్తు
-              </span>
-            </div>
-          </div>
-
-          {/* CENTER */}
-
-          <div className="flex justify-center">
-            <div
-              className="
-                rounded-full
-                border
-                border-[#d4af37]
-                bg-[#fffaf0]/95
-                px-1.5
-                py-0.5
-                shadow-sm
-                sm:px-3
-                sm:py-1
-                md:px-5
-              "
-            >
-              <span
-                className="
-                  whitespace-nowrap
-                  text-[9px]
-                  text-[#800018]
-                  xs:text-[10px]
-                  sm:text-sm
-                  md:text-base
-                "
-              >
-                శుభమస్తు
-              </span>
-            </div>
-          </div>
-
-          {/* RIGHT */}
-
-          <div className="flex justify-center">
-            <div
-              className="
-                rounded-full
-                border
-                border-[#d4af37]
-                bg-[#fffaf0]/95
-                px-1.5
-                py-0.5
-                shadow-sm
-                sm:px-3
-                sm:py-1
-                md:px-5
-              "
-            >
-              <span
-                className="
-                  whitespace-nowrap
-                  text-[9px]
-                  text-[#800018]
-                  xs:text-[10px]
-                  sm:text-sm
-                  md:text-base
-                "
-              >
-                అవిఘ్నమస్తు
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          VINAYAKA SHLOKA
-      ====================================================== */}
-
-      <div
-        className="
-          border-b
-          border-[#eadfca]
-          bg-[#fffdf7]
-        "
-      >
-        <div
-          className="
-            mx-auto
-            max-w-[1500px]
-            px-3
-            py-1.5
-            text-center
-            text-[8px]
-            font-medium
-            leading-[1.55]
-            text-[#800018]
-            sm:px-6
-            sm:py-2
-            sm:text-[9px]
-            md:text-[11px]
-          "
-        >
-          <p>
-            ముదాకరాత్త మోదకం సదా విముక్తి సాధకమ్
-            <br className="sm:hidden" />{" "}
-            కళాధరావతంసకం విలాసిలోక రక్షకమ్
-          </p>
-
-          <p>
-            అనాయకైక నాయకం వినాశితేభ దైత్యకమ్
-            <br className="sm:hidden" />{" "}
-            నతాశుభాశు నాశకం నమామి తం వినాయకమ్
-          </p>
-        </div>
-      </div>
 
       {/* =====================================================
           LOGO + ADDRESS
@@ -646,8 +470,8 @@ export default function Header() {
 
             <div className="flex justify-start">
               <img
-                src="/images/logo1.png"
-                alt="Aarya Vysya Logo"
+                src="/images/vinayaka.jpg"
+                alt="Aarya Vysya Mahasabha"
                 className="
                   h-auto
                   w-[100px]
@@ -738,13 +562,13 @@ export default function Header() {
 
             <div className="flex justify-end">
               <img
-                src="/images/logo2.png"
-                alt="Aarya Vysya Mahasabha"
+                src="/images/logo1.jpg"
+                alt="Aarya Vysya Logo"
                 className="
                   h-auto
                   w-[100px]
                   object-contain
-                  lg:w-[125px]
+                  lg:w-[85px]
                 "
               />
             </div>
@@ -815,7 +639,7 @@ export default function Header() {
 
               <div className="flex justify-end">
                 <img
-                  src="/images/logo2.png"
+                  src="/images/vinayaka.jpg"
                   alt="Aarya Vysya Mahasabha"
                   className="
                     h-auto
@@ -1223,3 +1047,4 @@ export default function Header() {
     </header>
   );
 }
+

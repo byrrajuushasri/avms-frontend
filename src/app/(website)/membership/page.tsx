@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -6,7 +7,6 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-
 import toast, { Toaster } from "react-hot-toast";
 
 /* =========================================================
@@ -21,29 +21,24 @@ type LocationItem = {
 };
 
 type FormData = {
-  /* BASIC DETAILS */
   full_name: string;
   surname: string;
   father_name: string;
   mobile: string;
   email: string;
   occupation: string;
- 
   gender: string;
   date_of_birth: string;
   gotram: string;
 
-  /* EXISTING MEMBERS */
   is_existing_mahashaba_member: string;
   is_existing_sangam_member: string;
 
-  /* LOCATION */
   location: string;
   district: string;
   mandal: string;
   sangham: string;
 
-  /* BODY */
   executive_body: string;
   designation: string;
 };
@@ -226,7 +221,6 @@ const initialFormData: FormData = {
   mobile: "",
   email: "",
   occupation: "",
- 
   gender: "",
   date_of_birth: "",
   gotram: "",
@@ -331,6 +325,13 @@ export default function MembershipPage() {
   const [locationLoading, setLocationLoading] =
     useState(false);
 
+  /* GOTRAM SEARCH */
+  const [gotramSearch, setGotramSearch] =
+    useState("");
+
+  const [showGotramList, setShowGotramList] =
+    useState(false);
+
   /* =========================================================
      API URL
   ========================================================= */
@@ -341,72 +342,75 @@ export default function MembershipPage() {
   ).replace(/\/$/, "");
 
   /* =========================================================
+     FILTER GOTRAM
+  ========================================================= */
+
+  const filteredGotramList =
+    gotramList.filter((gotram) =>
+      gotram
+        .toLowerCase()
+        .startsWith(
+          gotramSearch.trim().toLowerCase()
+        )
+    );
+
+  /* =========================================================
      LOAD DISTRICTS
   ========================================================= */
 
- useEffect(() => {
-  const loadDistricts = async () => {
-    setLocationLoading(true);
+  useEffect(() => {
+    const loadDistricts = async () => {
+      setLocationLoading(true);
 
-    try {
-      console.log("Backend API URL:", apiUrl);
-      console.log(
-        "District API:",
-        `${apiUrl}/locations/districts`
-      );
-
-      const response = await fetch(
-        `${apiUrl}/locations/districts`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-          cache: "no-store",
-        }
-      );
-
-      console.log(
-        "District response status:",
-        response.status
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load districts (${response.status} ${response.statusText})`
+      try {
+        const response = await fetch(
+          `${apiUrl}/locations/districts`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+            cache: "no-store",
+          }
         );
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load districts (${response.status})`
+          );
+        }
+
+        const result = await response.json();
+
+        const data = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+          ? result.data
+          : [];
+
+        setDistricts(data);
+
+        if (data.length === 0) {
+          toast.error("No districts available");
+        }
+      } catch (error) {
+        console.error(
+          "District loading error:",
+          error
+        );
+
+        toast.error(
+          "Unable to load districts. Please try again."
+        );
+
+        setDistricts([]);
+      } finally {
+        setLocationLoading(false);
       }
+    };
 
-      const result = await response.json();
-
-      console.log("District API response:", result);
-
-      const data = Array.isArray(result)
-        ? result
-        : Array.isArray(result?.data)
-        ? result.data
-        : [];
-
-      setDistricts(data);
-
-      if (data.length === 0) {
-        toast.error("No districts available");
-      }
-    } catch (error) {
-      console.error("District loading error:", error);
-
-      toast.error(
-        "Unable to load districts. Please try again."
-      );
-
-      setDistricts([]);
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
-  loadDistricts();
-}, [apiUrl]);
+    loadDistricts();
+  }, [apiUrl]);
 
   /* =========================================================
      LOAD MANDALS
@@ -416,8 +420,7 @@ export default function MembershipPage() {
     const selectedDistrict =
       districts.find(
         (district) =>
-          district.name ===
-          formData.district
+          district.name === formData.district
       );
 
     if (
@@ -442,8 +445,7 @@ export default function MembershipPage() {
           );
         }
 
-        const result =
-          await response.json();
+        const result = await response.json();
 
         const data = Array.isArray(result)
           ? result
@@ -532,9 +534,7 @@ export default function MembershipPage() {
   ) => {
     const file = e.target.files?.[0];
 
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     const allowedTypes = [
       "image/jpeg",
@@ -546,7 +546,6 @@ export default function MembershipPage() {
     if (!allowedTypes.includes(file.type)) {
       setPhoto(null);
       setPhotoPreview("");
-
       e.target.value = "";
 
       setFieldError(
@@ -567,7 +566,6 @@ export default function MembershipPage() {
     if (file.size > maxSize) {
       setPhoto(null);
       setPhotoPreview("");
-
       e.target.value = "";
 
       setFieldError(
@@ -612,9 +610,7 @@ export default function MembershipPage() {
       const onlyNumbers =
         value.replace(/\D/g, "");
 
-      if (
-        onlyNumbers.length > 10
-      ) {
+      if (onlyNumbers.length > 10) {
         return;
       }
 
@@ -706,9 +702,7 @@ export default function MembershipPage() {
           "Only letters and spaces are allowed"
         );
       } else {
-        clearFieldError(
-          "surname"
-        );
+        clearFieldError("surname");
       }
 
       return;
@@ -794,8 +788,6 @@ export default function MembershipPage() {
       return;
     }
 
-    
-
     /* LOCATION */
     if (name === "location") {
       setFormData((prev) => ({
@@ -810,25 +802,6 @@ export default function MembershipPage() {
         );
       } else {
         clearFieldError("location");
-      }
-
-      return;
-    }
-
-    /* GOTRAM */
-    if (name === "gotram") {
-      setFormData((prev) => ({
-        ...prev,
-        gotram: value,
-      }));
-
-      if (!value.trim()) {
-        setFieldError(
-          "gotram",
-          "Gotram is required"
-        );
-      } else {
-        clearFieldError("gotram");
       }
 
       return;
@@ -874,7 +847,7 @@ export default function MembershipPage() {
       return;
     }
 
-    /* EXISTING MEMBER FIELDS */
+    /* EXISTING MEMBERS */
     if (
       name ===
         "is_existing_mahashaba_member" ||
@@ -947,6 +920,51 @@ export default function MembershipPage() {
     if (value.trim()) {
       clearFieldError(name);
     }
+  };
+
+  /* =========================================================
+     GOTRAM SEARCH CHANGE
+  ========================================================= */
+
+  const handleGotramSearch = (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+
+    setGotramSearch(value);
+
+    setFormData((prev) => ({
+      ...prev,
+      gotram: value,
+    }));
+
+    setShowGotramList(true);
+
+    if (!value.trim()) {
+      setFieldError(
+        "gotram",
+        "Gotram is required"
+      );
+    } else {
+      clearFieldError("gotram");
+    }
+  };
+
+  /* =========================================================
+     SELECT GOTRAM
+  ========================================================= */
+
+  const handleGotramSelect = (
+    gotram: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      gotram,
+    }));
+
+    setGotramSearch(gotram);
+    setShowGotramList(false);
+    clearFieldError("gotram");
   };
 
   /* =========================================================
@@ -1110,7 +1128,6 @@ export default function MembershipPage() {
     const newErrors: ErrorState =
       {};
 
-    /* FULL NAME */
     const name =
       formData.full_name.trim();
 
@@ -1129,7 +1146,6 @@ export default function MembershipPage() {
         "Only letters and spaces are allowed";
     }
 
-    /* SURNAME */
     const surname =
       formData.surname.trim();
 
@@ -1145,7 +1161,6 @@ export default function MembershipPage() {
         "Only letters and spaces are allowed";
     }
 
-    /* FATHER NAME */
     const fatherName =
       formData.father_name.trim();
 
@@ -1161,7 +1176,6 @@ export default function MembershipPage() {
         "Only letters and spaces are allowed";
     }
 
-    /* MOBILE */
     if (
       !/^[6-9]\d{9}$/.test(
         formData.mobile
@@ -1171,13 +1185,10 @@ export default function MembershipPage() {
         "Enter a valid 10-digit Indian mobile number";
     }
 
-    /* EMAIL */
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (
-      !formData.email.trim()
-    ) {
+    if (!formData.email.trim()) {
       newErrors.email =
         "Email address is required";
     } else if (
@@ -1189,16 +1200,13 @@ export default function MembershipPage() {
         "Enter a valid email address";
     }
 
-    /* OCCUPATION */
     if (
       !formData.occupation.trim()
     ) {
       newErrors.occupation =
         "Occupation is required";
     }
- 
 
-    /* LOCATION */
     if (
       !formData.location.trim()
     ) {
@@ -1206,24 +1214,17 @@ export default function MembershipPage() {
         "Location is required";
     }
 
-    /* GOTRAM */
-    if (
-      !formData.gotram.trim()
-    ) {
+    if (!formData.gotram.trim()) {
       newErrors.gotram =
         "Gotram is required";
     }
 
-    /* GENDER */
     if (!formData.gender) {
       newErrors.gender =
         "Please select gender";
     }
 
-    /* DOB */
-    if (
-      !formData.date_of_birth
-    ) {
+    if (!formData.date_of_birth) {
       newErrors.date_of_birth =
         "Date of birth is required";
     } else if (
@@ -1241,13 +1242,11 @@ export default function MembershipPage() {
         "Member must be 18 years or above";
     }
 
-    /* PHOTO */
     if (!photo) {
       newErrors.photo =
         "Member photo is required";
     }
 
-    /* EXISTING MAHASHABA */
     if (
       !formData.is_existing_mahashaba_member
     ) {
@@ -1255,7 +1254,6 @@ export default function MembershipPage() {
         "Please select Yes or No";
     }
 
-    /* EXISTING SANGAM */
     if (
       !formData.is_existing_sangam_member
     ) {
@@ -1263,21 +1261,16 @@ export default function MembershipPage() {
         "Please select Yes or No";
     }
 
-    /* EXECUTIVE BODY */
-    if (
-      !formData.executive_body
-    ) {
+    if (!formData.executive_body) {
       newErrors.executive_body =
         "Please select Executive Body";
     }
 
-    /* DESIGNATION */
     if (!formData.designation) {
       newErrors.designation =
         "Please select Designation";
     }
 
-    /* DISTRICT */
     if (
       [
         "District Body",
@@ -1292,7 +1285,6 @@ export default function MembershipPage() {
         "Please select District";
     }
 
-    /* MANDAL */
     if (
       [
         "Mandal Body",
@@ -1306,7 +1298,6 @@ export default function MembershipPage() {
         "Please select Mandal";
     }
 
-    /* SANGHAM */
     if (
       formData.executive_body ===
         "Sangham Body" &&
@@ -1319,8 +1310,7 @@ export default function MembershipPage() {
     setErrors(newErrors);
 
     if (
-      Object.keys(newErrors).length >
-      0
+      Object.keys(newErrors).length > 0
     ) {
       toast.error(
         "Please correct the highlighted fields"
@@ -1364,7 +1354,6 @@ export default function MembershipPage() {
       const body =
         new FormData();
 
-      /* BASIC */
       body.append(
         "full_name",
         formData.full_name.trim()
@@ -1395,8 +1384,6 @@ export default function MembershipPage() {
         formData.occupation.trim()
       );
 
-     
-
       body.append(
         "gender",
         formData.gender
@@ -1407,13 +1394,11 @@ export default function MembershipPage() {
         formData.date_of_birth
       );
 
-      /* GOTRAM */
       body.append(
         "gotram",
         formData.gotram.trim()
       );
 
-      /* EXISTING MEMBERS */
       body.append(
         "is_existing_mahashaba_member",
         formData.is_existing_mahashaba_member
@@ -1424,7 +1409,6 @@ export default function MembershipPage() {
         formData.is_existing_sangam_member
       );
 
-      /* LOCATION */
       body.append(
         "location",
         formData.location.trim()
@@ -1445,7 +1429,6 @@ export default function MembershipPage() {
         formData.sangham.trim()
       );
 
-      /* BODY */
       body.append(
         "executive_body",
         executiveBody
@@ -1456,7 +1439,6 @@ export default function MembershipPage() {
         designation
       );
 
-      /* PHOTO */
       if (photo) {
         body.append(
           "photo",
@@ -1464,44 +1446,8 @@ export default function MembershipPage() {
         );
       }
 
-      console.log(
-        "Submitting membership registration..."
-      );
-
-      console.log(
-        "Photo:",
-        photo?.name || "No photo"
-      );
-
-      console.log(
-        "Father Name:",
-        formData.father_name
-      );
-
-      
-
-      console.log(
-        "Gotram:",
-        formData.gotram
-      );
-
-      console.log(
-        "Existing Mahashaba:",
-        formData.is_existing_mahashaba_member
-      );
-
-      console.log(
-        "Existing Sangam:",
-        formData.is_existing_sangam_member
-      );
-
       const apiEndpoint =
         `${apiUrl}/membership-register`;
-
-      console.log(
-        "Membership API:",
-        apiEndpoint
-      );
 
       const response =
         await fetch(
@@ -1534,11 +1480,6 @@ export default function MembershipPage() {
           message: text,
         };
       }
-
-      console.log(
-        "Membership API response:",
-        data
-      );
 
       if (!response.ok) {
         throw new Error(
@@ -1573,16 +1514,19 @@ export default function MembershipPage() {
         }
       );
 
-      /* RESET */
       setFormData({
         ...initialFormData,
       });
+
+      setGotramSearch("");
+      setShowGotramList(false);
 
       setPhoto(null);
       setPhotoPreview("");
 
       setErrors({});
       setMandals([]);
+
     } catch (err) {
       console.error(
         "MEMBERSHIP REGISTRATION ERROR:",
@@ -1632,13 +1576,12 @@ export default function MembershipPage() {
       />
 
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
+
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 
-          {/* =================================================
-              HEADER
-          ================================================= */}
-
+          {/* HEADER */}
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
+
             <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
               Membership Registration
             </h1>
@@ -1648,17 +1591,17 @@ export default function MembershipPage() {
             </p>
 
             <div className="mt-4 inline-flex rounded-full border border-rose-200 bg-rose-50 px-5 py-2">
+
               <span className="text-sm font-semibold text-rose-700">
                 Eligibility: 18 Years & Above — Male & Female
               </span>
+
             </div>
+
           </div>
 
-          <div className="space-y-7 p-5 sm:p-8">
 
-            {/* =================================================
-                FORM
-            ================================================= */}
+          <div className="space-y-7 p-5 sm:p-8">
 
             <form
               onSubmit={handleSubmit}
@@ -1668,10 +1611,12 @@ export default function MembershipPage() {
 
               {/* =================================================
                   MEMBER DETAILS
-              ================================================= */}
+              ================================================== */}
 
               <section>
+
                 <div className="mb-5">
+
                   <h2 className="text-lg font-semibold text-gray-900">
                     Member Details
                   </h2>
@@ -1679,12 +1624,13 @@ export default function MembershipPage() {
                   <p className="mt-1 text-sm text-gray-500">
                     Please enter the member&apos;s basic details.
                   </p>
+
                 </div>
+
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* FULL NAME */}
-
                   <div>
                     <label className={labelClass}>
                       Full Name *
@@ -1692,12 +1638,8 @@ export default function MembershipPage() {
 
                     <input
                       name="full_name"
-                      value={
-                        formData.full_name
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.full_name}
+                      onChange={handleChange}
                       placeholder="Enter Full Name"
                       minLength={3}
                       maxLength={100}
@@ -1706,13 +1648,11 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="full_name"
-                    />
+                    <ErrorMessage field="full_name" />
                   </div>
 
-                  {/* SURNAME */}
 
+                  {/* SURNAME */}
                   <div>
                     <label className={labelClass}>
                       Surname *
@@ -1720,12 +1660,8 @@ export default function MembershipPage() {
 
                     <input
                       name="surname"
-                      value={
-                        formData.surname
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.surname}
+                      onChange={handleChange}
                       placeholder="Enter Surname"
                       maxLength={100}
                       className={getInputClass(
@@ -1733,13 +1669,11 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="surname"
-                    />
+                    <ErrorMessage field="surname" />
                   </div>
 
-                  {/* FATHER NAME */}
 
+                  {/* FATHER NAME */}
                   <div>
                     <label className={labelClass}>
                       Father Name *
@@ -1747,12 +1681,8 @@ export default function MembershipPage() {
 
                     <input
                       name="father_name"
-                      value={
-                        formData.father_name
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.father_name}
+                      onChange={handleChange}
                       placeholder="Enter Father Name"
                       maxLength={100}
                       className={getInputClass(
@@ -1760,13 +1690,11 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="father_name"
-                    />
+                    <ErrorMessage field="father_name" />
                   </div>
 
-                  {/* MOBILE */}
 
+                  {/* MOBILE */}
                   <div>
                     <label className={labelClass}>
                       Mobile Number *
@@ -1775,12 +1703,8 @@ export default function MembershipPage() {
                     <input
                       type="tel"
                       name="mobile"
-                      value={
-                        formData.mobile
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.mobile}
+                      onChange={handleChange}
                       placeholder="Enter 10 Digit Mobile Number"
                       inputMode="numeric"
                       maxLength={10}
@@ -1789,13 +1713,11 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="mobile"
-                    />
+                    <ErrorMessage field="mobile" />
                   </div>
 
-                  {/* EMAIL */}
 
+                  {/* EMAIL */}
                   <div>
                     <label className={labelClass}>
                       Email Address *
@@ -1804,12 +1726,8 @@ export default function MembershipPage() {
                     <input
                       type="email"
                       name="email"
-                      value={
-                        formData.email
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.email}
+                      onChange={handleChange}
                       placeholder="Enter Email Address"
                       maxLength={150}
                       className={getInputClass(
@@ -1817,13 +1735,11 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="email"
-                    />
+                    <ErrorMessage field="email" />
                   </div>
 
-                  {/* GENDER */}
 
+                  {/* GENDER */}
                   <div>
                     <label className={labelClass}>
                       Gender *
@@ -1831,12 +1747,8 @@ export default function MembershipPage() {
 
                     <select
                       name="gender"
-                      value={
-                        formData.gender
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.gender}
+                      onChange={handleChange}
                       className={getInputClass(
                         "gender"
                       )}
@@ -1858,13 +1770,13 @@ export default function MembershipPage() {
                       </option>
                     </select>
 
-                    <ErrorMessage
-                      field="gender"
-                    />
+                    <ErrorMessage field="gender" />
                   </div>
 
-                  {/* DOB */}
 
+                  {/* =================================================
+                      SIMPLE DATE PICKER
+                  ================================================== */}
                   <div>
                     <label className={labelClass}>
                       Date of Birth *
@@ -1873,21 +1785,15 @@ export default function MembershipPage() {
                     <input
                       type="date"
                       name="date_of_birth"
-                      value={
-                        formData.date_of_birth
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.date_of_birth}
+                      onChange={handleChange}
                       max={getTodayDate()}
                       className={getInputClass(
                         "date_of_birth"
                       )}
                     />
 
-                    <ErrorMessage
-                      field="date_of_birth"
-                    />
+                    <ErrorMessage field="date_of_birth" />
 
                     {formData.date_of_birth &&
                       calculateAge(
@@ -1903,8 +1809,8 @@ export default function MembershipPage() {
                       )}
                   </div>
 
-                  {/* OCCUPATION */}
 
+                  {/* OCCUPATION */}
                   <div>
                     <label className={labelClass}>
                       Occupation *
@@ -1912,12 +1818,8 @@ export default function MembershipPage() {
 
                     <input
                       name="occupation"
-                      value={
-                        formData.occupation
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.occupation}
+                      onChange={handleChange}
                       placeholder="Enter Occupation"
                       maxLength={100}
                       className={getInputClass(
@@ -1925,15 +1827,15 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="occupation"
-                    />
+                    <ErrorMessage field="occupation" />
                   </div>
- 
 
-                  {/* GOTRAM */}
 
-                  <div>
+                  {/* =================================================
+                      SEARCHABLE GOTRAM
+                  ================================================== */}
+                  <div className="relative">
+
                     <label className={labelClass}>
                       Gotram *
                     </label>
@@ -1941,14 +1843,12 @@ export default function MembershipPage() {
                     <input
                       type="text"
                       name="gotram"
-                      value={
-                        formData.gotram
+                      value={gotramSearch}
+                      onChange={handleGotramSearch}
+                      onFocus={() =>
+                        setShowGotramList(true)
                       }
-                      onChange={
-                        handleChange
-                      }
-                      list="membership-gotram-options"
-                      placeholder="Select or enter Gotram"
+                      placeholder="Type Gotram..."
                       autoComplete="off"
                       maxLength={100}
                       className={getInputClass(
@@ -1956,24 +1856,43 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <datalist id="membership-gotram-options">
-                      {gotramList.map(
-                        (gotram) => (
-                          <option
-                            key={gotram}
-                            value={gotram}
-                          />
-                        )
-                      )}
-                    </datalist>
+                    {/* SEARCH RESULTS */}
+                    {showGotramList && (
+                      <div className="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
 
-                    <ErrorMessage
-                      field="gotram"
-                    />
+                        {filteredGotramList.length > 0 ? (
+                          filteredGotramList.map(
+                            (gotram) => (
+                              <button
+                                type="button"
+                                key={gotram}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  handleGotramSelect(
+                                    gotram
+                                  );
+                                }}
+                                className="block w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-rose-50 hover:text-rose-700"
+                              >
+                                {gotram}
+                              </button>
+                            )
+                          )
+                        ) : (
+                          <p className="px-4 py-3 text-sm text-gray-500">
+                            No Gotram found
+                          </p>
+                        )}
+
+                      </div>
+                    )}
+
+                    <ErrorMessage field="gotram" />
+
                   </div>
 
-                  {/* LOCATION */}
 
+                  {/* LOCATION */}
                   <div>
                     <label className={labelClass}>
                       Location *
@@ -1982,12 +1901,8 @@ export default function MembershipPage() {
                     <input
                       type="text"
                       name="location"
-                      value={
-                        formData.location
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.location}
+                      onChange={handleChange}
                       placeholder="Enter Location"
                       maxLength={100}
                       className={getInputClass(
@@ -1995,40 +1910,30 @@ export default function MembershipPage() {
                       )}
                     />
 
-                    <ErrorMessage
-                      field="location"
-                    />
+                    <ErrorMessage field="location" />
                   </div>
 
-                  {/* PHOTO */}
 
+                  {/* PHOTO */}
                   <div>
+
                     <label className={labelClass}>
                       Member Photo *
                     </label>
 
-                    <div className="flex flex-col gap-3 sm:flex-row">
+                    <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
 
-                      {/* CAMERA */}
+                      🖼️ Choose Photo
 
-                     
+                      <input
+                        type="file"
+                        name="photo"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                      />
 
-                      {/* GALLERY */}
-
-                      <label className="flex cursor-pointer items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">
-                        🖼️ Choose Photo
-
-                        <input
-                          type="file"
-                          name="photo"
-                          accept="image/jpeg,image/jpg,image/png,image/webp"
-                          onChange={
-                            handlePhotoChange
-                          }
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
+                    </label>
 
                     {photoPreview && (
                       <div className="mt-4">
@@ -2040,14 +1945,14 @@ export default function MembershipPage() {
                       </div>
                     )}
 
-                    <ErrorMessage
-                      field="photo"
-                    />
+                    <ErrorMessage field="photo" />
+
                   </div>
 
-                  {/* EXISTING MAHASHABA MEMBER */}
 
+                  {/* EXISTING MAHASHABA MEMBER */}
                   <div>
+
                     <label className={labelClass}>
                       Are you an existing Mahashaba member? *
                     </label>
@@ -2057,9 +1962,7 @@ export default function MembershipPage() {
                       value={
                         formData.is_existing_mahashaba_member
                       }
-                      onChange={
-                        handleChange
-                      }
+                      onChange={handleChange}
                       className={getInputClass(
                         "is_existing_mahashaba_member"
                       )}
@@ -2080,11 +1983,13 @@ export default function MembershipPage() {
                     <ErrorMessage
                       field="is_existing_mahashaba_member"
                     />
+
                   </div>
 
-                  {/* EXISTING SANGAM MEMBER */}
 
+                  {/* EXISTING SANGAM MEMBER */}
                   <div>
+
                     <label className={labelClass}>
                       Are you an existing Sangam member? *
                     </label>
@@ -2094,9 +1999,7 @@ export default function MembershipPage() {
                       value={
                         formData.is_existing_sangam_member
                       }
-                      onChange={
-                        handleChange
-                      }
+                      onChange={handleChange}
                       className={getInputClass(
                         "is_existing_sangam_member"
                       )}
@@ -2117,17 +2020,21 @@ export default function MembershipPage() {
                     <ErrorMessage
                       field="is_existing_sangam_member"
                     />
+
                   </div>
+
                 </div>
               </section>
 
+
               {/* =================================================
                   COMMUNITY MEMBERSHIP DETAILS
-              ================================================= */}
+              ================================================== */}
 
               <section className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
 
                 <div className="mb-5">
+
                   <h2 className="text-lg font-semibold text-gray-900">
                     Community Membership Details
                   </h2>
@@ -2135,13 +2042,15 @@ export default function MembershipPage() {
                   <p className="mt-1 text-sm text-gray-500">
                     Select the body in which the member is associated.
                   </p>
+
                 </div>
+
 
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                   {/* STATE BODY */}
-
                   <div>
+
                     <label className={labelClass}>
                       State Body
                     </label>
@@ -2152,23 +2061,21 @@ export default function MembershipPage() {
                       readOnly
                       className={`${inputClass} cursor-not-allowed bg-gray-100`}
                     />
+
                   </div>
 
-                  {/* EXECUTIVE BODY */}
 
+                  {/* EXECUTIVE BODY */}
                   <div>
+
                     <label className={labelClass}>
                       Executive Body *
                     </label>
 
                     <select
                       name="executive_body"
-                      value={
-                        formData.executive_body
-                      }
-                      onChange={
-                        handleExecutiveBodyChange
-                      }
+                      value={formData.executive_body}
+                      onChange={handleExecutiveBodyChange}
                       className={getInputClass(
                         "executive_body"
                       )}
@@ -2187,15 +2094,17 @@ export default function MembershipPage() {
                           </option>
                         )
                       )}
+
                     </select>
 
                     <ErrorMessage
                       field="executive_body"
                     />
+
                   </div>
 
-                  {/* DISTRICT */}
 
+                  {/* DISTRICT */}
                   {[
                     "District Body",
                     "Mandal Body",
@@ -2204,18 +2113,15 @@ export default function MembershipPage() {
                     formData.executive_body
                   ) && (
                     <div>
+
                       <label className={labelClass}>
                         District *
                       </label>
 
                       <select
                         name="district"
-                        value={
-                          formData.district
-                        }
-                        onChange={
-                          handleDistrictChange
-                        }
+                        value={formData.district}
+                        onChange={handleDistrictChange}
                         disabled={
                           locationLoading &&
                           districts.length === 0
@@ -2233,12 +2139,8 @@ export default function MembershipPage() {
                         {districts.map(
                           (district) => (
                             <option
-                              key={
-                                district.id
-                              }
-                              value={
-                                district.name
-                              }
+                              key={district.id}
+                              value={district.name}
                             >
                               {district.name.replaceAll(
                                 "_",
@@ -2247,16 +2149,16 @@ export default function MembershipPage() {
                             </option>
                           )
                         )}
+
                       </select>
 
-                      <ErrorMessage
-                        field="district"
-                      />
+                      <ErrorMessage field="district" />
+
                     </div>
                   )}
 
-                  {/* MANDAL */}
 
+                  {/* MANDAL */}
                   {[
                     "Mandal Body",
                     "Sangham Body",
@@ -2264,18 +2166,15 @@ export default function MembershipPage() {
                     formData.executive_body
                   ) && (
                     <div>
+
                       <label className={labelClass}>
                         Mandal *
                       </label>
 
                       <select
                         name="mandal"
-                        value={
-                          formData.mandal
-                        }
-                        onChange={
-                          handleMandalChange
-                        }
+                        value={formData.mandal}
+                        onChange={handleMandalChange}
                         disabled={
                           !formData.district ||
                           mandals.length === 0
@@ -2302,30 +2201,27 @@ export default function MembershipPage() {
                         {mandals.map(
                           (mandal) => (
                             <option
-                              key={
-                                mandal.id
-                              }
-                              value={
-                                mandal.name
-                              }
+                              key={mandal.id}
+                              value={mandal.name}
                             >
                               {mandal.name}
                             </option>
                           )
                         )}
+
                       </select>
 
-                      <ErrorMessage
-                        field="mandal"
-                      />
+                      <ErrorMessage field="mandal" />
+
                     </div>
                   )}
 
-                  {/* SANGHAM */}
 
+                  {/* SANGHAM */}
                   {formData.executive_body ===
                     "Sangham Body" && (
                     <div>
+
                       <label className={labelClass}>
                         Sangham *
                       </label>
@@ -2333,12 +2229,8 @@ export default function MembershipPage() {
                       <input
                         type="text"
                         name="sangham"
-                        value={
-                          formData.sangham
-                        }
-                        onChange={
-                          handleSanghamChange
-                        }
+                        value={formData.sangham}
+                        onChange={handleSanghamChange}
                         placeholder="Enter Sangham Name"
                         maxLength={150}
                         disabled={
@@ -2355,27 +2247,23 @@ export default function MembershipPage() {
                         }`}
                       />
 
-                      <ErrorMessage
-                        field="sangham"
-                      />
+                      <ErrorMessage field="sangham" />
+
                     </div>
                   )}
 
-                  {/* DESIGNATION */}
 
+                  {/* DESIGNATION */}
                   <div>
+
                     <label className={labelClass}>
                       Position Details *
                     </label>
 
                     <select
                       name="designation"
-                      value={
-                        formData.designation
-                      }
-                      onChange={
-                        handleChange
-                      }
+                      value={formData.designation}
+                      onChange={handleChange}
                       className={getInputClass(
                         "designation"
                       )}
@@ -2387,29 +2275,30 @@ export default function MembershipPage() {
                       {designations.map(
                         (designation) => (
                           <option
-                            key={
-                              designation
-                            }
-                            value={
-                              designation
-                            }
+                            key={designation}
+                            value={designation}
                           >
                             {designation}
                           </option>
                         )
                       )}
+
                     </select>
 
                     <ErrorMessage
                       field="designation"
                     />
+
                   </div>
+
                 </div>
+
               </section>
+
 
               {/* =================================================
                   SUBMIT
-              ================================================= */}
+              ================================================== */}
 
               <div className="flex flex-col items-center justify-center gap-3 border-t border-gray-100 pt-7">
 
@@ -2432,24 +2321,15 @@ export default function MembershipPage() {
                   confirm that the information provided is
                   true and correct.
                 </p>
+
               </div>
+
             </form>
 
-            {/* EXISTING MEMBERS 
-
-            <p className="mt-7 text-center text-sm text-gray-600">
-              Already registered?
-
-              <a
-                href="/membership/details"
-                className="ml-2 font-semibold text-rose-600 hover:text-rose-700"
-              >
-                Existing Members
-              </a>
-            </p>*/}
           </div>
         </div>
       </div>
     </>
   );
 }
+
