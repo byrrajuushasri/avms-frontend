@@ -69,13 +69,12 @@ export default function AboutPage() {
               చంపాపేట ఆర్య వైశ్య సంఘం
             </p>
 
-            <h1 className="mt-2 text-2xl font-extrabold leading-tight text-[#800018] sm:text-3xl">
+            <h1 className="mt-2 text-2xl font-extrabold leading-tight text-[#800018] sm:text- xl">
               ఆర్య వైశ్య వివాహ
-              <br />
+              
               ఉచిత పరిచయ వేదిక
             </h1>
-
-            <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-[#800018] lg:mx-0" />
+ 
 
             <div className="mt-5 rounded-2xl border border-[#eadbb9] bg-[#fffaf1] p-5">
 
