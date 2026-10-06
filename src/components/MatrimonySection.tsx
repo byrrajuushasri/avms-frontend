@@ -66,7 +66,7 @@ export default function InterestButtons() {
           {/* Image */}
           <div className="group relative overflow-hidden rounded-2xl shadow-xl">
             <Image
-              src="/about/about-img2.png"
+              src="/about/about-us1.png"
               alt="Aarya Vysya Matrimony"
               width={900}
               height={600}
