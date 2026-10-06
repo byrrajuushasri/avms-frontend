@@ -31,7 +31,7 @@ export default function ContactPage() {
 
       {/* Contact Section */}
 
-      <section className="py-20">
+      <section className="py-5">
 
         <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12">
 
@@ -147,10 +147,30 @@ export default function ContactPage() {
                     Office
                   </h3>
 
-                  <p className="text-gray-500">
-                    Hyderabad, Telangana, India
-                  </p>
+                   <p className="font-semibold text-[#800018]">
+                  Champapet Aaryavysya Sangam
+                </p>
 
+                <p className="font-medium text-gray-700">
+                  Parichaya Vedica Vibhagam
+                </p>
+
+                <p>
+                  BVB Dhamam,
+                  17-1-383/N/80/A/60,
+                  Brindavan Colony
+                </p>
+
+                <p>
+                  Vaishali Nagar Post,
+                  Saroornagar Mandal,
+                  Ranga Reddy Dist.
+                </p>
+
+                <p className="font-medium text-gray-700">
+                  Aaryavysya Mahasabha Telangana
+                  · Hyderabad – 500079
+                </p>
                 </div>
 
               </div>
@@ -174,8 +194,10 @@ export default function ContactPage() {
                   <p className="text-gray-500">
                     9:00 AM - 6:00 PM
                   </p>
+                      <p className="mt-1 text-gray-500"> Every Month - First Sunday </p> </div>
 
-                </div>
+                 
+
 
               </div>
 

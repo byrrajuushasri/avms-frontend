@@ -1,3 +1,4 @@
+ 
 import Image from "next/image";
 import Link from "next/link";
 
@@ -74,8 +75,8 @@ export default function Hero() {
               leading-relaxed
               max-w-lg
             ">
-              Join thousands of verified Arya Vysya bride and groom
-              profiles and begin your journey towards a happy married life.
+             Connect with verified Arya Vysya bride and groom profiles 
+             and take the first step towards finding your ideal life partner.
             </p>
 
             {/* Buttons */}
@@ -106,8 +107,6 @@ export default function Hero() {
                 Register Free
               </Link>
 
-              
-
             </div>
 
             {/* Statistics */}
@@ -120,6 +119,7 @@ export default function Hero() {
               sm:mt-12
             ">
 
+              {/* Brides */}
               <div>
                 <h2 className="
                   text-2xl
@@ -127,14 +127,15 @@ export default function Hero() {
                   font-bold
                   text-yellow-300
                 ">
-                  25K+
+                  90%
                 </h2>
 
                 <p className="text-xs sm:text-sm mt-1">
-                  Brides
+                  Brides' Marriages
                 </p>
               </div>
 
+              {/* Grooms */}
               <div>
                 <h2 className="
                   text-2xl
@@ -142,14 +143,15 @@ export default function Hero() {
                   font-bold
                   text-yellow-300
                 ">
-                  22K+
+                  75–80%
                 </h2>
 
                 <p className="text-xs sm:text-sm mt-1">
-                  Grooms
+                 Grooms' Marriages
                 </p>
               </div>
 
+              {/* Matrimony Platform */}
               <div>
                 <h2 className="
                   text-2xl
@@ -157,11 +159,11 @@ export default function Hero() {
                   font-bold
                   text-yellow-300
                 ">
-                  12K+
+                  143వ
                 </h2>
 
                 <p className="text-xs sm:text-sm mt-1">
-                  Success Stories
+                 Matrimony Meet
                 </p>
               </div>
 
@@ -179,3 +181,4 @@ export default function Hero() {
     </section>
   );
 }
+ 

@@ -12,10 +12,10 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-[#800018] text-white mt-20">
+    <footer className="bg-[#800018] text-white  ">
 
       {/* Top */}
-      <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
 
         {/* Company */}
         <div>
@@ -28,39 +28,14 @@ export default function Footer() {
             genuine and verified bride & groom profiles across India.
           </p>
 
-          <div className="flex gap-3 mt-6">
-            <a
-              
-              className="w-10 h-10 rounded-full bg-white text-[#7a1233] flex items-center justify-center hover:bg-rose-200"
-            >
-              <FaFacebookF />
-            </a>
-
-            <a
-              
-              className="w-10 h-10 rounded-full bg-white text-[#7a1233] flex items-center justify-center hover:bg-rose-200"
-            >
-              <FaInstagram />
-            </a>
-
-            <a
-              
-              className="w-10 h-10 rounded-full bg-white text-[#7a1233] flex items-center justify-center hover:bg-rose-200"
-            >
-              <FaTwitter />
-            </a>
-
-            <a
-              
-              className="w-10 h-10 rounded-full bg-white text-[#7a1233] flex items-center justify-center hover:bg-rose-200"
-            >
-              <FaLinkedinIn />
-            </a>
-          </div>
+          
         </div>
 
         {/* Quick Links */}
         <div>
+           <h3 className="text-xl font-semibold mb-5">
+           Quick Links
+          </h3>
          <ul className="space-y-3 text-gray-200">
 
   <li>
@@ -75,11 +50,7 @@ export default function Footer() {
     </Link>
   </li>
 
-  <li>
-    <Link href="/matches" className="hover:text-white transition">
-      Search Profiles
-    </Link>
-  </li>
+  
 
   <li>
     <Link href="/membership" className="hover:text-white transition">
@@ -87,11 +58,7 @@ export default function Footer() {
     </Link>
   </li>
 
-  <li>
-    <Link href="/success-stories" className="hover:text-white transition">
-      Success Stories
-    </Link>
-  </li>
+  
 
   <li>
     <Link href="/contact" className="hover:text-white transition">
@@ -102,41 +69,7 @@ export default function Footer() {
 </ul>
         </div>
 
-        {/* Services */}
-        <div>
-          <h3 className="text-xl font-semibold mb-5">
-            Our Services
-          </h3>
-
-         <ul className="space-y-3 text-gray-200">
-
-  <li>
-    <Link href="/register" className="hover:text-white transition">
-      Free Registration
-    </Link>
-  </li>
-
-  <li>
-    <Link href="/matches" className="hover:text-white transition">
-      Verified Profiles
-    </Link>
-  </li>
-
-  <li>
-    <Link href="/membership" className="hover:text-white transition">
-      Premium Membership
-    </Link>
-  </li>
-
-  
-  <li>
-    <Link href="/contact" className="hover:text-white transition">
-      Customer Support
-    </Link>
-  </li>
-
-</ul>
-        </div>
+    
 
         {/* Contact */}
         <div>

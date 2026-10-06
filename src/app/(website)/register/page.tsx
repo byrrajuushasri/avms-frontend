@@ -1216,7 +1216,7 @@ export default function RegisterPage() {
         );
 
         setTimeout(() => {
-          router.push("/");
+          router.push("/register-success");
         }, 1800);
 
         return;

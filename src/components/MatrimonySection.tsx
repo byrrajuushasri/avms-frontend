@@ -3,6 +3,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+
 import {
   FaHeart,
   FaUsers,
@@ -17,26 +18,30 @@ const matrimonyFeatures = [
   {
     icon: FaUserCheck,
     title: "Verified Profiles",
-    description: "Connect with genuine matrimonial profiles.",
+    description:
+      "Connect with genuine Arya Vysya bride and groom profiles.",
   },
   {
     icon: FaShieldAlt,
     title: "Privacy & Security",
-    description: "Your personal details are handled with care.",
+    description:
+      "Your personal and family details are handled with care.",
   },
   {
     icon: FaUsers,
     title: "Family Values",
-    description: "Bringing families together with shared traditions.",
+    description:
+      "Bringing families together with shared values and traditions.",
   },
   {
     icon: FaHandsHelping,
     title: "Easy Connections",
-    description: "Find suitable matches with ease and confidence.",
+    description:
+      "Find suitable life partners with ease and confidence.",
   },
 ];
 
-export default function InterestButtons() {
+export default function MatrimonySection() {
   return (
     <section className="relative overflow-hidden bg-white py-16 md:py-20">
       <div className="mx-auto max-w-[1450px] px-5 sm:px-6 md:px-10 lg:px-16">
@@ -44,19 +49,20 @@ export default function InterestButtons() {
         {/* Heading */}
         <div className="mx-auto max-w-3xl text-center">
           <p className="font-serif text-xs font-bold tracking-[0.2em] text-[#a67816] sm:text-sm">
-            AARYA VYSYA MATRIMONY
+            CHAMPAPET AARYA VYSYA SANGHAM
           </p>
 
           <h2 className="mt-3 font-serif text-2xl font-bold text-[#690015] sm:text-3xl md:text-4xl">
-            Find Your Perfect Life Partner
+            Aarya Vysya Marriage Free Introduction Platform
           </h2>
 
           <div className="mx-auto mt-5 h-[2px] w-20 bg-[#d9a928]" />
 
           <p className="mt-5 text-sm leading-7 text-[#5c4141] sm:text-base">
-            A trusted matrimonial platform created especially for
-            Aarya Vysya families. Find genuine profiles and suitable
-            life partners while respecting family values and traditions.
+            A free matrimonial introduction platform created especially
+            for Aarya Vysya families. Connect with genuine bride and groom
+            profiles and take the first step towards finding a suitable
+            life partner while respecting family values and traditions.
           </p>
         </div>
 
@@ -79,15 +85,17 @@ export default function InterestButtons() {
             {/* Image Content */}
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6">
               <div className="rounded-xl border border-[#f5d36c]/40 bg-[#690015]/90 p-4 text-center backdrop-blur-sm sm:p-6">
+
                 <FaHeart className="mx-auto mb-2 text-2xl text-[#f5d36c]" />
 
                 <h3 className="font-serif text-lg font-bold text-[#f5d36c] sm:text-xl">
-                  Together Towards a Beautiful Future
+                  Bringing Families Together
                 </h3>
 
                 <p className="mt-2 text-xs text-white sm:text-sm">
-                  Connecting families with trust and tradition.
+                  Trust, tradition and meaningful matrimonial connections.
                 </p>
+
               </div>
             </div>
           </div>
@@ -99,17 +107,17 @@ export default function InterestButtons() {
             </p>
 
             <h3 className="mt-3 font-serif text-2xl font-bold text-[#690015] sm:text-3xl">
-              Trusted Matrimony Services
+              Aarya Vysya Matrimony Services
             </h3>
 
             <div className="mt-4 h-[2px] w-20 bg-[#d9a928]" />
 
             <p className="mt-5 text-sm leading-8 text-[#5c4141] sm:text-base">
-              Our matrimonial service helps Aarya Vysya brides and
-              grooms connect with suitable life partners while
-              respecting family traditions, values and preferences.
-              We aim to make your search for a life partner simple
-              and meaningful.
+              Our free matrimonial introduction service helps Aarya Vysya
+              brides and grooms connect with suitable life partners.
+              The platform is designed to bring families together while
+              respecting traditional values, family preferences and
+              meaningful relationships.
             </p>
 
             {/* Features */}
@@ -143,7 +151,7 @@ export default function InterestButtons() {
             {/* Buttons */}
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Link
-                href=" "
+                href=""
                 className="flex min-h-[50px] items-center justify-center gap-3 rounded-lg bg-[#690015] px-6 py-3 font-serif text-sm font-bold text-[#f5d36c] shadow-md transition duration-300 hover:-translate-y-1 hover:bg-[#f1c84b] hover:text-[#690015] hover:shadow-lg sm:px-7"
               >
                 <FaUsers className="text-base" />
@@ -162,11 +170,16 @@ export default function InterestButtons() {
             {/* Small trust text */}
             <div className="mt-6 flex items-center gap-2 text-xs text-[#806d61]">
               <FaGem className="shrink-0 text-[#b18a43]" />
-              <span>Tradition, trust and meaningful connections.</span>
+
+              <span>
+                Free registration • Trust • Tradition • Family values.
+              </span>
             </div>
+
           </div>
         </div>
       </div>
     </section>
   );
 }
+ 

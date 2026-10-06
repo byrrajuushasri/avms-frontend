@@ -597,9 +597,9 @@ export default function Header() {
               {/* LEFT LOGO */}
 
               <div className="flex justify-start">
-                <img
-                  src="/images/logo1.png"
-                  alt="Aarya Vysya Logo"
+               <img
+                  src="/images/vinayaka.jpg"
+                  alt="Aarya Vysya Mahasabha"
                   className="
                     h-auto
                     w-[48px]
@@ -638,9 +638,9 @@ export default function Header() {
               {/* RIGHT LOGO */}
 
               <div className="flex justify-end">
-                <img
-                  src="/images/vinayaka.jpg"
-                  alt="Aarya Vysya Mahasabha"
+               <img
+                  src="/images/logo1.jpg"
+                  alt="Aarya Vysya Logo"
                   className="
                     h-auto
                     w-[48px]
@@ -648,7 +648,7 @@ export default function Header() {
                     xs:w-[54px]
                     sm:w-[66px]
                   "
-                />
+                />  
               </div>
             </div>
 
@@ -716,7 +716,7 @@ export default function Header() {
           className="
             absolute
             right-2
-            top-2
+            top-10
             z-[120]
             flex
             h-9
