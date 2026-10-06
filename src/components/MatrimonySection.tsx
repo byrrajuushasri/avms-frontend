@@ -143,7 +143,7 @@ export default function InterestButtons() {
             {/* Buttons */}
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <Link
-                href="/search"
+                href=" "
                 className="flex min-h-[50px] items-center justify-center gap-3 rounded-lg bg-[#690015] px-6 py-3 font-serif text-sm font-bold text-[#f5d36c] shadow-md transition duration-300 hover:-translate-y-1 hover:bg-[#f1c84b] hover:text-[#690015] hover:shadow-lg sm:px-7"
               >
                 <FaUsers className="text-base" />

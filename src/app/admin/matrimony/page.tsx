@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import {
   FaEdit,
   FaTrash,
   FaTimes,
+  FaCheck,
 } from "react-icons/fa";
 
 /* =========================================================
@@ -21,44 +23,34 @@ import {
 interface MatrimonialUser {
   id: number;
   member_id: string | null;
-
   profile_category: string | null;
-
   surname: string | null;
   name: string;
-
   father_name: string | null;
   mother_name: string | null;
-
   gotram: string | null;
   nakshatram: string | null;
   padham: number | null;
   rasi: string | null;
-
   color: string | null;
   date_of_birth: string | null;
   height: string | null;
-
   education: string | null;
   occupation: string | null;
   annual_income: string | null;
-
   mobile: string | null;
   email: string | null;
-
   address: string | null;
-
   family_details?: string | null;
   brother_details?: string | null;
   sister_details?: string | null;
   property_details?: string | null;
   preferred_requirements?: string | null;
-
   photo: string | null;
-
   status: string;
   membership: string;
-
+  approved_at?: string | null;
+  expiry_date?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -78,19 +70,19 @@ const BACKEND_URL = (
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<MatrimonialUser[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-
   const [search, setSearch] = useState("");
 
   const [openMenuId, setOpenMenuId] =
     useState<number | null>(null);
 
   const [deletingId, setDeletingId] =
+    useState<number | null>(null);
+
+  const [approvingId, setApprovingId] =
     useState<number | null>(null);
 
   const rowsPerPage = 5;
@@ -103,6 +95,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setError("");
+
       const response = await fetch(
         `${BACKEND_URL}/matrimonial-users`,
         {
@@ -122,17 +115,13 @@ export default function AdminDashboard() {
 
       const data = await response.json();
 
-      console.log(
-        "Matrimonial users:",
-        data
-      );
+      console.log("Matrimonial users:", data);
 
       setUsers(
         Array.isArray(data)
           ? data
           : []
       );
-
     } catch (error) {
       console.error(
         "Error fetching matrimonial users:",
@@ -142,7 +131,6 @@ export default function AdminDashboard() {
       setError(
         "Unable to load matrimonial members. Please check the backend server."
       );
-
     } finally {
       setLoading(false);
     }
@@ -240,6 +228,105 @@ export default function AdminDashboard() {
     setSearch("");
     setCurrentPage(1);
     setOpenMenuId(null);
+  };
+
+  /* =========================================================
+     APPROVE MATRIMONIAL PROFILE
+  ========================================================= */
+
+  const handleApprove = async (
+    id: number,
+    name: string
+  ) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to approve ${name}?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setApprovingId(id);
+      setOpenMenuId(null);
+      setError("");
+
+      console.log(
+        "Approving matrimonial member:",
+        id
+      );
+
+      const response = await fetch(
+        `${BACKEND_URL}/matrimonial-users/${id}/approve`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const data =
+        await response
+          .json()
+          .catch(() => null);
+
+      console.log(
+        "APPROVE RESPONSE:",
+        data
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data?.message)
+            ? data.message.join(", ")
+            : data?.message ||
+                `Failed to approve member (${response.status})`
+        );
+      }
+
+      /* -----------------------------------------
+         UPDATE TABLE WITHOUT REFRESH
+      ----------------------------------------- */
+
+      setUsers(
+        (previousUsers) =>
+          previousUsers.map(
+            (user) =>
+              user.id === id
+                ? {
+                    ...user,
+                    status:
+                      data?.status ||
+                      "Approved",
+                    approved_at:
+                      data?.approved_at ||
+                      new Date().toISOString(),
+                    expiry_date:
+                      data?.expiry_date ||
+                      null,
+                  }
+                : user
+          )
+      );
+
+      alert(
+        "Matrimonial profile approved successfully. Approval email has been sent."
+      );
+    } catch (error) {
+      console.error(
+        "Approve member error:",
+        error
+      );
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to approve matrimonial profile."
+      );
+    } finally {
+      setApprovingId(null);
+    }
   };
 
   /* =========================================================
@@ -344,7 +431,6 @@ export default function AdminDashboard() {
       alert(
         "Matrimonial profile deleted successfully."
       );
-
     } catch (error) {
       console.error(
         "Delete member error:",
@@ -356,7 +442,6 @@ export default function AdminDashboard() {
           ? error.message
           : "Failed to delete matrimonial profile."
       );
-
     } finally {
       setDeletingId(null);
     }
@@ -382,7 +467,7 @@ export default function AdminDashboard() {
   ========================================================= */
 
   const formatDate = (
-    date: string | null
+    date: string | null | undefined
   ) => {
     if (!date) {
       return "-";
@@ -419,12 +504,8 @@ export default function AdminDashboard() {
   ) => {
     if (photo) {
       if (
-        photo.startsWith(
-          "http://"
-        ) ||
-        photo.startsWith(
-          "https://"
-        )
+        photo.startsWith("http://") ||
+        photo.startsWith("https://")
       ) {
         return photo;
       }
@@ -438,12 +519,25 @@ export default function AdminDashboard() {
   };
 
   /* =========================================================
+     STATUS
+  ========================================================= */
+
+  const isPending = (
+    status: string
+  ) => {
+    return (
+      !status ||
+      status.toLowerCase() ===
+        "pending"
+    );
+  };
+
+  /* =========================================================
      PAGE
   ========================================================= */
 
   return (
     <div className="min-h-screen bg-gray-50/80">
-
       <main
         className="
           px-4
@@ -455,7 +549,6 @@ export default function AdminDashboard() {
           mx-auto
         "
       >
-
         {/* ===================================================
             PAGE HEADER
         =================================================== */}
@@ -471,9 +564,7 @@ export default function AdminDashboard() {
             mb-7
           "
         >
-
           <div>
-
             <h2 className="text-2xl font-semibold text-gray-900">
               Matrimonial Management
             </h2>
@@ -482,7 +573,6 @@ export default function AdminDashboard() {
               Manage and monitor all registered
               matrimonial members.
             </p>
-
           </div>
 
           {/* ADD MATRIMONIAL */}
@@ -508,7 +598,6 @@ export default function AdminDashboard() {
             <FaPlus />
             Add Matrimonial
           </Link>
-
         </div>
 
         {/* ===================================================
@@ -525,7 +614,6 @@ export default function AdminDashboard() {
             overflow-visible
           "
         >
-
           {/* =================================================
               SEARCH BAR
           ================================================= */}
@@ -539,7 +627,6 @@ export default function AdminDashboard() {
               border-gray-100
             "
           >
-
             <div
               className="
                 flex
@@ -549,11 +636,9 @@ export default function AdminDashboard() {
                 gap-3
               "
             >
-
               {/* SEARCH */}
 
               <div className="relative flex-1">
-
                 <FaSearch
                   className="
                     absolute
@@ -572,12 +657,8 @@ export default function AdminDashboard() {
                     setSearch(
                       e.target.value
                     );
-
                     setCurrentPage(1);
-
-                    setOpenMenuId(
-                      null
-                    );
+                    setOpenMenuId(null);
                   }}
                   placeholder="Search by name, member ID, email or phone..."
                   className="
@@ -606,9 +687,7 @@ export default function AdminDashboard() {
                 {search && (
                   <button
                     type="button"
-                    onClick={
-                      resetSearch
-                    }
+                    onClick={resetSearch}
                     title="Clear search"
                     className="
                       absolute
@@ -630,7 +709,6 @@ export default function AdminDashboard() {
                     <FaTimes className="text-xs" />
                   </button>
                 )}
-
               </div>
 
               {/* RESULT COUNT */}
@@ -644,7 +722,6 @@ export default function AdminDashboard() {
                   gap-3
                 "
               >
-
                 <span className="text-xs text-gray-400 whitespace-nowrap">
                   {filteredUsers.length} members
                 </span>
@@ -652,9 +729,7 @@ export default function AdminDashboard() {
                 {search && (
                   <button
                     type="button"
-                    onClick={
-                      resetSearch
-                    }
+                    onClick={resetSearch}
                     className="
                       text-xs
                       font-semibold
@@ -665,11 +740,8 @@ export default function AdminDashboard() {
                     Clear
                   </button>
                 )}
-
               </div>
-
             </div>
-
           </div>
 
           {/* =================================================
@@ -678,7 +750,6 @@ export default function AdminDashboard() {
 
           {error && (
             <div className="px-6 py-4">
-
               <div
                 className="
                   rounded-xl
@@ -696,9 +767,7 @@ export default function AdminDashboard() {
 
               <button
                 type="button"
-                onClick={
-                  fetchUsers
-                }
+                onClick={fetchUsers}
                 className="
                   mt-3
                   px-4
@@ -713,7 +782,6 @@ export default function AdminDashboard() {
               >
                 Retry
               </button>
-
             </div>
           )}
 
@@ -722,13 +790,10 @@ export default function AdminDashboard() {
           ================================================= */}
 
           <div className="overflow-x-auto overflow-y-visible">
-
             <table className="w-full min-w-[1100px]">
-
               {/* TABLE HEADER */}
 
               <thead>
-
                 <tr
                   className="
                     bg-gray-50/80
@@ -738,7 +803,6 @@ export default function AdminDashboard() {
                     text-gray-400
                   "
                 >
-
                   <th className="px-6 py-4 text-left font-semibold">
                     Name
                   </th>
@@ -763,33 +827,28 @@ export default function AdminDashboard() {
                     Create Date
                   </th>
 
+                  <th className="px-6 py-4 text-left font-semibold">
+                    Status
+                  </th>
+
                   <th className="px-6 py-4 text-right font-semibold">
                     Actions
                   </th>
-
                 </tr>
-
               </thead>
 
               {/* TABLE BODY */}
 
               <tbody className="divide-y divide-gray-100">
-
-                {/* =================================================
-                    LOADING
-                ================================================= */}
+                {/* LOADING */}
 
                 {loading ? (
-
                   <tr>
-
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-6 py-16 text-center"
                     >
-
                       <div className="flex flex-col items-center">
-
                         <div
                           className="
                             w-10
@@ -805,22 +864,14 @@ export default function AdminDashboard() {
                         <p className="text-sm text-gray-500 mt-4">
                           Loading matrimonial members...
                         </p>
-
                       </div>
-
                     </td>
-
                   </tr>
-
                 ) : currentUsers.length > 0 ? (
-
-                  /* =================================================
-                     USERS
-                  ================================================= */
+                  /* USERS */
 
                   currentUsers.map(
                     (user) => (
-
                       <tr
                         key={user.id}
                         className="
@@ -828,13 +879,10 @@ export default function AdminDashboard() {
                           transition-colors
                         "
                       >
-
                         {/* NAME */}
 
                         <td className="px-6 py-4">
-
                           <div className="flex items-center gap-3">
-
                             <img
                               src={getPhotoUrl(
                                 user.photo,
@@ -843,9 +891,7 @@ export default function AdminDashboard() {
                                   ""
                                 }`
                               )}
-                              alt={
-                                user.name
-                              }
+                              alt={user.name}
                               className="
                                 w-10
                                 h-10
@@ -854,9 +900,7 @@ export default function AdminDashboard() {
                                 border
                                 border-gray-100
                               "
-                              onError={(
-                                e
-                              ) => {
+                              onError={(e) => {
                                 e.currentTarget.src =
                                   `https://ui-avatars.com/api/?name=${encodeURIComponent(
                                     user.name
@@ -865,7 +909,6 @@ export default function AdminDashboard() {
                             />
 
                             <div className="min-w-0">
-
                               <p
                                 className="
                                   font-semibold
@@ -875,60 +918,43 @@ export default function AdminDashboard() {
                                 "
                               >
                                 {user.name}{" "}
-                                {user.surname ||
-                                  ""}
+                                {user.surname || ""}
                               </p>
 
                               <p className="text-xs text-gray-400 mt-0.5">
-                                ID #
-                                {
-                                  user.id
-                                }
+                                ID #{user.id}
                               </p>
-
                             </div>
-
                           </div>
-
                         </td>
 
                         {/* MEMBER ID */}
 
                         <td className="px-6 py-4">
-
                           <span className="text-sm font-medium text-gray-600">
-                            {user.member_id ||
-                              "-"}
+                            {user.member_id || "-"}
                           </span>
-
                         </td>
 
                         {/* EMAIL */}
 
                         <td className="px-6 py-4">
-
                           <span className="text-sm text-gray-600 whitespace-nowrap">
-                            {user.email ||
-                              "-"}
+                            {user.email || "-"}
                           </span>
-
                         </td>
 
                         {/* PHONE */}
 
                         <td className="px-6 py-4">
-
                           <span className="text-sm text-gray-600 whitespace-nowrap">
-                            {user.mobile ||
-                              "-"}
+                            {user.mobile || "-"}
                           </span>
-
                         </td>
 
                         {/* PROFILE CATEGORY */}
 
                         <td className="px-6 py-4">
-
                           <span
                             className="
                               inline-flex
@@ -945,15 +971,12 @@ export default function AdminDashboard() {
                             {user.profile_category ||
                               "-"}
                           </span>
-
                         </td>
 
                         {/* CREATE DATE */}
 
                         <td className="px-6 py-4">
-
                           <div className="flex flex-col">
-
                             <span
                               className="
                                 text-sm
@@ -970,19 +993,73 @@ export default function AdminDashboard() {
                             <span className="text-xs text-gray-400 mt-0.5">
                               Registered
                             </span>
-
                           </div>
+                        </td>
 
+                        {/* STATUS */}
+
+                        <td className="px-6 py-4">
+                          {isPending(
+                            user.status
+                          ) ? (
+                            <span
+                              className="
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                px-3
+                                py-1.5
+                                rounded-full
+                                text-xs
+                                font-semibold
+                                bg-yellow-50
+                                text-yellow-700
+                                border
+                                border-yellow-100
+                              "
+                            >
+                              Pending
+                            </span>
+                          ) : (
+                            <div className="flex flex-col">
+                              <span
+                                className="
+                                  inline-flex
+                                  items-center
+                                  gap-1.5
+                                  w-fit
+                                  px-3
+                                  py-1.5
+                                  rounded-full
+                                  text-xs
+                                  font-semibold
+                                  bg-green-50
+                                  text-green-700
+                                  border
+                                  border-green-100
+                                "
+                              >
+                                <FaCheck className="text-[10px]" />
+                                Approved
+                              </span>
+
+                              {user.expiry_date && (
+                                <span className="text-[11px] text-gray-400 mt-1">
+                                  Expires:{" "}
+                                  {formatDate(
+                                    user.expiry_date
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </td>
 
                         {/* ACTIONS */}
 
                         <td className="px-6 py-4">
-
                           <div className="flex justify-end">
-
                             <div className="relative">
-
                               {/* ACTION BUTTON */}
 
                               <button
@@ -1000,7 +1077,9 @@ export default function AdminDashboard() {
                                 }
                                 disabled={
                                   deletingId ===
-                                  user.id
+                                    user.id ||
+                                  approvingId ===
+                                    user.id
                                 }
                                 className="
                                   w-9
@@ -1021,25 +1100,20 @@ export default function AdminDashboard() {
                                   transition-all
                                 "
                               >
-
                                 <FaEllipsisV className="text-sm" />
-
                               </button>
 
-                              {/* =================================================
-                                  DROPDOWN
-                              ================================================= */}
+                              {/* DROPDOWN */}
 
                               {openMenuId ===
                                 user.id && (
-
                                 <div
                                   className="
                                     absolute
                                     right-0
                                     top-11
                                     z-50
-                                    w-40
+                                    w-44
                                     bg-white
                                     border
                                     border-gray-100
@@ -1048,6 +1122,79 @@ export default function AdminDashboard() {
                                     py-1.5
                                   "
                                 >
+                                  {/* APPROVE */}
+
+                                  {isPending(
+                                    user.status
+                                  ) && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        disabled={
+                                          approvingId ===
+                                            user.id ||
+                                          deletingId ===
+                                            user.id
+                                        }
+                                        onClick={() =>
+                                          handleApprove(
+                                            user.id,
+                                            `${user.name} ${
+                                              user.surname ||
+                                              ""
+                                            }`.trim()
+                                          )
+                                        }
+                                        className="
+                                          w-full
+                                          flex
+                                          items-center
+                                          gap-3
+                                          px-4
+                                          py-2.5
+                                          text-sm
+                                          font-semibold
+                                          text-gray-700
+                                          hover:bg-gray-50
+                                          disabled:opacity-50
+                                          disabled:cursor-not-allowed
+                                          transition
+                                          text-left
+                                        "
+                                      >
+                                        {approvingId ===
+                                        user.id ? (
+                                          <>
+                                            <span
+                                              className="
+                                                w-3
+                                                h-3
+                                                border-2
+                                                border-gray-300
+                                                border-t-gray-700
+                                                rounded-full
+                                                animate-spin
+                                              "
+                                            />
+
+                                            <span>
+                                              Approving...
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <FaCheck className="text-gray-400 text-xs" />
+
+                                            <span>
+                                              Approve
+                                            </span>
+                                          </>
+                                        )}
+                                      </button>
+
+                                      <div className="my-1 border-t border-gray-100" />
+                                    </>
+                                  )}
 
                                   {/* VIEW */}
 
@@ -1072,13 +1219,11 @@ export default function AdminDashboard() {
                                       transition
                                     "
                                   >
-
                                     <FaEye className="text-gray-400 text-xs" />
 
                                     <span>
                                       View
                                     </span>
-
                                   </Link>
 
                                   {/* EDIT */}
@@ -1104,13 +1249,11 @@ export default function AdminDashboard() {
                                       transition
                                     "
                                   >
-
                                     <FaEdit className="text-gray-400 text-xs" />
 
                                     <span>
                                       Edit
                                     </span>
-
                                   </Link>
 
                                   {/* DIVIDER */}
@@ -1123,7 +1266,9 @@ export default function AdminDashboard() {
                                     type="button"
                                     disabled={
                                       deletingId ===
-                                      user.id
+                                        user.id ||
+                                      approvingId ===
+                                        user.id
                                     }
                                     onClick={() =>
                                       handleDelete(
@@ -1151,10 +1296,8 @@ export default function AdminDashboard() {
                                       text-left
                                     "
                                   >
-
                                     {deletingId ===
                                     user.id ? (
-
                                       <>
                                         <span
                                           className="
@@ -1172,9 +1315,7 @@ export default function AdminDashboard() {
                                           Deleting...
                                         </span>
                                       </>
-
                                     ) : (
-
                                       <>
                                         <FaTrash className="text-gray-400 text-xs" />
 
@@ -1183,39 +1324,24 @@ export default function AdminDashboard() {
                                         </span>
                                       </>
                                     )}
-
                                   </button>
-
                                 </div>
-
                               )}
-
                             </div>
-
                           </div>
-
                         </td>
-
                       </tr>
-
                     )
                   )
-
                 ) : (
-
-                  /* =================================================
-                     NO RESULTS
-                  ================================================= */
+                  /* NO RESULTS */
 
                   <tr>
-
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-6 py-16 text-center"
                     >
-
                       <div className="flex flex-col items-center">
-
                         <div
                           className="
                             w-12
@@ -1244,9 +1370,7 @@ export default function AdminDashboard() {
                         {search && (
                           <button
                             type="button"
-                            onClick={
-                              resetSearch
-                            }
+                            onClick={resetSearch}
                             className="
                               mt-4
                               text-xs
@@ -1258,19 +1382,12 @@ export default function AdminDashboard() {
                             Clear search
                           </button>
                         )}
-
                       </div>
-
                     </td>
-
                   </tr>
-
                 )}
-
               </tbody>
-
             </table>
-
           </div>
 
           {/* =================================================
@@ -1291,48 +1408,33 @@ export default function AdminDashboard() {
               border-gray-100
             "
           >
-
             {/* PAGINATION INFO */}
 
             <p className="text-sm text-gray-500">
-
               Showing{" "}
-
               <span className="font-semibold text-gray-700">
-                {filteredUsers.length ===
-                0
+                {filteredUsers.length === 0
                   ? 0
-                  : indexOfFirstRow +
-                    1}
+                  : indexOfFirstRow + 1}
               </span>{" "}
-
               to{" "}
-
               <span className="font-semibold text-gray-700">
                 {Math.min(
                   indexOfLastRow,
                   filteredUsers.length
                 )}
               </span>{" "}
-
               of{" "}
-
               <span className="font-semibold text-gray-700">
-                {
-                  filteredUsers.length
-                }
+                {filteredUsers.length}
               </span>{" "}
-
               members
-
             </p>
 
             {/* PAGINATION BUTTONS */}
 
             {totalPages > 0 && (
-
               <div className="flex items-center gap-2">
-
                 {/* PREVIOUS */}
 
                 <button
@@ -1346,13 +1448,10 @@ export default function AdminDashboard() {
                         )
                     );
 
-                    setOpenMenuId(
-                      null
-                    );
+                    setOpenMenuId(null);
                   }}
                   disabled={
-                    safeCurrentPage ===
-                    1
+                    safeCurrentPage === 1
                   }
                   className="
                     px-4
@@ -1377,7 +1476,6 @@ export default function AdminDashboard() {
                   length: totalPages,
                 }).map(
                   (_, index) => (
-
                     <button
                       type="button"
                       key={index}
@@ -1386,9 +1484,7 @@ export default function AdminDashboard() {
                           index + 1
                         );
 
-                        setOpenMenuId(
-                          null
-                        );
+                        setOpenMenuId(null);
                       }}
                       className={`
                         w-9
@@ -1397,7 +1493,6 @@ export default function AdminDashboard() {
                         text-sm
                         font-semibold
                         transition
-
                         ${
                           safeCurrentPage ===
                           index + 1
@@ -1408,7 +1503,6 @@ export default function AdminDashboard() {
                     >
                       {index + 1}
                     </button>
-
                   )
                 )}
 
@@ -1425,9 +1519,7 @@ export default function AdminDashboard() {
                         )
                     );
 
-                    setOpenMenuId(
-                      null
-                    );
+                    setOpenMenuId(null);
                   }}
                   disabled={
                     safeCurrentPage ===
@@ -1449,19 +1541,12 @@ export default function AdminDashboard() {
                 >
                   Next
                 </button>
-
               </div>
-
             )}
-
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }
-
 

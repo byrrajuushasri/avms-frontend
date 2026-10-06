@@ -1,13 +1,11 @@
-
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { IconType } from "react-icons";
 
 import {
   FaBars,
-  FaCalendarAlt,
   FaChevronDown,
   FaChevronRight,
   FaEnvelope,
@@ -51,7 +49,6 @@ const menuItems: MenuItem[] = [
         label: "Members Registration",
         href: "/membership",
       },
-       
     ],
   },
 
@@ -78,27 +75,14 @@ const menuItems: MenuItem[] = [
 ========================================================= */
 
 export default function Header() {
-  const [today, setToday] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const [expanded, setExpanded] = useState<Set<string>>(
+    new Set()
+  );
 
   /* =======================================================
-     TODAY'S DATE
-  ======================================================= */
-
-  useEffect(() => {
-    setToday(
-      new Date().toLocaleDateString("en-IN", {
-        weekday: "long",
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
-    );
-  }, []);
-
-  /* =======================================================
-     MOBILE DROPDOWN TOGGLE
+     TOGGLE MOBILE MENU
   ======================================================= */
 
   const toggle = (key: string) => {
@@ -124,9 +108,9 @@ export default function Header() {
     setExpanded(new Set());
   };
 
-  /* =======================================================
+  /* =========================================================
      DESKTOP DROPDOWN
-  ======================================================= */
+  ========================================================= */
 
   function DesktopDropdown({
     items,
@@ -139,10 +123,14 @@ export default function Header() {
       <div
         className={`
           absolute
-          ${level === 0 ? "left-0 top-full" : "left-full top-0"}
+          ${
+            level === 0
+              ? "left-0 top-full"
+              : "left-full top-0"
+          }
           z-[100]
           min-w-[230px]
-          overflow-hidden
+          overflow-visible
           rounded-b-lg
           border
           border-[#eadbb9]
@@ -152,7 +140,8 @@ export default function Header() {
         `}
       >
         {items.map((child) => {
-          const hasChildren = !!child.children?.length;
+          const hasChildren =
+            !!child.children?.length;
 
           return (
             <div
@@ -230,9 +219,9 @@ export default function Header() {
     );
   }
 
-  /* =======================================================
+  /* =========================================================
      MOBILE CHILDREN
-  ======================================================= */
+  ========================================================= */
 
   function MobileChildren({
     items,
@@ -245,18 +234,20 @@ export default function Header() {
   }) {
     return (
       <div
-        className={`
-          ${
-            level === 0
-              ? "bg-[#fffaf1]"
-              : "ml-4 border-l-2 border-[#e8d6ad] bg-white"
-          }
-        `}
+        className={
+          level === 0
+            ? "bg-[#fffaf1]"
+            : "ml-4 border-l-2 border-[#e8d6ad] bg-white"
+        }
       >
         {items.map((child) => {
           const key = `${parentKey}/${child.label}`;
-          const hasChildren = !!child.children?.length;
-          const isOpen = expanded.has(key);
+
+          const hasChildren =
+            !!child.children?.length;
+
+          const isOpen =
+            expanded.has(key);
 
           return (
             <div key={key}>
@@ -287,7 +278,11 @@ export default function Header() {
                       className={`
                         text-[10px]
                         transition
-                        ${isOpen ? "rotate-90" : ""}
+                        ${
+                          isOpen
+                            ? "rotate-90"
+                            : ""
+                        }
                       `}
                     />
 
@@ -298,7 +293,11 @@ export default function Header() {
                     className={`
                       text-[10px]
                       transition
-                      ${isOpen ? "rotate-180" : ""}
+                      ${
+                        isOpen
+                          ? "rotate-180"
+                          : ""
+                      }
                     `}
                   />
                 </button>
@@ -341,262 +340,668 @@ export default function Header() {
     );
   }
 
-  /* =======================================================
-     HEADER UI
-  ======================================================= */
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
   return (
-    <header className="relative z-50 w-full bg-white font-serif">
+    <header
+      className="
+        relative
+        z-50
+        w-full
+        overflow-visible
+        font-serif
+      "
+    >
 
-      {/* ===================================================
-          TOP ACCENT
-      =================================================== */}
+      {/* =====================================================
+          TOP MAROON BORDER
+      ====================================================== */}
 
-      <div className="h-1 bg-[#800018]" />
+      <div className="h-[5px] bg-[#800018]" />
 
-      {/* ===================================================
-          TOP INFORMATION BAR
-      =================================================== */}
+      {/* =====================================================
+          TRADITIONAL TELUGU MARRIAGE PANDIRI
+      ====================================================== */}
 
-      <div className="border-b border-gray-200/70 bg-white/75 backdrop-blur-sm">
+      <section
+        className="
+          relative
+          overflow-hidden
+          border-b
+          border-[#d4af37]
+        
+        "
+      >
+
+        {/* =================================================
+            THORANAM
+        ================================================== */}
+
         <div
           className="
-            mx-auto
-            flex
-            min-h-8
-            max-w-[1500px]
-            items-center
-            justify-between
-            gap-2
-            px-4
-            sm:px-6
+            relative
+            h-[125px]
+            w-full
+            overflow-hidden
+            sm:h-[140px]
+            md:h-[155px]
+            lg:h-[170px]
           "
         >
-          {/* DATE */}
+
+          {/* TOP THORANAM - LEFT */}
+
+          <img
+            src="/images/mamidi-thoranam.png"
+            alt="Traditional Telugu mango leaf toranam"
+            className="
+              absolute
+              left-0
+              top-0
+              h-[20px]
+              w-[50%]
+              object-cover
+              object-left-top
+              sm:h-[90px]
+              md:h-[105px]
+              lg:h-[115px]
+            "
+          />
+
+          {/* TOP THORANAM - RIGHT */}
+
+          <img
+            src="/images/mamidi-thoranam.png"
+            alt="Traditional Telugu mango leaf toranam"
+            className="
+              absolute
+              right-0
+              top-0
+              h-[80px]
+              w-[50%]
+              scale-x-[-1]
+              object-cover
+              object-right-top
+              sm:h-[90px]
+              md:h-[105px]
+              lg:h-[115px]
+            "
+          />
+
+          {/* =================================================
+              CENTER DECORATIVE GOLD LINE
+          ================================================== */}
 
           <div
             className="
-              flex
-              min-w-0
-              items-center
-              gap-2
-              text-[10px]
-              text-[#800018]
-              sm:text-xs
+              absolute
+              left-1/2
+              top-0
+              z-20
+              h-[5px]
+              w-[42%]
+              -translate-x-1/2
+              bg-[#d4af37]
             "
-          >
-            <FaCalendarAlt className="shrink-0" />
+          />
 
-            <span className="truncate">
-              {today || "Aarya Vysya Matrimony"}
-            </span>
+        </div>
+
+        {/* =================================================
+            HANGING FLOWER DECORATION
+            LEFT = శ్రీరస్తు
+            CENTER = శుభమస్తు
+            RIGHT = అవిఘ్నమస్తు
+        ================================================== */}
+
+        <div
+          className="
+            pointer-events-none
+          absolute
+            left-1
+            right-1
+             
+           
+            grid
+            grid-cols-3
+            items-start
+            px-3
+            
+            
+            md:top-[111px]
+            md:px-16
+            lg:px-24
+          "
+        >
+
+          {/* =================================================
+              LEFT
+              శ్రీరస్తు
+          ================================================== */}
+
+          <div className="flex flex-col items-center">
+
+            {/* Flower */}
+
+           
+            {/* Telugu Blessing */}
+
+            <div
+              className="
+                mt-1
+                rounded-full
+                border
+                border-[#d4af37]
+                bg-[#fffaf0]
+                px-2
+                py-1
+                shadow-sm
+                sm:px-4
+                sm:py-1.5
+                md:px-6
+                md:py-1
+              "
+            >
+              <span
+                className="
+                  whitespace-nowrap
+                  text-sm
+                 
+                  text-[#800018]
+                  sm:text-base
+                  md:text-sm
+                  lg:text-sm
+                "
+              >
+                శ్రీరస్తు
+              </span>
+            </div>
+
+           
           </div>
 
-          {/* EMAIL */}
+          {/* =================================================
+              CENTER
+              శుభమస్తు
+          ================================================== */}
 
-          <a
-            href="mailto:noreply@aaryavysyamahasabha.com"
-            className="
-              hidden
-              items-center
-              gap-2
-              text-xs
-              text-gray-600
-              transition
-              hover:text-[#800018]
-              sm:flex
-            "
-          >
-            <FaEnvelope />
+          <div className="flex flex-col items-center">
 
-            noreply@aaryavysyamahasabha.com
-          </a>
+            {/* Flower */}
+
+            
+ 
+            {/* Telugu Blessing */}
+
+           <div
+              className="
+                mt-1
+                rounded-full
+                border
+                border-[#d4af37]
+                bg-[#fffaf0]
+                px-2
+                py-1
+                shadow-sm
+                sm:px-4
+                sm:py-1.5
+                md:px-6
+                md:py-1
+              "
+            >
+              <span
+                className="
+                  whitespace-nowrap
+                  text-sm
+                 
+                  text-[#800018]
+                  sm:text-base
+                  md:text-sm
+                  lg:text-sm
+                "
+              >
+                శుభమస్తు
+              </span>
+            </div>
+
+            
+
+          </div>
+
+          {/* =================================================
+              RIGHT
+              అవిఘ్నమస్తు
+          ================================================== */}
+
+          <div className="flex flex-col items-center">
+
+            {/* Flower */}
+ 
+            
+            {/* Telugu Blessing */}
+ 
+           <div
+              className="
+                mt-1
+                rounded-full
+                border
+                border-[#d4af37]
+                bg-[#fffaf0]
+                px-2
+                py-1
+                shadow-sm
+                sm:px-4
+                sm:py-1.5
+                md:px-6
+                md:py-1
+              "
+            >
+              <span
+                className="
+                  whitespace-nowrap
+                  text-sm
+                 
+                  text-[#800018]
+                  sm:text-base
+                  md:text-sm
+                  lg:text-sm
+                "
+              >
+                అవిఘ్నమస్తు
+              </span>
+            </div>
+
+           
+          </div>
+
         </div>
-      </div>
 
-      {/* ===================================================
-          MAIN BRAND SECTION
-      =================================================== */}
+        {/* =================================================
+            BOTTOM FLOWER / PANDIRI BORDER
+        ================================================== */}
+
+       
+
+      </section>
+
+      {/* =====================================================
+          VINAYAKA SHLOKA
+      ====================================================== */}
 
       <div
         className="
           border-b
-          border-gray-100
-          bg-white/85
-          backdrop-blur-md
+          border-[#eadfca]
+          bg-[#fffdf7]
         "
       >
         <div
           className="
-            relative
             mx-auto
-            flex
             max-w-[1500px]
-            flex-col
-            items-center
-            justify-center
-            gap-2
+            px-4
+            py-2
+            text-center
+            text-[9px]
+            font-medium
+            leading-[1.7]
+            text-[#800018]
+            sm:px-6
+            sm:text-[10px]
+            md:text-[11px]
+          "
+        >
+          <p>
+            ముదాకరాత్త మోదకం సదా విముక్తి సాధకమ్
+            కళాధరావతంసకం విలాసిలోక రక్షకమ్
+          </p>
+
+          <p>
+            అనాయకైక నాయకం వినాశితేభ దైత్యకమ్
+            నతాశుభాశు నాశకం నమామి తం వినాయకమ్
+          </p>
+        </div>
+      </div>
+
+      {/* =====================================================
+          LOGO + ADDRESS
+      ====================================================== */}
+
+      <div
+        className="
+          relative
+          border-b
+          border-gray-100
+          bg-white
+        "
+      >
+
+        <div
+          className="
+            mx-auto
+            max-w-[1500px]
             px-4
             py-3
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            sm:gap-6
             sm:px-6
+            sm:py-4
           "
         >
 
           {/* =================================================
-              LEFT - LOGO
-          ================================================= */}
-
-          <Link
-            href="/"
-            onClick={closeMobile}
-            className="
-              flex
-              shrink-0
-              items-center
-              justify-center
-            "
-          >
-            <img
-              src="/images/logo.png"
-              alt="Aarya Vysya Matrimony Logo"
-              className="
-                h-auto
-                w-[180px]
-                shrink-0
-                object-contain
-                sm:w-[210px]
-                md:w-[240px]
-                lg:w-[270px]
-              "
-            />
-          </Link>
-
-          {/* =================================================
-              RIGHT - DESKTOP ADDRESS
+              DESKTOP
           ================================================= */}
 
           <div
             className="
               hidden
-              max-w-[520px]
-              text-right
-              text-[10px]
-              leading-[1.55]
-              text-gray-600
-              sm:block
-              md:text-xs
-            "
-          >
-            <p className="mb-0.5 text-sm font-semibold text-[#800018] md:text-base">
-              Champapet Aaryavysya Sangam
-            </p>
-
-            <p className="font-medium text-gray-700">
-              Parichaya Vedica Vibhagam
-            </p>
-
-            <p>
-              BVB Dhamam, 17-1-383/N/80/A/60, Brindavan Colony
-            </p>
-
-            <p>
-              Vaishali Nagar Post, Saroornagar Mandal, Ranga Reddy Dist.
-            </p>
-
-            <p className="font-medium text-gray-700">
-              Aaryavysya Mahasabha Telangana · Hyderabad – 500079
-            </p>
-          </div>
-
-          {/* =================================================
-              MOBILE ADDRESS
-          ================================================= */}
-
-          <div
-            className="
-              block
-              w-full
-              max-w-[420px]
-              border-t
-              border-gray-200
-              pt-2
-              text-center
-              text-[9px]
-              leading-[1.45]
-              text-gray-600
-              sm:hidden
-            "
-          >
-            <p className="text-[12px] font-semibold text-[#800018]">
-              Champapet Aaryavysya Sangam
-            </p>
-
-            <p className="font-medium text-gray-700">
-              Parichaya Vedica Vibhagam
-            </p>
-
-            <p>
-              BVB Dhamam, 17-1-383/N/80/A/60, Brindavan Colony
-            </p>
-
-            <p>
-              Vaishali Nagar Post, Saroornagar Mandal, Ranga Reddy Dist.
-            </p>
-
-            <p className="font-medium text-gray-700">
-              Aaryavysya Mahasabha Telangana · Hyderabad – 500079
-            </p>
-          </div>
-
-          {/* =================================================
-              MOBILE MENU BUTTON
-          ================================================= */}
-
-          <button
-            type="button"
-            onClick={() => {
-              setMobileOpen((prev) => !prev);
-              setExpanded(new Set());
-            }}
-            aria-label={
-              mobileOpen
-                ? "Close menu"
-                : "Open menu"
-            }
-            aria-expanded={mobileOpen}
-            className="
-              absolute
-              right-3
-              top-3
-              flex
-              h-10
-              w-10
+              grid-cols-[130px_1fr_130px]
               items-center
-              justify-center
-              rounded-md
-              text-xl
-              text-[#800018]
-              transition
-              hover:bg-[#fff5e5]
-              md:hidden
+              gap-6
+              md:grid
+              lg:grid-cols-[150px_1fr_150px]
+              lg:gap-10
             "
           >
-            {mobileOpen ? (
-              <FaTimes />
-            ) : (
-              <FaBars />
-            )}
-          </button>
+
+            {/* LEFT LOGO */}
+
+            <div className="flex justify-start">
+              <img
+                src="/images/logo1.png"
+                alt="Aarya Vysya Logo"
+                className="
+                  h-auto
+                  w-[100px]
+                  object-contain
+                  lg:w-[125px]
+                "
+              />
+            </div>
+
+            {/* CENTER */}
+
+            <div
+              className="
+                flex
+                items-center
+                justify-center
+                gap-8
+                lg:gap-12
+              "
+            >
+
+              {/* MAIN LOGO */}
+
+              <Link
+                href="/"
+                className="
+                  flex
+                  shrink-0
+                  items-center
+                  justify-center
+                "
+              >
+                <img
+                  src="/images/logo.png"
+                  alt="Aarya Vysya Matrimony"
+                  className="
+                    h-auto
+                    w-[210px]
+                    object-contain
+                    lg:w-[270px]
+                    xl:w-[310px]
+                  "
+                />
+              </Link>
+
+              {/* ADDRESS */}
+
+              <div
+                className="
+                  max-w-[470px]
+                  border-l
+                  border-gray-200
+                  pl-6
+                  text-left
+                  text-[10px]
+                  leading-[1.7]
+                  text-gray-600
+                  lg:text-xs
+                "
+              >
+
+                <p
+                  className="
+                    font-semibold
+                    text-[#800018]
+                  "
+                >
+                  Champapet Aaryavysya Sangam
+                </p>
+
+                <p
+                  className="
+                    font-medium
+                    text-gray-700
+                  "
+                >
+                  Parichaya Vedica Vibhagam
+                </p>
+
+                <p>
+                  BVB Dhamam,
+                  17-1-383/N/80/A/60,
+                  Brindavan Colony
+                </p>
+
+                <p>
+                  Vaishali Nagar Post,
+                  Saroornagar Mandal,
+                  Ranga Reddy Dist.
+                </p>
+
+                <p
+                  className="
+                    font-medium
+                    text-gray-700
+                  "
+                >
+                  Aaryavysya Mahasabha Telangana
+                  · Hyderabad – 500079
+                </p>
+
+              </div>
+
+            </div>
+
+            {/* RIGHT LOGO */}
+
+            <div className="flex justify-end">
+              <img
+                src="/images/logo2.png"
+                alt="Aarya Vysya Mahasabha"
+                className="
+                  h-auto
+                  w-[100px]
+                  object-contain
+                  lg:w-[125px]
+                "
+              />
+            </div>
+
+          </div>
+
+          {/* =================================================
+              MOBILE
+          ================================================= */}
+
+          <div className="md:hidden">
+
+            {/* MOBILE LOGOS */}
+
+            <div
+              className="
+                grid
+                grid-cols-[70px_1fr_70px]
+                items-center
+                gap-2
+              "
+            >
+
+              {/* LEFT */}
+
+              <div className="flex justify-start">
+                <img
+                  src="/images/logo1.png"
+                  alt="Aarya Vysya Logo"
+                  className="
+                    h-auto
+                    w-[60px]
+                    object-contain
+                    sm:w-[70px]
+                  "
+                />
+              </div>
+
+              {/* CENTER */}
+
+              <Link
+                href="/"
+                className="
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                <img
+                  src="/images/logo.png"
+                  alt="Aarya Vysya Matrimony"
+                  className="
+                    h-auto
+                    w-[165px]
+                    object-contain
+                    sm:w-[190px]
+                  "
+                />
+              </Link>
+
+              {/* RIGHT */}
+
+              <div className="flex justify-end">
+                <img
+                  src="/images/logo2.png"
+                  alt="Aarya Vysya Mahasabha"
+                  className="
+                    h-auto
+                    w-[60px]
+                    object-contain
+                    sm:w-[70px]
+                  "
+                />
+              </div>
+
+            </div>
+
+            {/* MOBILE ADDRESS */}
+
+            <div
+              className="
+                mx-auto
+                mt-3
+                border-t
+                border-gray-200
+                pt-2
+                text-center
+                text-[9px]
+                leading-[1.6]
+                text-gray-600
+                sm:text-[10px]
+              "
+            >
+
+              <p
+                className="
+                  font-semibold
+                  text-[#800018]
+                "
+              >
+                Champapet Aaryavysya Sangam
+              </p>
+
+              <p className="font-medium text-gray-700">
+                Parichaya Vedica Vibhagam
+              </p>
+
+              <p>
+                BVB Dhamam,
+                17-1-383/N/80/A/60,
+                Brindavan Colony
+              </p>
+
+              <p>
+                Vaishali Nagar Post,
+                Saroornagar Mandal,
+                Ranga Reddy Dist.
+              </p>
+
+              <p className="font-medium text-gray-700">
+                Aaryavysya Mahasabha Telangana
+                · Hyderabad – 500079
+              </p>
+
+            </div>
+
+          </div>
+
         </div>
+
+        {/* =================================================
+            MOBILE MENU BUTTON
+        ================================================== */}
+
+        <button
+          type="button"
+          onClick={() => {
+            setMobileOpen((prev) => !prev);
+            setExpanded(new Set());
+          }}
+          aria-label={
+            mobileOpen
+              ? "Close menu"
+              : "Open menu"
+          }
+          aria-expanded={mobileOpen}
+          className="
+            absolute
+            right-2
+            top-2
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            rounded-md
+            text-lg
+            text-[#800018]
+            transition
+            hover:bg-[#fff5e5]
+            md:hidden
+          "
+        >
+          {mobileOpen ? (
+            <FaTimes />
+          ) : (
+            <FaBars />
+          )}
+        </button>
+
       </div>
 
-      {/* ===================================================
+      {/* =====================================================
           DESKTOP NAVIGATION
-      =================================================== */}
+      ====================================================== */}
 
       <nav
         className="
@@ -607,6 +1012,7 @@ export default function Header() {
           md:block
         "
       >
+
         <div
           className="
             mx-auto
@@ -618,16 +1024,22 @@ export default function Header() {
             px-3
           "
         >
+
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const hasChildren = !!item.children?.length;
+
+            const hasChildren =
+              !!item.children?.length;
 
             return (
               <div
                 key={item.label}
-                className="group relative flex"
+                className="
+                  group
+                  relative
+                  flex
+                "
               >
-                {/* MENU */}
 
                 {hasChildren ? (
                   <button
@@ -652,6 +1064,7 @@ export default function Header() {
                       xl:text-sm
                     "
                   >
+
                     {Icon && (
                       <Icon className="text-sm" />
                     )}
@@ -666,6 +1079,7 @@ export default function Header() {
                         group-focus-within:rotate-180
                       "
                     />
+
                   </button>
                 ) : (
                   <Link
@@ -688,15 +1102,17 @@ export default function Header() {
                       xl:text-sm
                     "
                   >
+
                     {Icon && (
                       <Icon className="text-sm" />
                     )}
 
                     {item.label}
+
                   </Link>
                 )}
 
-                {/* DROPDOWN */}
+                {/* DESKTOP DROPDOWN */}
 
                 {hasChildren && (
                   <div
@@ -720,15 +1136,18 @@ export default function Header() {
                     />
                   </div>
                 )}
+
               </div>
             );
           })}
+
         </div>
+
       </nav>
 
-      {/* ===================================================
+      {/* =====================================================
           MOBILE NAVIGATION
-      =================================================== */}
+      ====================================================== */}
 
       {mobileOpen && (
         <div
@@ -748,23 +1167,32 @@ export default function Header() {
           "
         >
 
-          {/* MOBILE MENU ITEMS */}
-
           <div>
+
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const hasChildren = !!item.children?.length;
-              const isOpen = expanded.has(item.label);
+
+              const hasChildren =
+                !!item.children?.length;
+
+              const isOpen =
+                expanded.has(item.label);
 
               return (
                 <div
                   key={item.label}
-                  className="border-b border-[#f0e8dc]"
+                  className="
+                    border-b
+                    border-[#f0e8dc]
+                  "
                 >
+
                   {hasChildren ? (
                     <button
                       type="button"
-                      onClick={() => toggle(item.label)}
+                      onClick={() =>
+                        toggle(item.label)
+                      }
                       className="
                         flex
                         min-h-[54px]
@@ -781,21 +1209,35 @@ export default function Header() {
                         hover:bg-[#fff7e8]
                       "
                     >
-                      <span className="flex items-center gap-3">
+
+                      <span
+                        className="
+                          flex
+                          items-center
+                          gap-3
+                        "
+                      >
+
                         {Icon && (
                           <Icon className="w-5" />
                         )}
 
                         {item.label}
+
                       </span>
 
                       <FaChevronDown
                         className={`
                           text-xs
                           transition
-                          ${isOpen ? "rotate-180" : ""}
+                          ${
+                            isOpen
+                              ? "rotate-180"
+                              : ""
+                          }
                         `}
                       />
+
                     </button>
                   ) : (
                     <Link
@@ -815,13 +1257,17 @@ export default function Header() {
                         hover:bg-[#fff7e8]
                       "
                     >
+
                       {Icon && (
                         <Icon className="w-5" />
                       )}
 
                       {item.label}
+
                     </Link>
                   )}
+
+                  {/* MOBILE SUBMENU */}
 
                   {hasChildren && isOpen && (
                     <MobileChildren
@@ -829,16 +1275,17 @@ export default function Header() {
                       parentKey={item.label}
                     />
                   )}
+
                 </div>
               );
             })}
+
           </div>
 
-          {/* =================================================
-              MOBILE REGISTRATION BUTTON
-          ================================================== */}
+          {/* QUICK REGISTRATION */}
 
           <div className="p-4">
+
             <Link
               href="/register"
               onClick={closeMobile}
@@ -859,14 +1306,18 @@ export default function Header() {
                 hover:bg-[#610013]
               "
             >
+
               <FaUserPlus />
 
               Matrimony Registration
+
             </Link>
+
           </div>
+
         </div>
       )}
+
     </header>
   );
 }
-

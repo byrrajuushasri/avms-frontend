@@ -148,12 +148,12 @@ export default function Footer() {
 
             <div className="flex items-center gap-3">
               <FaPhoneAlt />
-              <span>+91 98765 43210</span>
+              <span>+91 92461 19408</span>
             </div>
 
             <div className="flex items-center gap-3">
               <FaEnvelope />
-              <span>noreply@aaryavysyamahasabha.com</span>
+              <span>beldaguru@gmail.com</span>
             </div>
 
             <div className="flex items-start gap-3">

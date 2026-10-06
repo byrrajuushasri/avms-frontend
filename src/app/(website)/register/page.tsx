@@ -1,10 +1,14 @@
 "use client";
 
 import {
+  useEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
+  type ReactNode,
 } from "react";
+
 import { useRouter } from "next/navigation";
 
 import {
@@ -12,6 +16,8 @@ import {
   FaCheckCircle,
   FaLock,
   FaTimes,
+  FaChevronDown,
+  FaSearch,
 } from "react-icons/fa";
 
 /* =========================================================
@@ -278,29 +284,31 @@ const inputClass =
 const textareaClass =
   "mt-2 w-full border rounded-xl p-4 border-pink-200 outline-none focus:ring-2 focus:ring-pink-300";
 
-const labelClass =
-  "text-sm font-medium text-gray-700";
+const labelClass = "text-sm font-medium text-gray-700";
 
 /* =========================================================
-   SIBLING TYPE
+   REQUIRED LABEL
 ========================================================= */
 
-type Sibling = {
-  name: string;
-  age: string;
-  marital_status: string;
-  occupation: string;
-};
-
-const emptySibling = (): Sibling => ({
-  name: "",
-  age: "",
-  marital_status: "",
-  occupation: "",
-});
+function FieldLabel({
+  children,
+  required = false,
+}: {
+  children: ReactNode;
+  required?: boolean;
+}) {
+  return (
+    <label className={labelClass}>
+      {children}
+      {required && (
+        <span className="ml-1 font-bold text-red-600">*</span>
+      )}
+    </label>
+  );
+}
 
 /* =========================================================
-   GOTRAM INPUT
+   SEARCHABLE GOTRAM SELECT
 ========================================================= */
 
 function GotramSelect({
@@ -308,41 +316,165 @@ function GotramSelect({
   label,
   value,
   onChange,
+  required = false,
 }: {
   name: string;
   label: string;
   value: string;
-  onChange: (
-    e: ChangeEvent<HTMLInputElement>
-  ) => void;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
 }) {
-  const datalistId = `${name}-gotram-options`;
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState(value);
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  /* ---------------------------------------------------------
+     Keep search text synced with selected value
+  --------------------------------------------------------- */
+
+  useEffect(() => {
+    setSearch(value);
+  }, [value]);
+
+  /* ---------------------------------------------------------
+     Close dropdown when clicked outside
+  --------------------------------------------------------- */
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleOutsideClick
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleOutsideClick
+      );
+    };
+  }, []);
+
+  /* ---------------------------------------------------------
+     SEARCH
+     Only values STARTING WITH typed letters are displayed.
+     
+     Example:
+     s  -> Sreevathsah, Sreedharah, Suklarushi...
+     sa -> Sanathkumara, Sanadanath, Samvarthaka...
+  --------------------------------------------------------- */
+
+  const searchText = search.trim().toLowerCase();
+
+  const filteredGotram = gotramList.filter((gotram) =>
+    gotram.toLowerCase().startsWith(searchText)
+  );
+
+  /* ---------------------------------------------------------
+     INPUT CHANGE
+  --------------------------------------------------------- */
+
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const newValue = e.target.value;
+
+    setSearch(newValue);
+    setOpen(true);
+
+    onChange(e);
+  };
+
+  /* ---------------------------------------------------------
+     SELECT GOTRAM
+  --------------------------------------------------------- */
+
+  const handleSelect = (gotram: string) => {
+    const syntheticEvent = {
+      target: {
+        name,
+        value: gotram,
+      },
+    } as ChangeEvent<HTMLInputElement>;
+
+    setSearch(gotram);
+    setOpen(false);
+
+    onChange(syntheticEvent);
+  };
 
   return (
-    <div>
-      <label className={labelClass}>
+    <div
+      className="relative"
+      ref={wrapperRef}
+    >
+      <FieldLabel required={required}>
         {label}
-      </label>
+      </FieldLabel>
 
-      <input
-        type="text"
-        name={name}
-        value={value}
-        onChange={onChange}
-        list={datalistId}
-        placeholder="Select Gotram"
-        autoComplete="off"
-        className={inputClass}
-      />
+      <div className="relative">
+        <FaSearch className="absolute left-4 top-1/2 z-10 -translate-y-1/2 text-sm text-gray-400" />
 
-      <datalist id={datalistId}>
-        {gotramList.map((gotram) => (
-          <option
-            key={gotram}
-            value={gotram}
-          />
-        ))}
-      </datalist>
+        <input
+          type="text"
+          name={name}
+          value={search}
+          onChange={handleInputChange}
+          onFocus={() => setOpen(true)}
+          placeholder="Search Gotram..."
+          autoComplete="off"
+          required={required}
+          className={`${inputClass} pl-10 pr-10`}
+        />
+
+        <FaChevronDown
+          className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400 transition-transform ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </div>
+
+      {open && (
+        <div className="absolute left-0 right-0 z-[100] mt-1 max-h-64 overflow-y-auto rounded-xl border border-pink-200 bg-white shadow-xl">
+          {filteredGotram.length > 0 ? (
+            filteredGotram.map((gotram) => (
+              <button
+                key={gotram}
+                type="button"
+                onMouseDown={(e) =>
+                  e.preventDefault()
+                }
+                onClick={() =>
+                  handleSelect(gotram)
+                }
+                className={`block w-full border-b border-gray-100 px-4 py-3 text-left text-sm last:border-b-0 hover:bg-pink-50 ${
+                  value === gotram
+                    ? "bg-pink-50 font-semibold text-[#8B1E3F]"
+                    : "text-gray-700"
+                }`}
+              >
+                {gotram}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-4 text-center text-sm text-gray-500">
+              No Gotram found starting with{" "}
+              <strong>
+                {search}
+              </strong>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -383,23 +515,25 @@ export default function RegisterPage() {
   const [memberId, setMemberId] =
     useState("");
 
-  const [verificationMessage, setVerificationMessage] =
-    useState("");
+  const [
+    verificationMessage,
+    setVerificationMessage,
+  ] = useState("");
 
-  const [verificationError, setVerificationError] =
-    useState("");
-
-  /* MOBILE ONLY */
+  const [
+    verificationError,
+    setVerificationError,
+  ] = useState("");
 
   const [verificationData, setVerificationData] =
     useState({
       mobile: "",
     });
 
-  /* VERIFIED MEMBER DETAILS */
-
-  const [verificationMember, setVerificationMember] =
-    useState<any>(null);
+  const [
+    verificationMember,
+    setVerificationMember,
+  ] = useState<any>(null);
 
   /* =========================================================
      CONSENT
@@ -445,45 +579,34 @@ export default function RegisterPage() {
      FORM DATA
   ========================================================= */
 
-  const [formData, setFormData] = useState({
-    profile_category: "Professional",
-
-     
-    mother_name: "",
-
-    father_gotram: "",
-    mother_gotram: "",
-    grandmother_gotram: "",
-
-    nakshatram: "",
-    padham: "",
-    rasi: "",
-    color: "",
-    height: "",
-
-    education: "",
-    annual_income: "",
-
-    address: "",
-
-    father_occupation: "",
-    mother_occupation: "",
-
-    brother_details: "",
-    sister_details: "",
-
-    property_details: "",
-    preferred_requirements: "",
-
-    /* AREA VOLUNTEER */
-
-    area_volunteer_name: "",
-    area_volunteer_contact: "",
-    area_volunteer_position: "",
-  });
+  const [formData, setFormData] =
+    useState({
+      profile_category: "Professional",
+      mother_name: "",
+      father_gotram: "",
+      mother_gotram: "",
+      grandmother_gotram: "",
+      nakshatram: "",
+      padham: "",
+      rasi: "",
+      color: "",
+      height: "",
+      education: "",
+      annual_income: "",
+      address: "",
+      father_occupation: "",
+      mother_occupation: "",
+      brother_details: "",
+      sister_details: "",
+      property_details: "",
+      preferred_requirements: "",
+      area_volunteer_name: "",
+      area_volunteer_contact: "",
+      area_volunteer_position: "",
+    });
 
   /* =========================================================
-     SIBLINGS
+     BROTHER / SISTER COUNT
   ========================================================= */
 
   const [brotherCount, setBrotherCount] =
@@ -492,11 +615,21 @@ export default function RegisterPage() {
   const [sisterCount, setSisterCount] =
     useState(0);
 
-  const [brothers, setBrothers] =
-    useState<Sibling[]>([]);
+  /* =========================================================
+     BROTHER / SISTER MARITAL STATUS
+  ========================================================= */
 
-  const [sisters, setSisters] =
-    useState<Sibling[]>([]);
+  const [brotherMarried, setBrotherMarried] =
+    useState(0);
+
+  const [brotherUnmarried, setBrotherUnmarried] =
+    useState(0);
+
+  const [sisterMarried, setSisterMarried] =
+    useState(0);
+
+  const [sisterUnmarried, setSisterUnmarried] =
+    useState(0);
 
   /* =========================================================
      HANDLE VERIFICATION INPUT
@@ -520,9 +653,9 @@ export default function RegisterPage() {
 
   const handleChange = (
     e: ChangeEvent<
-      HTMLInputElement |
-      HTMLSelectElement |
-      HTMLTextAreaElement
+      | HTMLInputElement
+      | HTMLSelectElement
+      | HTMLTextAreaElement
     >
   ) => {
     const { name, value } = e.target;
@@ -544,13 +677,8 @@ export default function RegisterPage() {
 
     setBrotherCount(count);
 
-    setBrothers((prev) =>
-      Array.from(
-        { length: count },
-        (_, index) =>
-          prev[index] || emptySibling()
-      )
-    );
+    setBrotherMarried(0);
+    setBrotherUnmarried(0);
   };
 
   /* =========================================================
@@ -564,59 +692,52 @@ export default function RegisterPage() {
 
     setSisterCount(count);
 
-    setSisters((prev) =>
-      Array.from(
-        { length: count },
-        (_, index) =>
-          prev[index] || emptySibling()
-      )
+    setSisterMarried(0);
+    setSisterUnmarried(0);
+  };
+
+  /* =========================================================
+     BROTHER MARRIED
+  ========================================================= */
+
+  const handleBrotherMarried = (
+    e: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const married = Number(e.target.value);
+
+    if (married > brotherCount) {
+      return;
+    }
+
+    setBrotherMarried(married);
+
+    setBrotherUnmarried(
+      brotherCount - married
     );
   };
 
   /* =========================================================
-     UPDATE BROTHER
+     SISTER MARRIED
   ========================================================= */
 
-  const updateBrother = (
-    index: number,
-    field: keyof Sibling,
-    value: string
+  const handleSisterMarried = (
+    e: ChangeEvent<HTMLSelectElement>
   ) => {
-    setBrothers((prev) => {
-      const updated = [...prev];
+    const married = Number(e.target.value);
 
-      updated[index] = {
-        ...updated[index],
-        [field]: value,
-      };
+    if (married > sisterCount) {
+      return;
+    }
 
-      return updated;
-    });
+    setSisterMarried(married);
+
+    setSisterUnmarried(
+      sisterCount - married
+    );
   };
 
   /* =========================================================
-     UPDATE SISTER
-  ========================================================= */
-
-  const updateSister = (
-    index: number,
-    field: keyof Sibling,
-    value: string
-  ) => {
-    setSisters((prev) => {
-      const updated = [...prev];
-
-      updated[index] = {
-        ...updated[index],
-        [field]: value,
-      };
-
-      return updated;
-    });
-  };
-
-  /* =========================================================
-     CHECK MEMBER - MOBILE ONLY
+     CHECK MEMBER
   ========================================================= */
 
   const handleCheckMember = async () => {
@@ -652,7 +773,8 @@ export default function RegisterPage() {
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type":
+              "application/json",
           },
           body: JSON.stringify({
             mobile,
@@ -668,10 +790,6 @@ export default function RegisterPage() {
         data
       );
 
-      /* =====================================================
-         ALREADY REGISTERED
-      ===================================================== */
-
       if (data.alreadyRegistered) {
         const matrimonialId =
           data.data
@@ -686,10 +804,6 @@ export default function RegisterPage() {
         return;
       }
 
-      /* =====================================================
-         VERIFICATION FAILED
-      ===================================================== */
-
       if (
         !response.ok ||
         !data.success ||
@@ -702,10 +816,6 @@ export default function RegisterPage() {
 
         return;
       }
-
-      /* =====================================================
-         VERIFIED MEMBER
-      ===================================================== */
 
       const member =
         data.data || {};
@@ -753,8 +863,6 @@ export default function RegisterPage() {
 
     if (loading) return;
 
-    /* MEMBERSHIP VERIFICATION */
-
     if (!memberVerified) {
       alert(
         "Please verify your Membership before registering for Matrimonial."
@@ -779,16 +887,16 @@ export default function RegisterPage() {
       return;
     }
 
-    /* BASIC VALIDATION */
+    /* =====================================================
+       REQUIRED VALIDATION
+    ===================================================== */
 
-    if (!formData.profile_category) {
+    if (!formData.profile_category.trim()) {
       alert(
         "Please select Profile Category."
       );
       return;
     }
-
-     
 
     if (!formData.mother_name.trim()) {
       alert(
@@ -797,108 +905,60 @@ export default function RegisterPage() {
       return;
     }
 
-    /* GOTRAM VALIDATION */
-
     if (!formData.father_gotram.trim()) {
       alert(
-        "Please select or enter Father's Gotram."
+        "Please select Father's Gotram."
       );
       return;
     }
 
     if (!formData.mother_gotram.trim()) {
       alert(
-        "Please select or enter Mother's Gotram."
+        "Please select Mother's Gotram."
       );
       return;
     }
 
     if (!formData.grandmother_gotram.trim()) {
       alert(
-        "Please select or enter Grand Mother's Gotram."
+        "Please select Grand Mother's Gotram."
       );
       return;
     }
 
-    /* BROTHER VALIDATION */
+    /* =====================================================
+       BROTHER VALIDATION
+    ===================================================== */
 
-    for (
-      let index = 0;
-      index < brothers.length;
-      index++
+    if (
+      brotherMarried +
+        brotherUnmarried !==
+      brotherCount
     ) {
-      const brother =
-        brothers[index];
-
-      if (!brother.name.trim()) {
-        alert(
-          `Please enter Brother ${index + 1} Name.`
-        );
-        return;
-      }
-
-      if (!brother.age.trim()) {
-        alert(
-          `Please enter Brother ${index + 1} Age.`
-        );
-        return;
-      }
-
-      if (!brother.marital_status) {
-        alert(
-          `Please select Brother ${index + 1} Marital Status.`
-        );
-        return;
-      }
-
-      if (!brother.occupation.trim()) {
-        alert(
-          `Please enter Brother ${index + 1} Occupation.`
-        );
-        return;
-      }
+      alert(
+        "Please select the correct Brother Married / Unmarried count."
+      );
+      return;
     }
 
-    /* SISTER VALIDATION */
+    /* =====================================================
+       SISTER VALIDATION
+    ===================================================== */
 
-    for (
-      let index = 0;
-      index < sisters.length;
-      index++
+    if (
+      sisterMarried +
+        sisterUnmarried !==
+      sisterCount
     ) {
-      const sister =
-        sisters[index];
-
-      if (!sister.name.trim()) {
-        alert(
-          `Please enter Sister ${index + 1} Name.`
-        );
-        return;
-      }
-
-      if (!sister.age.trim()) {
-        alert(
-          `Please enter Sister ${index + 1} Age.`
-        );
-        return;
-      }
-
-      if (!sister.marital_status) {
-        alert(
-          `Please select Sister ${index + 1} Marital Status.`
-        );
-        return;
-      }
-
-      if (!sister.occupation.trim()) {
-        alert(
-          `Please enter Sister ${index + 1} Occupation.`
-        );
-        return;
-      }
+      alert(
+        "Please select the correct Sister Married / Unmarried count."
+      );
+      return;
     }
 
-    /* CONSENT */
+    /* =====================================================
+       CONSENT
+    ===================================================== */
 
     if (!consent) {
       alert(
@@ -915,7 +975,6 @@ export default function RegisterPage() {
 
       /* =====================================================
          MEMBERSHIP
-         MOBILE ONLY
       ===================================================== */
 
       formDataToSend.append(
@@ -949,7 +1008,6 @@ export default function RegisterPage() {
         profile_category:
           formData.profile_category,
 
-         
         mother_name:
           formData.mother_name,
 
@@ -999,10 +1057,6 @@ export default function RegisterPage() {
           formData.preferred_requirements,
       };
 
-      /* =====================================================
-         APPEND NORMAL FIELDS
-      ===================================================== */
-
       Object.entries(
         normalFields
       ).forEach(
@@ -1021,25 +1075,11 @@ export default function RegisterPage() {
       const brotherText =
         brotherCount === 0
           ? "No Brothers"
-          : brothers
-              .map(
-                (
-                  brother,
-                  index
-                ) =>
-                  `Brother ${
-                    index + 1
-                  }: Name: ${
-                    brother.name
-                  }, Age: ${
-                    brother.age
-                  }, Marital Status: ${
-                    brother.marital_status
-                  }, Occupation: ${
-                    brother.occupation
-                  }`
-              )
-              .join(" | ");
+          : `${brotherCount} Brother${
+              brotherCount > 1
+                ? "s"
+                : ""
+            } - Married: ${brotherMarried}, Unmarried: ${brotherUnmarried}`;
 
       formDataToSend.append(
         "brother_details",
@@ -1053,25 +1093,11 @@ export default function RegisterPage() {
       const sisterText =
         sisterCount === 0
           ? "No Sisters"
-          : sisters
-              .map(
-                (
-                  sister,
-                  index
-                ) =>
-                  `Sister ${
-                    index + 1
-                  }: Name: ${
-                    sister.name
-                  }, Age: ${
-                    sister.age
-                  }, Marital Status: ${
-                    sister.marital_status
-                  }, Occupation: ${
-                    sister.occupation
-                  }`
-              )
-              .join(" | ");
+          : `${sisterCount} Sister${
+              sisterCount > 1
+                ? "s"
+                : ""
+            } - Married: ${sisterMarried}, Unmarried: ${sisterUnmarried}`;
 
       formDataToSend.append(
         "sister_details",
@@ -1258,9 +1284,7 @@ export default function RegisterPage() {
 
       {toast.show && (
         <div className="fixed right-5 top-5 z-[9999] w-[calc(100%-40px)] max-w-md animate-[slideIn_0.3s_ease-out]">
-
           <div className="rounded-2xl border border-green-200 bg-white p-4 shadow-2xl">
-
             <div className="flex items-start gap-3">
 
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
@@ -1268,7 +1292,6 @@ export default function RegisterPage() {
               </div>
 
               <div className="flex-1">
-
                 <p className="font-bold text-green-700">
                   Success
                 </p>
@@ -1283,7 +1306,6 @@ export default function RegisterPage() {
                     {toast.memberId}
                   </p>
                 )}
-
               </div>
 
               <button
@@ -1299,11 +1321,8 @@ export default function RegisterPage() {
               >
                 <FaTimes />
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
 
@@ -1338,7 +1357,9 @@ export default function RegisterPage() {
             </h2>
 
             <p className="mt-2 text-sm text-gray-500">
-              First verify your Membership, then complete your Matrimonial profile
+              First verify your Membership,
+              then complete your Matrimonial
+              profile
             </p>
 
           </div>
@@ -1356,7 +1377,6 @@ export default function RegisterPage() {
               </div>
 
               <div>
-
                 <h3 className="font-bold text-[#8B1E3F]">
                   Membership Verification
                 </h3>
@@ -1364,22 +1384,17 @@ export default function RegisterPage() {
                 <p className="text-xs text-gray-500">
                   Enter your registered Mobile Number
                 </p>
-
               </div>
 
             </div>
 
-            {/* MOBILE + VERIFY */}
-
             <div className="grid gap-4 md:grid-cols-2">
-
-              {/* MOBILE */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Registered Mobile
-                </label>
+                </FieldLabel>
 
                 <input
                   type="tel"
@@ -1405,8 +1420,6 @@ export default function RegisterPage() {
                 />
 
               </div>
-
-              {/* VERIFY */}
 
               <div className="flex items-end">
 
@@ -1436,19 +1449,11 @@ export default function RegisterPage() {
 
             </div>
 
-            {/* =================================================
-                VERIFICATION ERROR
-            ================================================= */}
-
             {verificationError && (
               <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                 {verificationError}
               </div>
             )}
-
-            {/* =================================================
-                VERIFIED MEMBER DETAILS
-            ================================================= */}
 
             {verificationMessage && (
               <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-4 text-sm text-green-700">
@@ -1459,10 +1464,7 @@ export default function RegisterPage() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
 
-                  {/* MEMBER NAME */}
-
                   <div className="rounded-lg bg-white p-3">
-
                     <p className="text-xs text-gray-500">
                       Member Name
                     </p>
@@ -1471,13 +1473,9 @@ export default function RegisterPage() {
                       {verificationMember?.full_name ||
                         "-"}
                     </p>
-
                   </div>
 
-                  {/* FATHER NAME */}
-
                   <div className="rounded-lg bg-white p-3">
-
                     <p className="text-xs text-gray-500">
                       Father Name
                     </p>
@@ -1486,13 +1484,9 @@ export default function RegisterPage() {
                       {verificationMember?.father_name ||
                         "-"}
                     </p>
-
                   </div>
 
-                  {/* MEMBERSHIP ID */}
-
                   <div className="rounded-lg bg-white p-3">
-
                     <p className="text-xs text-gray-500">
                       Membership ID
                     </p>
@@ -1500,11 +1494,9 @@ export default function RegisterPage() {
                     <p className="mt-1 font-bold text-[#8B1E3F]">
                       {memberId || "-"}
                     </p>
-
                   </div>
 
                 </div>
-
               </div>
             )}
 
@@ -1547,13 +1539,15 @@ export default function RegisterPage() {
               className="grid gap-5 md:grid-cols-2"
             >
 
-              {/* PROFILE CATEGORY */}
+              {/* =================================================
+                  PROFILE CATEGORY
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel required>
                   Profile Category
-                </label>
+                </FieldLabel>
 
                 <select
                   name="profile_category"
@@ -1561,9 +1555,9 @@ export default function RegisterPage() {
                     formData.profile_category
                   }
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Category
                   </option>
@@ -1587,13 +1581,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* MOTHER NAME */}
+              {/* =================================================
+                  MOTHER NAME
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel required>
                   Mother's Name
-                </label>
+                </FieldLabel>
 
                 <input
                   type="text"
@@ -1603,12 +1599,15 @@ export default function RegisterPage() {
                   }
                   onChange={handleChange}
                   placeholder="Mother's Name"
+                  required
                   className={inputClass}
                 />
 
               </div>
 
-              {/* FATHER GOTRAM */}
+              {/* =================================================
+                  FATHER GOTRAM
+              ================================================= */}
 
               <GotramSelect
                 name="father_gotram"
@@ -1617,9 +1616,12 @@ export default function RegisterPage() {
                   formData.father_gotram
                 }
                 onChange={handleChange}
+                required
               />
 
-              {/* MOTHER GOTRAM */}
+              {/* =================================================
+                  MOTHER GOTRAM
+              ================================================= */}
 
               <GotramSelect
                 name="mother_gotram"
@@ -1628,9 +1630,12 @@ export default function RegisterPage() {
                   formData.mother_gotram
                 }
                 onChange={handleChange}
+                required
               />
 
-              {/* GRAND MOTHER GOTRAM */}
+              {/* =================================================
+                  GRAND MOTHER GOTRAM
+              ================================================= */}
 
               <GotramSelect
                 name="grandmother_gotram"
@@ -1639,15 +1644,18 @@ export default function RegisterPage() {
                   formData.grandmother_gotram
                 }
                 onChange={handleChange}
+                required
               />
 
-              {/* NAKSHATRAM */}
+              {/* =================================================
+                  NAKSHATRAM
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Nakshatram
-                </label>
+                </FieldLabel>
 
                 <select
                   name="nakshatram"
@@ -1657,7 +1665,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Nakshatram
                   </option>
@@ -1677,13 +1684,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* PADHAM */}
+              {/* =================================================
+                  PADHAM
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Nakshatram Padham
-                </label>
+                </FieldLabel>
 
                 <select
                   name="padham"
@@ -1691,7 +1700,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Padham
                   </option>
@@ -1711,18 +1719,19 @@ export default function RegisterPage() {
                   <option value="4">
                     4
                   </option>
-
                 </select>
 
               </div>
 
-              {/* RASI */}
+              {/* =================================================
+                  RASI
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Rasi
-                </label>
+                </FieldLabel>
 
                 <select
                   name="rasi"
@@ -1730,7 +1739,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Rasi
                   </option>
@@ -1750,13 +1758,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* COLOR */}
+              {/* =================================================
+                  COLOR
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Color
-                </label>
+                </FieldLabel>
 
                 <select
                   name="color"
@@ -1764,7 +1774,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Color
                   </option>
@@ -1784,13 +1793,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* HEIGHT */}
+              {/* =================================================
+                  HEIGHT
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Height
-                </label>
+                </FieldLabel>
 
                 <input
                   type="text"
@@ -1803,13 +1814,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* EDUCATION */}
+              {/* =================================================
+                  EDUCATION
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Education
-                </label>
+                </FieldLabel>
 
                 <select
                   name="education"
@@ -1819,7 +1832,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Education
                   </option>
@@ -1839,13 +1851,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* SALARY */}
+              {/* =================================================
+                  SALARY
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Salary / Income
-                </label>
+                </FieldLabel>
 
                 <input
                   type="text"
@@ -1860,13 +1874,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* ADDRESS */}
+              {/* =================================================
+                  ADDRESS
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Address
-                </label>
+                </FieldLabel>
 
                 <textarea
                   name="address"
@@ -1879,13 +1895,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* FATHER DETAILS */}
+              {/* =================================================
+                  FATHER DETAILS
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Father Details
-                </label>
+                </FieldLabel>
 
                 <select
                   name="father_occupation"
@@ -1895,7 +1913,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Father Details
                   </option>
@@ -1915,13 +1932,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* MOTHER DETAILS */}
+              {/* =================================================
+                  MOTHER DETAILS
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Mother Details
-                </label>
+                </FieldLabel>
 
                 <select
                   name="mother_occupation"
@@ -1931,7 +1950,6 @@ export default function RegisterPage() {
                   onChange={handleChange}
                   className={inputClass}
                 >
-
                   <option value="">
                     Select Mother Details
                   </option>
@@ -1963,181 +1981,130 @@ export default function RegisterPage() {
 
                 <div className="rounded-2xl border border-pink-200 bg-pink-50/50 p-5">
 
-                  <label className={labelClass}>
+                  <h3 className="mb-4 text-lg font-bold text-[#8B1E3F]">
                     Brother Details
-                  </label>
+                  </h3>
 
-                  <select
-                    value={
-                      brotherCount
-                    }
-                    onChange={
-                      handleBrotherCount
-                    }
-                    className={inputClass}
-                  >
+                  <div className="grid gap-4 md:grid-cols-2">
 
-                    <option value="0">
-                      No Brothers
-                    </option>
+                    {/* NUMBER OF BROTHERS */}
 
-                    <option value="1">
-                      1 Brother
-                    </option>
+                    <div>
 
-                    <option value="2">
-                      2 Brothers
-                    </option>
+                      <FieldLabel>
+                        Number of Brothers
+                      </FieldLabel>
 
-                    <option value="3">
-                      3 Brothers
-                    </option>
+                      <select
+                        value={
+                          brotherCount
+                        }
+                        onChange={
+                          handleBrotherCount
+                        }
+                        className={inputClass}
+                      >
+                        <option value="0">
+                          No Brothers
+                        </option>
 
-                  </select>
+                        <option value="1">
+                          1
+                        </option>
 
-                  {brothers.length > 0 && (
-                    <div className="mt-5 space-y-5">
+                        <option value="2">
+                          2
+                        </option>
 
-                      {brothers.map(
-                        (
-                          brother,
-                          index
-                        ) => (
-                          <div
-                            key={index}
-                            className="rounded-2xl border border-pink-200 bg-white p-5"
-                          >
+                        <option value="3">
+                          3
+                        </option>
 
-                            <h4 className="mb-4 font-bold text-[#8B1E3F]">
-                              Brother{" "}
-                              {index + 1}
-                            </h4>
+                        <option value="4">
+                          4
+                        </option>
 
-                            <div className="grid gap-4 md:grid-cols-2">
+                        <option value="5">
+                          5
+                        </option>
+                      </select>
 
-                              <div>
+                    </div>
 
-                                <label className={labelClass}>
-                                  Name
-                                </label>
+                    {/* MARRIED BROTHERS */}
 
-                                <input
-                                  type="text"
-                                  value={
-                                    brother.name
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateBrother(
-                                      index,
-                                      "name",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Brother Name"
-                                  className={inputClass}
-                                />
+                    {brotherCount > 0 && (
+                      <div>
 
-                              </div>
+                        <FieldLabel>
+                          Married Brothers
+                        </FieldLabel>
 
-                              <div>
+                        <select
+                          value={
+                            brotherMarried
+                          }
+                          onChange={
+                            handleBrotherMarried
+                          }
+                          className={inputClass}
+                        >
+                          {Array.from(
+                            {
+                              length:
+                                brotherCount +
+                                1,
+                            },
+                            (_, index) => (
+                              <option
+                                key={
+                                  index
+                                }
+                                value={
+                                  index
+                                }
+                              >
+                                {index}
+                              </option>
+                            )
+                          )}
+                        </select>
 
-                                <label className={labelClass}>
-                                  Age
-                                </label>
+                        <p className="mt-2 text-xs text-gray-500">
+                          Unmarried Brothers:{" "}
+                          <strong>
+                            {
+                              brotherUnmarried
+                            }
+                          </strong>
+                        </p>
 
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="120"
-                                  value={
-                                    brother.age
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateBrother(
-                                      index,
-                                      "age",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Age"
-                                  className={inputClass}
-                                />
+                      </div>
+                    )}
 
-                              </div>
+                  </div>
 
-                              <div>
+                  {brotherCount > 0 && (
+                    <div className="mt-4 rounded-xl border border-pink-200 bg-white px-4 py-3 text-sm text-gray-700">
 
-                                <label className={labelClass}>
-                                  Marital Status
-                                </label>
+                      Total Brothers:{" "}
+                      <strong>
+                        {brotherCount}
+                      </strong>
 
-                                <select
-                                  value={
-                                    brother.marital_status
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateBrother(
-                                      index,
-                                      "marital_status",
-                                      e.target.value
-                                    )
-                                  }
-                                  className={inputClass}
-                                >
+                      {" • "}
 
-                                  <option value="">
-                                    Select Status
-                                  </option>
+                      Married:{" "}
+                      <strong>
+                        {brotherMarried}
+                      </strong>
 
-                                  <option value="Married">
-                                    Married
-                                  </option>
+                      {" • "}
 
-                                  <option value="Unmarried">
-                                    Unmarried
-                                  </option>
-
-                                </select>
-
-                              </div>
-
-                              <div>
-
-                                <label className={labelClass}>
-                                  Occupation
-                                </label>
-
-                                <input
-                                  type="text"
-                                  value={
-                                    brother.occupation
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateBrother(
-                                      index,
-                                      "occupation",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Occupation"
-                                  className={inputClass}
-                                />
-
-                              </div>
-
-                            </div>
-
-                          </div>
-                        )
-                      )}
+                      Unmarried:{" "}
+                      <strong>
+                        {brotherUnmarried}
+                      </strong>
 
                     </div>
                   )}
@@ -2154,181 +2121,130 @@ export default function RegisterPage() {
 
                 <div className="rounded-2xl border border-pink-200 bg-pink-50/50 p-5">
 
-                  <label className={labelClass}>
+                  <h3 className="mb-4 text-lg font-bold text-[#8B1E3F]">
                     Sister Details
-                  </label>
+                  </h3>
 
-                  <select
-                    value={
-                      sisterCount
-                    }
-                    onChange={
-                      handleSisterCount
-                    }
-                    className={inputClass}
-                  >
+                  <div className="grid gap-4 md:grid-cols-2">
 
-                    <option value="0">
-                      No Sisters
-                    </option>
+                    {/* NUMBER OF SISTERS */}
 
-                    <option value="1">
-                      1 Sister
-                    </option>
+                    <div>
 
-                    <option value="2">
-                      2 Sisters
-                    </option>
+                      <FieldLabel>
+                        Number of Sisters
+                      </FieldLabel>
 
-                    <option value="3">
-                      3 Sisters
-                    </option>
+                      <select
+                        value={
+                          sisterCount
+                        }
+                        onChange={
+                          handleSisterCount
+                        }
+                        className={inputClass}
+                      >
+                        <option value="0">
+                          No Sisters
+                        </option>
 
-                  </select>
+                        <option value="1">
+                          1
+                        </option>
 
-                  {sisters.length > 0 && (
-                    <div className="mt-5 space-y-5">
+                        <option value="2">
+                          2
+                        </option>
 
-                      {sisters.map(
-                        (
-                          sister,
-                          index
-                        ) => (
-                          <div
-                            key={index}
-                            className="rounded-2xl border border-pink-200 bg-white p-5"
-                          >
+                        <option value="3">
+                          3
+                        </option>
 
-                            <h4 className="mb-4 font-bold text-[#8B1E3F]">
-                              Sister{" "}
-                              {index + 1}
-                            </h4>
+                        <option value="4">
+                          4
+                        </option>
 
-                            <div className="grid gap-4 md:grid-cols-2">
+                        <option value="5">
+                          5
+                        </option>
+                      </select>
 
-                              <div>
+                    </div>
 
-                                <label className={labelClass}>
-                                  Name
-                                </label>
+                    {/* MARRIED SISTERS */}
 
-                                <input
-                                  type="text"
-                                  value={
-                                    sister.name
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateSister(
-                                      index,
-                                      "name",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Sister Name"
-                                  className={inputClass}
-                                />
+                    {sisterCount > 0 && (
+                      <div>
 
-                              </div>
+                        <FieldLabel>
+                          Married Sisters
+                        </FieldLabel>
 
-                              <div>
+                        <select
+                          value={
+                            sisterMarried
+                          }
+                          onChange={
+                            handleSisterMarried
+                          }
+                          className={inputClass}
+                        >
+                          {Array.from(
+                            {
+                              length:
+                                sisterCount +
+                                1,
+                            },
+                            (_, index) => (
+                              <option
+                                key={
+                                  index
+                                }
+                                value={
+                                  index
+                                }
+                              >
+                                {index}
+                              </option>
+                            )
+                          )}
+                        </select>
 
-                                <label className={labelClass}>
-                                  Age
-                                </label>
+                        <p className="mt-2 text-xs text-gray-500">
+                          Unmarried Sisters:{" "}
+                          <strong>
+                            {
+                              sisterUnmarried
+                            }
+                          </strong>
+                        </p>
 
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="120"
-                                  value={
-                                    sister.age
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateSister(
-                                      index,
-                                      "age",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Age"
-                                  className={inputClass}
-                                />
+                      </div>
+                    )}
 
-                              </div>
+                  </div>
 
-                              <div>
+                  {sisterCount > 0 && (
+                    <div className="mt-4 rounded-xl border border-pink-200 bg-white px-4 py-3 text-sm text-gray-700">
 
-                                <label className={labelClass}>
-                                  Marital Status
-                                </label>
+                      Total Sisters:{" "}
+                      <strong>
+                        {sisterCount}
+                      </strong>
 
-                                <select
-                                  value={
-                                    sister.marital_status
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateSister(
-                                      index,
-                                      "marital_status",
-                                      e.target.value
-                                    )
-                                  }
-                                  className={inputClass}
-                                >
+                      {" • "}
 
-                                  <option value="">
-                                    Select Status
-                                  </option>
+                      Married:{" "}
+                      <strong>
+                        {sisterMarried}
+                      </strong>
 
-                                  <option value="Married">
-                                    Married
-                                  </option>
+                      {" • "}
 
-                                  <option value="Unmarried">
-                                    Unmarried
-                                  </option>
-
-                                </select>
-
-                              </div>
-
-                              <div>
-
-                                <label className={labelClass}>
-                                  Occupation
-                                </label>
-
-                                <input
-                                  type="text"
-                                  value={
-                                    sister.occupation
-                                  }
-                                  onChange={(
-                                    e
-                                  ) =>
-                                    updateSister(
-                                      index,
-                                      "occupation",
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Occupation"
-                                  className={inputClass}
-                                />
-
-                              </div>
-
-                            </div>
-
-                          </div>
-                        )
-                      )}
+                      Unmarried:{" "}
+                      <strong>
+                        {sisterUnmarried}
+                      </strong>
 
                     </div>
                   )}
@@ -2337,13 +2253,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* PROPERTY DETAILS */}
+              {/* =================================================
+                  PROPERTY DETAILS
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Property Details
-                </label>
+                </FieldLabel>
 
                 <textarea
                   name="property_details"
@@ -2358,13 +2276,15 @@ export default function RegisterPage() {
 
               </div>
 
-              {/* PREFERRED REQUIREMENTS */}
+              {/* =================================================
+                  PREFERRED REQUIREMENTS
+              ================================================= */}
 
               <div>
 
-                <label className={labelClass}>
+                <FieldLabel>
                   Preferred Requirements
-                </label>
+                </FieldLabel>
 
                 <textarea
                   name="preferred_requirements"
@@ -2413,7 +2333,6 @@ export default function RegisterPage() {
 
                       <p>
                         I/We solemnly declare that the input data given by us in the matrimonial biodata submitted by us/me are true to the best of our/my knowledge and belief for our/my marriage alliance and will hope the well blessings from our Aarya Vysya Goddess{" "}
-
                         <strong className="text-rose-700">
                           Shree VASAVI KANYAKA PARAMESHWARI AMMAVARU.
                         </strong>
@@ -2431,8 +2350,6 @@ export default function RegisterPage() {
 
                   <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
 
-                    {/* SERVICE */}
-
                     <div className="rounded-2xl border border-pink-200 bg-white p-5">
 
                       <h4 className="mb-3 text-lg font-bold text-rose-800">
@@ -2445,8 +2362,6 @@ export default function RegisterPage() {
 
                     </div>
 
-                    {/* FREE REGISTRATION */}
-
                     <div className="rounded-2xl border border-pink-200 bg-white p-5">
 
                       <h4 className="mb-3 text-lg font-bold text-rose-800">
@@ -2455,19 +2370,17 @@ export default function RegisterPage() {
 
                       <p className="text-sm leading-7 text-gray-700 sm:text-base">
                         Registration is free and valid for up to{" "}
-
                         <strong className="text-rose-700">
                           99 days
-                        </strong>.
+                        </strong>
+                        .
                       </p>
 
                       <p className="mt-2 text-sm leading-7 text-gray-700 sm:text-base">
                         Registration may be extended by{" "}
-
                         <strong className="text-rose-700">
                           180 days
                         </strong>{" "}
-
                         with volunteer contribution in three digits.
                       </p>
 
@@ -2500,9 +2413,7 @@ export default function RegisterPage() {
                     <div className="mb-2 flex items-center gap-3">
 
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100">
-
                         <FaHeart className="text-rose-700" />
-
                       </div>
 
                       <h4 className="text-xl font-bold text-rose-800 sm:text-2xl">
@@ -2517,13 +2428,11 @@ export default function RegisterPage() {
 
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
 
-                      {/* NAME */}
-
                       <div>
 
-                        <label className={labelClass}>
+                        <FieldLabel>
                           Name
-                        </label>
+                        </FieldLabel>
 
                         <input
                           type="text"
@@ -2540,13 +2449,11 @@ export default function RegisterPage() {
 
                       </div>
 
-                      {/* CONTACT */}
-
                       <div>
 
-                        <label className={labelClass}>
+                        <FieldLabel>
                           Contact Number
-                        </label>
+                        </FieldLabel>
 
                         <input
                           type="tel"
@@ -2565,13 +2472,11 @@ export default function RegisterPage() {
 
                       </div>
 
-                      {/* POSITION */}
-
                       <div>
 
-                        <label className={labelClass}>
+                        <FieldLabel>
                           Position of that Area
-                        </label>
+                        </FieldLabel>
 
                         <input
                           type="text"
@@ -2616,6 +2521,7 @@ export default function RegisterPage() {
                           e.target.checked
                         )
                       }
+                      required
                       className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-700"
                     />
 
@@ -2623,8 +2529,8 @@ export default function RegisterPage() {
 
                       I/We hereby confirm that I/We have read, understood and accepted the above declaration and agree to provide my/our consent for registration on this matrimonial website.
 
-                      <span className="font-bold text-red-600">
-                        {" "}*
+                      <span className="ml-1 font-bold text-red-600">
+                        *
                       </span>
 
                     </span>

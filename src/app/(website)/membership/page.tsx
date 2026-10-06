@@ -1852,6 +1852,10 @@ export default function MembershipPage() {
                       <option value="Female">
                         Female
                       </option>
+
+                      <option value="Transgender">
+                        Transgender
+                      </option>
                     </select>
 
                     <ErrorMessage

@@ -108,7 +108,7 @@ export default function ContactPage() {
                   </h3>
 
                   <p className="text-gray-500">
-                    +91 98765 43210
+                    +91 92461 19408
                   </p>
 
                 </div>
@@ -128,7 +128,7 @@ export default function ContactPage() {
                   </h3>
 
                   <p className="text-gray-500">
-                    support@aryavysyamatrimony.com
+                   beldaguru@gmail.com
                   </p>
 
                 </div>
@@ -187,7 +187,7 @@ export default function ContactPage() {
 
       </section>
 
-      {/* Google Map */}
+      {/* Google Map 
 
       <section className="pb-20">
 
@@ -207,7 +207,7 @@ export default function ContactPage() {
 
         </div>
 
-      </section>
+      </section>*/}
 
     </main>
   );
