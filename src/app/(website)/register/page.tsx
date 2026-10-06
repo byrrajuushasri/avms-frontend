@@ -1216,7 +1216,7 @@ export default function RegisterPage() {
         );
 
         setTimeout(() => {
-          router.push("/search");
+          router.push("/");
         }, 1800);
 
         return;
