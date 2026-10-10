@@ -395,7 +395,7 @@ export default function Header() {
         sm:text-[11px]
       "
     >
-      కళ్యాణమస్తు
+     అవిఘ్నమస్తు 
     </div>
 
     {/* CENTER - HARI OM */}
@@ -423,7 +423,7 @@ export default function Header() {
         sm:text-[11px]
       "
     >
-      అవిఘ్నమస్తు
+      కళ్యాణమస్తు
     </div>
   </div>
 </div>
@@ -470,13 +470,13 @@ export default function Header() {
 
             <div className="flex justify-start">
               <img
-                src="/images/vinayaka.jpg"
-                alt="Aarya Vysya Mahasabha"
+                src="/images/logo1.jpg"
+                alt="Aarya Vysya Logo"
                 className="
                   h-auto
                   w-[100px]
                   object-contain
-                  lg:w-[125px]
+                  lg:w-[85px]
                 "
               />
             </div>
@@ -561,16 +561,17 @@ export default function Header() {
             {/* RIGHT LOGO */}
 
             <div className="flex justify-end">
-              <img
-                src="/images/logo1.jpg"
-                alt="Aarya Vysya Logo"
+               <img
+                src="/images/vinayaka.jpg"
+                alt="Aarya Vysya Mahasabha"
                 className="
                   h-auto
                   w-[100px]
                   object-contain
-                  lg:w-[85px]
+                  lg:w-[125px]
                 "
               />
+             
             </div>
           </div>
 
