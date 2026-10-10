@@ -44,24 +44,16 @@ const menuItems: MenuItem[] = [
 
   {
     label: "Membership",
+    href: "/membership",
     icon: FaCrown,
-    children: [
-      {
-        label: "Members Registration",
-        href: "/membership",
-      },
-    ],
+     
   },
 
   {
-    label: "Matrimony",
+    label: "Matrimony Registration",
+     href: "/register",
     icon: FaUsers,
-    children: [
-      {
-        label: "Matrimony Registration",
-        href: "/register",
-      },
-    ],
+    
   },
 
   {

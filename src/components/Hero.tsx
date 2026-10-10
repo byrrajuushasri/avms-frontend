@@ -125,7 +125,7 @@ export default function Hero() {
                     <span className="font-semibold text-[#690015]">
                       Location:
                     </span>{" "}
-                    Hyderabad, Telangana, India
+                    Champapet, Hyderabad
                   </p>
                 </div>
               </div>
@@ -165,7 +165,7 @@ export default function Hero() {
                 </p>
               </div>
             </div>
-              <div className="mx-auto mt-3 h-[2px] w-16 bg-[#d9a928]" />
+              <br></br>
 
               <p className="mt-5 text-justify text-sm leading-8 text-[#5c4141] sm:text-base">
                 ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక ప్రప్రథమంగా తేదీ
@@ -208,6 +208,7 @@ export default function Hero() {
           </div>
         </div>
       </section>
+        <br></br>
     </main>
   );
 }
