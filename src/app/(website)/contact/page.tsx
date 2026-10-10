@@ -203,6 +203,45 @@ export default function ContactPage() {
 
       </section>
 
+      {/* Google Map Location */}
+      <section className="pb-12 pt-8 sm:pb-20">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-6 text-center">
+            <h2 className="text-2xl font-bold text-rose-600">
+              Our Location
+            </h2>
+
+            <p className="mt-3 text-gray-600">
+              Champapet Aaryavysya Sangam – Parichaya Vedica Vibhagam
+            </p>
+          </div>
+
+          <div className="overflow-hidden rounded-3xl shadow-xl">
+            <iframe
+              src="https://maps.google.com/maps?q=17.3472834,78.5177906&z=16&output=embed"
+              width="100%"
+              height="450"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+              title="Champapet Aaryavysya Sangam Location"
+              className="border-0"
+            />
+          </div>
+
+          <div className="mt-5 text-center">
+            <a
+              href="https://www.google.com/maps/place/17%C2%B020'50.2%22N+78%C2%B031'04.1%22E/@17.3472834,78.5152157,831m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d17.3472834!4d78.5177906"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-6 py-3 font-semibold text-white transition hover:bg-rose-700"
+            >
+              Open in Google Maps
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Google Map 
 
       <section className="pb-20">
