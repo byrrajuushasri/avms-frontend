@@ -405,7 +405,7 @@ export default function Header() {
         justify-self-center
         whitespace-nowrap
         text-[9px]
-        font-medium
+        font-semibold
         sm:text-[11px]
       "
     >
@@ -532,11 +532,11 @@ export default function Header() {
                 "
               >
                 <p className="font-semibold text-[#800018]">
-                  Champapet Aaryavysya Sangam
+                  చంపాపేట్ ఆర్యవైశ్య సంఘం
                 </p>
 
                 <p className="font-medium text-gray-700">
-                  Parichaya Vedica Vibhagam
+                  పరిచయ వేదిక విభాగం
                 </p>
 
                 <p>
@@ -673,11 +673,12 @@ export default function Header() {
               "
             >
               <p className="font-semibold text-[#800018]">
-                Champapet Aaryavysya Sangam
+                చంపాపేట్ ఆర్యవైశ్య సంఘం
+
               </p>
 
               <p className="font-medium text-gray-700">
-                Parichaya Vedica Vibhagam
+                పరిచయ వేదిక విభాగం
               </p>
 
               <p>

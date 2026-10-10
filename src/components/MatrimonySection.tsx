@@ -71,14 +71,7 @@ export default function MatrimonySection() {
 
           {/* Image */}
           <div className="group relative overflow-hidden rounded-2xl shadow-xl">
-            <Image
-              src="/about/about-us1.png"
-              alt="Aarya Vysya Matrimony"
-              width={900}
-              height={600}
-              priority
-              className="h-[300px] w-full object-cover transition duration-700 group-hover:scale-105 sm:h-[400px] md:h-[450px]"
-            />
+            
 
             <div className="absolute inset-0 bg-gradient-to-t from-[#690015]/80 via-[#690015]/10 to-transparent" />
 
@@ -149,14 +142,14 @@ export default function MatrimonySection() {
             </div>
 
             {/* Buttons */}
-            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <Link
+             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+            {/*  <Link
                 href=""
                 className="flex min-h-[50px] items-center justify-center gap-3 rounded-lg bg-[#690015] px-6 py-3 font-serif text-sm font-bold text-[#f5d36c] shadow-md transition duration-300 hover:-translate-y-1 hover:bg-[#f1c84b] hover:text-[#690015] hover:shadow-lg sm:px-7"
               >
                 <FaUsers className="text-base" />
                 SEARCH PROFILES
-              </Link>
+              </Link>*/}
 
               <Link
                 href="/register"

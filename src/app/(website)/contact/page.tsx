@@ -187,13 +187,7 @@ export default function ContactPage() {
                     Working Hours
                   </h3>
 
-                  <p className="text-gray-500">
-                    Monday - Saturday
-                  </p>
-
-                  <p className="text-gray-500">
-                    9:00 AM - 6:00 PM
-                  </p>
+                 
                       <p className="mt-1 text-gray-500"> Every Month - First Sunday </p> </div>
 
                  

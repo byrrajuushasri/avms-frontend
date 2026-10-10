@@ -1,184 +1,238 @@
- 
-import Image from "next/image";
+
+"use client";
+
 import Link from "next/link";
+import {
+  FaHeart,
+  FaUsers,
+  FaUserPlus,
+  FaShieldAlt,
+  FaUserCheck,
+  FaHandsHelping,
+  FaGem,
+} from "react-icons/fa";
+
+const matrimonyFeatures = [
+  {
+    icon: FaUserCheck,
+    title: "Verified Profiles",
+    description:
+      "Connect with genuine Arya Vysya bride and groom profiles.",
+  },
+  {
+    icon: FaShieldAlt,
+    title: "Privacy & Security",
+    description:
+      "Your personal and family details are handled with care.",
+  },
+  {
+    icon: FaUsers,
+    title: "Family Values",
+    description:
+      "Bringing families together with shared values and traditions.",
+  },
+  {
+    icon: FaHandsHelping,
+    title: "Easy Connections",
+    description:
+      "Find suitable life partners with ease and confidence.",
+  },
+];
 
 export default function Hero() {
   return (
-    <section className="relative min-h-[620px] sm:min-h-[650px] lg:min-h-[600px] flex items-center overflow-hidden">
+    <main className="bg-white">
 
-      {/* Background Image */}
-      <Image
-        src="/images/bg-banner.png"
-        alt="Arya Vysya Matrimony"
-        fill
-        priority
-        sizes="100vw"
-        className="
-          object-cover
-          object-[65%_center]
-          sm:object-[60%_center]
-          lg:object-center
-        "
-      />
 
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-black/45" />
+{/* HERO SECTION - WHITE BACKGROUND */}
+<section className="relative overflow-hidden bg-white py-8 text-[#690015] sm:py-10 lg:py-12">
+  <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl text-center">
 
-      {/* Mobile Extra Overlay */}
-      <div className="absolute inset-0 bg-black/10 lg:hidden" />
+      {/* Badge */}
+      <span className="inline-flex items-center gap-2 rounded-full border border-[#ead8a5] bg-[#fffaf0] px-3 py-1.5 text-xs font-medium text-[#690015] sm:text-sm">
+        <FaHeart className="text-[#a67816]" />
+        Trusted Arya Vysya Matrimony
+      </span>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-6 w-full">
+      {/* Heading */}
+      <h1 className="mt-4 font-serif text-2xl font-bold leading-tight sm:text-3xl md:text-4xl">
+        ఆర్య వైశ్య వివాహ
+        <span className="mt-1 block text-[#a67816]">
+          ఉచిత పరిచయ వేదిక
+        </span>
+      </h1>
 
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="mx-auto mt-4 h-[2px] w-16 bg-[#d9a928]" />
 
-          {/* Left Side */}
-          <div className="text-white max-w-xl">
+      {/* Description */}
+      <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[#5c4141] sm:text-base">
+        ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక 31-10-2014 నుండి ప్రారంభించబడినది.
+      </p>
 
-            {/* Badge */}
-            <span className="
-              inline-flex
-              items-center
-              bg-rose-600
-              px-4
-              sm:px-5
-              py-2
-              rounded-full
-              text-xs
-              sm:text-sm
-              font-medium
-            ">
-              ❤️ Trusted Arya Vysya Matrimony
-            </span>
+      {/* Register Button */}
+      <div className="mt-5 flex justify-center">
+        <Link
+          href="/register"
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#690015] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#a3475b]"
+        >
+          <FaUserPlus />
+          Register Free
+        </Link>
+      </div>
 
-            {/* Heading */}
-            <h3 className="
-              mt-5
-              text-3xl
-              sm:text-3xl
-              lg:text-3xl
-              font-semibold
-              leading-tight
-            ">
-              Find Your Perfect
-              <span className="block text-yellow-300">
-                Life Partner
-              </span>
-            </h3>
+      {/* Statistics */}
+      <div className="mt-7 grid grid-cols-3 gap-2 border-t border-[#ead8a5] pt-5 sm:gap-6">
+        <div>
+          <h2 className="text-xl font-bold text-[#a67816] sm:text-2xl">
+            90%
+          </h2>
+          <p className="mt-1 text-[11px] text-[#5c4141] sm:text-sm">
+            Brides' Marriages
+          </p>
+        </div>
 
-            {/* Description */}
-            <p className="
-              mt-5
-              text-base
-              sm:text-sm
-              text-gray-200
-              leading-relaxed
-              max-w-lg
-            ">
-             Connect with verified Arya Vysya bride and groom profiles 
-             and take the first step towards finding your ideal life partner.
+        <div className="border-x border-[#ead8a5] px-1">
+          <h2 className="text-xl font-bold text-[#a67816] sm:text-2xl">
+            75–80%
+          </h2>
+          <p className="mt-1 text-[11px] text-[#5c4141] sm:text-sm">
+            Grooms' Marriages
+          </p>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-bold text-[#a67816] sm:text-2xl">
+            143వ
+          </h2>
+          <p className="mt-1 text-[11px] text-[#5c4141] sm:text-sm">
+            Matrimony Meet
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+
+      {/* MATRIMONY INTRODUCTION SECTION - TEXT ONLY */}
+      <section className="bg-white py-14 sm:py-16 md:py-20">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 lg:px-8">
+
+          {/* Section Heading */}
+          <div className="mx-auto max-w-3xl text-center">
+
+            <p className="font-serif text-xs font-bold tracking-[0.2em] text-[#a67816] sm:text-sm">
+              CHAMPAPET AARYA VYSYA SANGHAM
             </p>
 
-            {/* Buttons */}
-            <div className="
-              flex
-              flex-col
-              sm:flex-row
-              gap-3
-              sm:gap-4
-              mt-7
-            ">
+            <h2 className="mt-3 font-serif text-2xl font-bold leading-tight text-[#690015] sm:text-3xl md:text-4xl">
+              Aarya Vysya Marriage Free Introduction Platform
+            </h2>
 
-              <Link
-                href="/register"
-                className="
-                  bg-rose-600
-                  hover:bg-rose-700
-                  text-center
-                  px-7
-                  py-3.5
-                  sm:px-8
-                  sm:py-4
-                  rounded-lg
-                  font-semibold
-                  transition
-                "
-              >
-                Register Free
-              </Link>
+            <div className="mx-auto mt-5 h-[2px] w-20 bg-[#d9a928]" />
 
+            <p className="mt-5 text-sm leading-7 text-[#5c4141] sm:text-base">
+              A free matrimonial introduction platform created especially
+              for Aarya Vysya families. Connect with genuine bride and groom
+              profiles and take the first step towards finding a suitable
+              life partner while respecting family values and traditions.
+            </p>
+          </div>
+
+          {/* Matrimony Services - No Image */}
+          <div className="mx-auto mt-12 max-w-5xl rounded-2xl border border-[#ead8a5] bg-[#fffaf0] p-5 sm:p-8 md:p-10">
+
+            {/* Family Message */}
+            <div className="text-center">
+              <FaHeart className="mx-auto text-3xl text-[#a67816]" />
+
+              <h3 className="mt-3 font-serif text-xl font-bold text-[#690015] sm:text-2xl">
+                Bringing Families Together
+              </h3>
+
+              <p className="mt-2 text-sm leading-7 text-[#5c4141] sm:text-base">
+                Trust, tradition and meaningful matrimonial connections.
+              </p>
             </div>
 
-            {/* Statistics */}
-            <div className="
-              grid
-              grid-cols-3
-              gap-3
-              sm:gap-8
-              mt-9
-              sm:mt-12
-            ">
+            <div className="mx-auto mt-7 h-[2px] w-20 bg-[#d9a928]" />
 
-              {/* Brides */}
-              <div>
-                <h2 className="
-                  text-2xl
-                  sm:text-3xl
-                  font-bold
-                  text-yellow-300
-                ">
-                  90%
-                </h2>
+            {/* Service Description */}
+            <div className="mt-7 text-center">
+              <p className="font-serif text-xs font-bold tracking-[0.2em] text-[#a67816] sm:text-sm">
+                TRUST • TRADITION • FAMILY
+              </p>
 
-                <p className="text-xs sm:text-sm mt-1">
-                  Brides' Marriages
-                </p>
-              </div>
+              <h3 className="mt-3 font-serif text-2xl font-bold text-[#690015] sm:text-3xl">
+                Aarya Vysya Matrimony Services
+              </h3>
 
-              {/* Grooms */}
-              <div>
-                <h2 className="
-                  text-2xl
-                  sm:text-3xl
-                  font-bold
-                  text-yellow-300
-                ">
-                  75–80%
-                </h2>
+              <div className="mx-auto mt-4 h-[2px] w-20 bg-[#d9a928]" />
 
-                <p className="text-xs sm:text-sm mt-1">
-                 Grooms' Marriages
-                </p>
-              </div>
+              <p className="mx-auto mt-5 max-w-3xl text-sm leading-8 text-[#5c4141] sm:text-base">
+                Our free matrimonial introduction service helps Aarya Vysya
+                brides and grooms connect with suitable life partners.
+                The platform is designed to bring families together while
+                respecting traditional values, family preferences and
+                meaningful relationships.
+              </p>
+            </div>
 
-              {/* Matrimony Platform */}
-              <div>
-                <h2 className="
-                  text-2xl
-                  sm:text-3xl
-                  font-bold
-                  text-yellow-300
-                ">
-                  143వ
-                </h2>
+            {/* Features */}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {matrimonyFeatures.map((item) => {
+                const Icon = item.icon;
 
-                <p className="text-xs sm:text-sm mt-1">
-                 Matrimony Meet
-                </p>
-              </div>
+                return (
+                  <div
+                    key={item.title}
+                    className="group flex items-start gap-4 rounded-xl border border-[#ead8a5] bg-white p-4 transition duration-300 hover:border-[#d9a928] hover:shadow-md sm:p-5"
+                  >
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#690015] text-lg text-[#f5d36c] transition-colors group-hover:bg-[#d9a928] group-hover:text-[#690015]">
+                      <Icon />
+                    </div>
 
+                    <div className="min-w-0">
+                      <h4 className="font-serif text-sm font-bold text-[#690015] sm:text-base">
+                        {item.title}
+                      </h4>
+
+                      <p className="mt-2 text-xs leading-6 text-[#6b5151] sm:text-sm">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Registration Button */}
+            <div className="mt-9 flex justify-center">
+              <Link
+                href="/register"
+                className="flex min-h-[50px] w-full max-w-xs items-center justify-center gap-3 rounded-lg border-2 border-[#690015] px-6 py-3 font-serif text-sm font-bold text-[#690015] transition duration-300 hover:bg-[#690015] hover:text-white sm:w-auto sm:px-8"
+              >
+                <FaUserPlus className="text-base" />
+                REGISTER NOW
+              </Link>
+            </div>
+
+            {/* Trust Message */}
+            <div className="mt-6 flex items-center justify-center gap-2 text-center text-xs text-[#806d61] sm:text-sm">
+              <FaGem className="shrink-0 text-[#b18a43]" />
+
+              <span>
+                Free registration • Trust • Tradition • Family values.
+              </span>
             </div>
 
           </div>
-
-          {/* Right Side */}
-          <div className="hidden lg:block" />
-
         </div>
+      </section>
 
-      </div>
-
-    </section>
+    </main>
   );
 }
- 
