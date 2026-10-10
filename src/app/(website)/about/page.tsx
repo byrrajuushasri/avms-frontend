@@ -1,221 +1,260 @@
 
-import Image from "next/image";
-import {
-  FaHeart,
-  FaCalendarAlt,
-  FaCheckCircle,
-} from "react-icons/fa";
+"use client";
 
 export default function AboutPage() {
   return (
-    <main className="overflow-hidden bg-[#fffaf9] text-gray-800">
+    <main className="min-h-screen bg-gray-50 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
 
-      {/* ABOUT */}
-      <section className="bg-white py-8 sm:py-10">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        {/* PAGE HEADING */}
+  
 
-          {/* Heading */}
-          <div className="mb-6 text-center">
-            <p className="text-sm font-semibold text-[#800018]">
-              చంపాపేట ఆర్య వైశ్య సంఘం
-            </p>
 
-            <h1 className="mt-2 text-2xl font-extrabold leading-tight text-[#800018] sm:text-xl">
-              ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక
-              
-            </h1>
-          </div>
 
-          {/* PHOTO + CONTENT */}
-          <div className="grid items-start gap-6 lg:grid-cols-[280px_1fr] lg:gap-8">
+<header className="mb-8">
+  <div className="mx-auto flex max-w-4xl items-center justify-center gap-2 sm:gap-4">
 
-            {/* SMALL PHOTO CARD */}
-            <div className="mx-auto w-full max-w-[230px]">
-              <div className="overflow-hidden rounded-xl border border-[#eadbb9] bg-white p-2 shadow-md">
+    {/* LEFT TITLE */}
+    <div className="shrink-0 text-right">
+      <h1 className="whitespace-nowrap text-xs font-bold text-[#800018] sm:text-lg">
+        చంపాపేట్ ఆర్య వైశ్య సంఘం
+      </h1>
+    </div>
 
-                <Image
+    {/* CENTER KALASAM */}
+    <div className="shrink-0">
+      <img
+        src="/images/kalasam.webp"
+        alt="పూర్ణకలశం"
+        className="h-12 w-12 object-contain sm:h-16 sm:w-16"
+      />
+    </div>
+
+    {/* RIGHT TITLE */}
+    <div className="shrink-0 text-left">
+      <p className="whitespace-nowrap text-xs font-semibold text-gray-700 sm:text-lg">
+        ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక
+      </p>
+    </div>
+
+  </div>
+
+  {/* BOTTOM LINE */}
+  <div className="mx-auto mt-4 h-px max-w-4xl bg-[#800018]" />
+</header>
+
+
+
+        {/* TWO COLUMN LAYOUT */}
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+
+          {/* LEFT COLUMN */}
+          <div className="space-y-6">
+
+            {/* ORGANIZER DETAILS */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
+                <img
                   src="/about/beld.jpeg"
-                  alt="Beld Gurumoorthy - Champapet Arya Vysya Sangham"
-                  width={220}
-                  height={270}
-                  priority
-                  className="h-[190px] w-full rounded-lg object-cover object-top"
-                  sizes="(max-width: 640px) 220px, 220px"
+                  alt="బెల్డ గురుమూర్తి గుప్త"
+                  className="h-48 w-40 shrink-0 rounded-xl border border-gray-200 object-cover shadow-sm"
                 />
 
-                <div className="px-2 py-3 text-center">
-                  <p className="text-xs font-semibold text-[#800018]">
-                    Community Service
+                <div className="w-full text-center sm:text-left">
+                  <h2 className="text-xl font-bold text-[#800018]">
+                    బెల్డ గురుమూర్తి గుప్త
+                  </h2>
+
+                  <p className="mt-2 font-semibold text-gray-800">
+                    చంపాపేట ఆర్య వైశ్య సంఘం
                   </p>
 
-                  <h3 className="mt-1 text-base font-bold text-[#800018]">
-                    Beld Gurumoorthy
-                  </h3>
-
-                  <p className="mt-1 text-xs leading-5 text-gray-600">
-                    Champapet Arya Vysya Sangham
+                  <p className="mt-1 text-sm text-gray-600">
+                    పరిచయ వేదిక విభాగం
                   </p>
 
-                  <p className="mt-2 break-words text-xs text-gray-600">
-                    Phone: +91 92461 19408
-                  </p>
+                  <div className="mt-4 space-y-3 text-sm text-gray-700">
+                    <p>
+                      <span className="font-semibold">ఫోన్: </span>
+                      <a
+                        href="tel:+919246119408"
+                        className="text-[#800018] hover:underline"
+                      >
+                        +91 92461 19408
+                      </a>
+                    </p>
 
-                  <p className="mt-1 break-words text-xs text-gray-600">
-                    Email: beldaguru@gmail.com
-                  </p>
+                    <p className="break-words">
+                      <span className="font-semibold">ఇమెయిల్: </span>
+                      <a
+                        href="mailto:beldaguru@gmail.com"
+                        className="text-[#800018] hover:underline"
+                      >
+                        beldaguru@gmail.com
+                      </a>
+                    </p>
+
+                    <p>
+                      <span className="font-semibold">ప్రదేశం: </span>
+                      Hyderabad, Telangana, India
+                    </p>
+                  </div>
                 </div>
-
               </div>
-            </div>
+          <br/>  <br/>
+              <h2 className="mb-4 text-xl font-bold text-[#800018]">
+                మా సేవా లక్ష్యం
+              </h2>
 
-            {/* ABOUT TEXT */}
-            <div className="min-w-0">
+              <p className="text-sm leading-8 text-gray-700 sm:text-base">
+                ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక ప్రప్రథమంగా
+                తేదీ 30-11-2014 నుండి ప్రారంభించబడినది. 90 శాతం
+                వధువులు, 75–80 శాతం వరులు వివాహ సంపన్నత
+                పొందియున్నారు. వివాహం చేసుకున్న వారి కుటుంబ
+                సభ్యుల ఆశీర్వాద బలం మాకు ఎంతో స్ఫూర్తి,
+                పట్టుదలను అందిస్తున్నాయి.
+              </p>
 
-              <div className="rounded-2xl border border-[#eadbb9] bg-[#fffaf1] p-4 sm:p-6">
+              <p className="mt-4 text-sm leading-8 text-gray-700 sm:text-base">
+                ఈ వేదిక 143వది 4-10-2026న జరిగినది. మరిన్ని
+                వేదికలు భావి తరాలకు అందాలని, శ్రీ వాసవి కన్యకా
+                పరమేశ్వరి అమ్మవారి అనుగ్రహం ఉండాలని ఆకాంక్షిస్తూ
+                ఈ సేవా కార్యక్రమాన్ని కొనసాగిస్తున్నాము.
+              </p>
 
-                <p className="text-sm leading-7 text-gray-700">
-                  ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక
-                  <span className="font-bold text-[#800018]">
-                    {" "}31-10-2014{" "}
-                  </span>
-                  నుండి ప్రారంభించబడినది.
+              <div className="mt-6 border-t border-gray-200 pt-5 text-center">
+                <p className="font-semibold text-gray-800">
+                  సదా మీ సేవలో
                 </p>
+                <p className="mt-2 text-sm text-gray-600">
+                  నిర్వాహకులు
+                </p>
+                <p className="mt-1 text-lg font-bold text-[#800018]">
+                  బెల్డ గురుమూర్తి గుప్త
+                </p>
+                <p className="mt-1 text-sm text-gray-700">
+                  చంపాపేట ఆర్య వైశ్య సంఘం
+                </p>
+                <p className="text-sm text-gray-700">
+                  పరిచయ వేదిక విభాగం
+                </p>
+              </div>
+            </section>
+          </div>
 
-                {/* Statistics */}
-                <div className="mt-4 grid grid-cols-2 gap-3">
+          {/* RIGHT COLUMN */}
+          <div className="space-y-6">
 
-                  <div className="rounded-xl border border-[#eadbb9] bg-white p-3 text-center">
-                    <p className="text-xl font-extrabold text-[#800018]">
-                      90%
-                    </p>
+            {/* INTRODUCTION PLATFORM — SECOND BOX */}
+            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+   
 
-                    <p className="mt-1 text-[11px] text-gray-600">
-                      వధువుల వివాహాలు
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-[#eadbb9] bg-white p-3 text-center">
-                    <p className="text-xl font-extrabold text-[#800018]">
-                      75–80%
-                    </p>
-
-                    <p className="mt-1 text-[11px] text-gray-600">
-                      వరుల వివాహాలు
-                    </p>
-                  </div>
-
+              {/* SUCCESS STATISTICS */}
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="rounded-xl border border-gray-200 p-4 text-center">
+                  <p className="text-2xl font-bold text-[#800018]">
+                    90%
+                  </p>
+                  <p className="mt-2 text-sm font-medium text-gray-700">
+                    వధువుల వివాహాలు
+                  </p>
                 </div>
 
-                {/* Prayer */}
-                <div className="mt-5 border-t border-[#eadbb9] pt-5 text-center">
-
-                  <p className="text-xs font-semibold text-[#800018] sm:text-sm">
-                    శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి ప్రార్థన
+                <div className="rounded-xl border border-gray-200 p-4 text-center">
+                  <p className="text-2xl font-bold text-[#800018]">
+                    75–80%
                   </p>
-
-                  <div className="mt-4 space-y-1 text-sm leading-7 text-gray-700">
-
-                    <p className="font-semibold text-[#800018]">
-                      విశ్వజనని వాసవి మా హృదయ గీతి అందుకో
-                    </p>
-
-                    <p>నిత్య పూజ సత్య సింధు</p>
-                    <p>ఆత్మ హారతి అందుకో</p>
-
-                    <div className="mx-auto my-3 h-px w-12 bg-[#eadbb9]" />
-
-                    <p>గళం పార గ కలం సాగగా</p>
-                    <p>సేవ వీణ య మ్రోగగ</p>
-                    <p>సౌహర్ద్రత ఆర్ద్రత నిండగా</p>
-                    <p>స్నేహ దీపం వెలుగగా</p>
-                    <p>సహకార బంధము నిలువగా</p>
-                    <p>ప్రగతి పుష్పము విరియగా</p>
-                    <p>భక్తితో నిను గొలుతూము</p>
-
-                    <p className="font-bold text-[#800018]">
-                      విశ్వ శాంతికి నిలుతూము
-                    </p>
-
-                  </div>
-
-                  <p className="mt-4 text-sm leading-7 text-gray-700">
-                    ఈ వేదికను భావి తరాలకు అందించాలని,
-                    శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి
-                    అనుగ్రహం ఎల్లప్పుడూ ఉండాలని కోరుకుంటున్నాము.
+                  <p className="mt-2 text-sm font-medium text-gray-700">
+                    వరుల వివాహాలు
                   </p>
-
                 </div>
               </div>
-            </div>
 
+              {/* PRAYER */}
+              <div className="mt-6 rounded-xl bg-gray-50 p-5">
+                <h3 className="mb-4 text-center text-lg font-bold text-[#800018]">
+                  శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి ప్రార్థన
+                </h3>
+
+                <div className="space-y-2 text-center text-sm leading-7 text-gray-700 sm:text-base">
+                  <p>విశ్వజనని వాసవి మా హృదయ గీతి అందుకో</p>
+                  <p>నిత్య పూజ సత్య సింధు</p>
+                  <p>ఆత్మ హారతి అందుకో</p>
+                  <p>గళం పార గ కలం సాగగా</p>
+                  <p>సేవ వీణ య మ్రోగగ</p>
+                  <p>సౌహార్ద్రత ఆర్ద్రత నిండగా</p>
+                  <p>స్నేహ దీపం వెలుగగా</p>
+                  <p>సహకార బంధము నిలువగా</p>
+                  <p>ప్రగతి పుష్పము విరియగా</p>
+                  <p>భక్తితో నిను గొలుతూము</p>
+                  <p>విశ్వ శాంతికి నిలుతూము</p>
+                </div>
+
+                <p className="mt-5 text-sm leading-7 text-gray-700">
+                  ఈ వేదికను భావి తరాలకు అందించాలని, శ్రీ వాసవి
+                  కన్యకా పరమేశ్వరి అమ్మవారి అనుగ్రహం ఎల్లప్పుడూ
+                  ఉండాలని కోరుకుంటున్నాము.
+                </p>
+              </div>
+            </section>
           </div>
         </div>
-      </section>
 
-      {/* JOURNEY */}
-      <section className="border-y border-[#eadbb9] bg-[#fffaf1] py-8 sm:py-10">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        {/* OUR JOURNEY */}
+        <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
+          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-12">
 
-          <div className="text-center">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#800018]">
-              Our Journey
-            </p>
 
-            <h2 className="mt-1 text-2xl font-extrabold text-[#800018]">
-              సేవా ప్రయాణం
-            </h2>
-          </div>
+            {/* JOURNEY DETAILS */}
+        
+<div className="md:col-span-12">
+  <h2 className="mb-5 text-center text-2xl font-bold text-[#800018] md:text-left">
+    మా సేవా ప్రయాణం
+  </h2>
 
-          {/* JOURNEY CARDS */}
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <div className="rounded-xl border border-gray-200 p-4 text-center">
+      <p className="text-2xl font-bold text-[#800018]">
+        2014
+      </p>
+      <p className="mt-2 font-semibold text-gray-800">
+        పరిచయ వేదిక ప్రారంభం
+      </p>
+      <p className="mt-1 text-sm text-gray-600">
+        28-11-2014
+      </p>
+    </div>
 
-            {/* 2014 */}
-            <div className="rounded-2xl border border-[#eadbb9] bg-white p-5 text-center shadow-sm">
-              <FaCalendarAlt className="mx-auto text-xl text-[#800018]" />
+    <div className="rounded-xl border border-gray-200 p-4 text-center">
+      <p className="text-2xl font-bold text-[#800018]">
+        143వ
+      </p>
+      <p className="mt-2 font-semibold text-gray-800">
+        పరిచయ వేదిక
+      </p>
+      <p className="mt-1 text-sm text-gray-600">
+        04-10-2026
+      </p>
+    </div>
 
-              <h3 className="mt-2 text-2xl font-extrabold text-[#800018]">
-                2014
-              </h3>
-
-              <p className="mt-1 text-xs text-gray-600">
-                పరిచయ వేదిక ప్రారంభం
-              </p>
-
-              <p className="mt-1 text-[11px] font-semibold text-[#800018]">
-                28-11-2014
-              </p>
-            </div>
-
-            {/* 143 */}
-            <div className="rounded-2xl border border-[#eadbb9] bg-white p-5 text-center shadow-sm">
-              <FaHeart className="mx-auto text-xl text-[#800018]" />
-
-              <h3 className="mt-2 text-2xl font-extrabold text-[#800018]">
-                143వ
-              </h3>
-
-              <p className="mt-1 text-xs text-gray-600">
-                పరిచయ వేదిక
-              </p>
-            </div>
-
-            {/* 2026 */}
-            <div className="rounded-2xl border border-[#eadbb9] bg-white p-5 text-center shadow-sm">
-              <FaCheckCircle className="mx-auto text-xl text-[#800018]" />
-
-              <h3 className="mt-2 text-xl font-extrabold text-[#800018]">
-                04-10-2026
-              </h3>
-
-              <p className="mt-1 text-xs text-gray-600">
-                Online Registration
-              </p>
-            </div>
+    <div className="rounded-xl border border-gray-200 p-4 text-center">
+      <p className="text-2xl font-bold text-[#800018]">
+        Online
+      </p>
+      <p className="mt-2 font-semibold text-gray-800">
+        Online Registration
+      </p>
+      <p className="mt-1 text-sm text-gray-600">
+        సులభమైన నమోదు ప్రక్రియ
+      </p>
+    </div>
+  </div>
+</div>
 
           </div>
-        </div>
-      </section>
+        </section>
 
+      </div>
     </main>
   );
 }
