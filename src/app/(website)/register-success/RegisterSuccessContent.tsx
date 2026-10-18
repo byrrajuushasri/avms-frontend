@@ -11,7 +11,7 @@ export default function RegisterSuccessContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/home");
+      router.push("/");
     }, 5000);
 
     return () => clearTimeout(timer);
