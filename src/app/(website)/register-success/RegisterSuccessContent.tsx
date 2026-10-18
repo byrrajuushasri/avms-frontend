@@ -11,7 +11,7 @@ export default function RegisterSuccessContent() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/search");
+      router.push("/home");
     }, 5000);
 
     return () => clearTimeout(timer);
@@ -63,17 +63,10 @@ export default function RegisterSuccessContent() {
 
         {/* Redirect Message */}
         <p className="text-sm text-gray-500">
-          You will be redirected to the search page in a few seconds...
+          You will be redirected to the home page in a few seconds...
         </p>
 
-        {/* Button */}
-        <button
-          type="button"
-          onClick={() => router.push("/home")}
-          className="mt-6 w-full rounded-lg bg-[#800018] px-5 py-3 font-semibold text-white transition hover:bg-[#650013]"
-        >
-          Go to Home
-        </button>
+        
       </div>
     </main>
   );
