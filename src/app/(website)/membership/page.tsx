@@ -974,29 +974,28 @@ if (name === "mobile") {
      GOTRAM SEARCH CHANGE
   ========================================================= */
 
-  const handleGotramSearch = (
-    e: ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = e.target.value;
+ const handleGotramSearch = (
+  e: ChangeEvent<HTMLInputElement>
+) => {
+  const value = e.target.value;
 
-    setGotramSearch(value);
+  setGotramSearch(value);
 
-    setFormData((prev) => ({
-      ...prev,
-      gotram: value,
-    }));
+  // Keep typed Gotram in form data,
+  // including custom Gotram names.
+  setFormData((prev) => ({
+    ...prev,
+    gotram: value,
+  }));
 
-    setShowGotramList(true);
+  setShowGotramList(true);
 
-    if (!value.trim()) {
-      setFieldError(
-        "gotram",
-        "Gotram is required"
-      );
-    } else {
-      clearFieldError("gotram");
-    }
-  };
+  if (!value.trim()) {
+    setFieldError("gotram", "Gotram is required");
+  } else {
+    clearFieldError("gotram");
+  }
+};
 
   /* =========================================================
      SELECT GOTRAM
@@ -1946,8 +1945,8 @@ setMobileNational("");
                   {/* =================================================
                       SEARCHABLE GOTRAM
                   ================================================== */}
+            {/* SEARCHABLE GOTRAM */}
                   <div className="relative">
-
                     <label className={labelClass}>
                       Gotram *
                     </label>
@@ -1957,50 +1956,34 @@ setMobileNational("");
                       name="gotram"
                       value={gotramSearch}
                       onChange={handleGotramSearch}
-                      onFocus={() =>
-                        setShowGotramList(true)
-                      }
+                      onFocus={() => setShowGotramList(true)}
+                      onBlur={() => setShowGotramList(false)}
                       placeholder="Type Gotram..."
                       autoComplete="off"
                       maxLength={100}
-                      className={getInputClass(
-                        "gotram"
-                      )}
+                      className={getInputClass("gotram")}
                     />
 
-                    {/* SEARCH RESULTS */}
-                    {showGotramList && (
+                    {/* SHOW MATCHING GOTRAMS ONLY */}
+                    {showGotramList && filteredGotramList.length > 0 && (
                       <div className="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-
-                        {filteredGotramList.length > 0 ? (
-                          filteredGotramList.map(
-                            (gotram) => (
-                              <button
-                                type="button"
-                                key={gotram}
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  handleGotramSelect(
-                                    gotram
-                                  );
-                                }}
-                                className="block w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-rose-50 hover:text-rose-700"
-                              >
-                                {gotram}
-                              </button>
-                            )
-                          )
-                        ) : (
-                          <p className="px-4 py-3 text-sm text-gray-500">
-                            No Gotram found
-                          </p>
-                        )}
-
+                        {filteredGotramList.map((gotram) => (
+                          <button
+                            type="button"
+                            key={gotram}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleGotramSelect(gotram);
+                            }}
+                            className="block w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-rose-50 hover:text-rose-700 last:border-b-0"
+                          >
+                            {gotram}
+                          </button>
+                        ))}
                       </div>
                     )}
 
                     <ErrorMessage field="gotram" />
-
                   </div>
 
 
