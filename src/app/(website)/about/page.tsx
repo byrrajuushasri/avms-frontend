@@ -1,5 +1,10 @@
 
 "use client";
+import {
+  FaCalendarAlt,
+  FaUsers,
+  FaLaptop,
+} from "react-icons/fa";
 
 export default function AboutPage() {
   return (
@@ -65,13 +70,13 @@ export default function AboutPage() {
                     బెల్డ గురుమూర్తి గుప్త
                   </h2>
 
-                  <p className="mt-2 font-semibold text-gray-800">
-                    చంపాపేట ఆర్య వైశ్య సంఘం
-                  </p>
+                  <p className="mt-2 text-sm font-semibold text-[#5c4141]">
+                   అధ్యక్షులు
+                      </p>
 
-                  <p className="mt-1 text-sm text-gray-600">
-                    పరిచయ వేదిక విభాగం
-                  </p>
+                      <p className="mt-1 text-sm text-[#5c4141]">
+                        నిర్వాహకులు
+                      </p>
 
                   <div className="mt-4 space-y-3 text-sm text-gray-700">
                     <p>
@@ -201,58 +206,80 @@ export default function AboutPage() {
         </div>
 
         {/* OUR JOURNEY */}
-        <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
-          <div className="grid grid-cols-1 items-center gap-6 md:grid-cols-12">
-
-
-            {/* JOURNEY DETAILS */}
-        
-<div className="md:col-span-12">
-  <h2 className="mb-5 text-center text-2xl font-bold text-[#800018] md:text-left">
+     
+{/* OUR JOURNEY */}
+<section className="mt-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
+  <h2 className="mb-6 text-center text-2xl font-bold text-[#800018] md:text-left">
     మా సేవా ప్రయాణం
   </h2>
 
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-    <div className="rounded-xl border border-gray-200 p-4 text-center">
-      <p className="text-2xl font-bold text-[#800018]">
+  <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+
+    {/* 2014 - Journey Started */}
+    <div className="group rounded-xl border border-gray-200 bg-white p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#800018] hover:shadow-lg">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#800018]/10 transition-colors group-hover:bg-[#800018]">
+        <FaCalendarAlt className="h-8 w-8 text-[#800018] group-hover:text-white" />
+      </div>
+
+      <p className="mt-4 text-2xl font-bold text-[#800018]">
         2014
       </p>
+
       <p className="mt-2 font-semibold text-gray-800">
         పరిచయ వేదిక ప్రారంభం
       </p>
-      <p className="mt-1 text-sm text-gray-600">
+
+      <div className="mx-auto my-3 h-[2px] w-12 bg-[#d9a928]" />
+
+      <p className="text-sm text-gray-600">
         28-11-2014
       </p>
     </div>
 
-    <div className="rounded-xl border border-gray-200 p-4 text-center">
-      <p className="text-2xl font-bold text-[#800018]">
+    {/* 143rd - Matrimony Meet */}
+    <div className="group rounded-xl border border-gray-200 bg-white p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#800018] hover:shadow-lg">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#800018]/10 transition-colors group-hover:bg-[#800018]">
+        <FaUsers className="h-8 w-8 text-[#800018] group-hover:text-white" />
+      </div>
+
+      <p className="mt-4 text-2xl font-bold text-[#800018]">
         143వ
       </p>
+
       <p className="mt-2 font-semibold text-gray-800">
         పరిచయ వేదిక
       </p>
-      <p className="mt-1 text-sm text-gray-600">
+
+      <div className="mx-auto my-3 h-[2px] w-12 bg-[#d9a928]" />
+
+      <p className="text-sm text-gray-600">
         04-10-2026
       </p>
     </div>
 
-    <div className="rounded-xl border border-gray-200 p-4 text-center">
-      <p className="text-2xl font-bold text-[#800018]">
+    {/* Online Registration */}
+    <div className="group rounded-xl border border-gray-200 bg-white p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#800018] hover:shadow-lg">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#800018]/10 transition-colors group-hover:bg-[#800018]">
+        <FaLaptop className="h-8 w-8 text-[#800018] group-hover:text-white" />
+      </div>
+
+      <p className="mt-4 text-2xl font-bold text-[#800018]">
         Online
       </p>
+
       <p className="mt-2 font-semibold text-gray-800">
         Online Registration
       </p>
-      <p className="mt-1 text-sm text-gray-600">
+
+      <div className="mx-auto my-3 h-[2px] w-12 bg-[#d9a928]" />
+
+      <p className="text-sm text-gray-600">
         సులభమైన నమోదు ప్రక్రియ
       </p>
     </div>
-  </div>
-</div>
 
-          </div>
-        </section>
+  </div>
+</section>
 
       </div>
     </main>

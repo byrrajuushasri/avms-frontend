@@ -1003,39 +1003,7 @@ export default function Header() {
             })}
           </div>
 
-          {/* =================================================
-              QUICK REGISTRATION
-          ================================================== */}
-
-          <div className="p-4">
-            <Link
-              href="/register"
-              onClick={closeMobile}
-              className="
-                flex
-                min-h-12
-                w-full
-                items-center
-                justify-center
-                gap-2
-                rounded-lg
-                bg-[#800018]
-                px-4
-                py-3
-                text-sm
-                font-semibold
-                text-white
-                shadow-sm
-                transition
-                hover:bg-[#610013]
-                active:bg-[#610013]
-              "
-            >
-              <FaUserPlus />
-
-              Matrimony Registration
-            </Link>
-          </div>
+      
         </div>
       )}
     </header>
