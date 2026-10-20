@@ -52,9 +52,9 @@ const organizers = [
    
   
   {
-    name: "నరేష్ చిట్టనూరి",
+    name: "చిత్తనూరి నరేష్ గుప్త",
     role: "కోశాధికారి",
-    
+    image: "/about/naresh.jpeg",
     phone: "+91 98488 330591",
     tel: "+9198488330591",
     email: "nareshchittanur@gmail.com",
@@ -94,16 +94,22 @@ function OrganizerCard({
   person: (typeof organizers)[number];
 }) {
   return (
+
+    
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#eadcb8] bg-white shadow-[0_4px_18px_rgba(105,0,21,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[#c5a04a] hover:shadow-[0_12px_28px_rgba(105,0,21,0.12)] sm:flex-row">
-      {/* Profile image or initials */}
-      {person.image ? (
-  <img
-    src={person.image}
-    alt={person.name}
-    loading="lazy"
-    className="h-40 w-36 rounded-xl border-2 border-white object-cover shadow-md sm:h-44 sm:w-36"
-  />
+      
+{/* Organizer Profile Image */}
+{person.image ? (
+  <div className="flex shrink-0 items-center justify-center p-3 sm:p-4">
+    <img
+      src={person.image}
+      alt={person.name}
+      loading="lazy"
+      className="h-48 w-44 rounded-xl border-2 border-[#eadcb8] object-cover shadow-md transition-transform duration-300 group-hover:scale-[1.03] sm:h-56 sm:w-48 lg:h-60 lg:w-52"
+    />
+  </div>
 ) : null}
+
 
       {/* Organizer information */}
       <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-5">
@@ -155,6 +161,72 @@ function OrganizerCard({
 export default function Hero() {
   return (
     <main className="overflow-hidden bg-white text-[#604b4b]">
+      <br/>
+
+
+{/* Smooth Single-Line Scrolling Announcement */}
+<div className="overflow-hidden py-3">
+  <div className="marquee-track">
+    <div className="marquee-content">
+      <span>
+        ✨ నూతన వధూవరులందరికీ శ్రీ పరాభవ నామ సంవత్సర దసరా శుభాకాంక్షలు 🙏
+        &nbsp; | &nbsp; ఆర్య వైశ్య సమాజం కోసం ఉచిత ఆన్‌లైన్ వివాహ పరిచయ వేదిక
+        &nbsp; | &nbsp; ✨
+      </span>
+
+      <span aria-hidden="true">
+        &nbsp;&nbsp;&nbsp; ✨ నూతన వధూవరులందరికీ శ్రీ పరాభవ నామ సంవత్సర దసరా శుభాకాంక్షలు 🙏
+        &nbsp; | &nbsp; ఆర్య వైశ్య సమాజం కోసం ఉచిత ఆన్‌లైన్ వివాహ పరిచయ వేదిక
+        &nbsp; | &nbsp; ✨
+      </span>
+    </div>
+  </div>
+</div>
+
+<style jsx>{`
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: smooth-marquee 35s linear infinite;
+    will-change: transform;
+  }
+
+  .marquee-content {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    white-space: nowrap;
+    color:#800018;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .marquee-content > span {
+    flex-shrink: 0;
+  }
+
+  @keyframes smooth-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (min-width: 640px) {
+    .marquee-content {
+      font-size: 16px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+    }
+  }
+`}</style>
+
       {/* HERO HEADING */}
       <section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-4 pb-8 pt-10 sm:px-6 sm:pb-12 sm:pt-14">
         <div className="mx-auto max-w-5xl text-center">
