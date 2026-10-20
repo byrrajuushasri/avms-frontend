@@ -272,9 +272,7 @@ export default function Hero() {
           <section className="mt-12 overflow-hidden rounded-3xl border border-[#eadcb8] bg-gradient-to-br from-[#fffaf0] via-white to-[#fff6f6] sm:mt-16">
             <div className="px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
               <div className="text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#690015] text-xl text-[#f5d887] shadow-md">
-                  <FaHeart />
-                </div>
+                
 
                 <h2 className="mt-4 font-serif text-2xl font-bold text-[#690015] sm:text-3xl">
                   మా సేవా లక్ష్యం
