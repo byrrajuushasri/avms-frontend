@@ -789,606 +789,340 @@ export default function AdminDashboard() {
               TABLE
           ================================================= */}
 
-          <div className="overflow-x-auto overflow-y-visible">
-            <table className="w-full min-w-[1100px]">
-              {/* TABLE HEADER */}
+    
+{/* =================================================
+    COMPACT MATRIMONY TABLE — NO HORIZONTAL SCROLL
+================================================= */}
 
-              <thead>
-                <tr
-                  className="
-                    bg-gray-50/80
-                    text-xs
-                    uppercase
-                    tracking-wider
-                    text-gray-400
-                  "
+<div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+
+  {/* TABLE HEADER */}
+  <div className="flex flex-col gap-3 border-b border-gray-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+    <div>
+      <h3 className="text-sm font-semibold text-gray-800">
+        Matrimonial Members
+      </h3>
+      <p className="mt-1 text-xs text-gray-500">
+        {filteredUsers.length} registered profiles
+      </p>
+    </div>
+
+    <div className="relative w-full sm:max-w-xs">
+      <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
+      <input
+        type="text"
+        value={search}
+        onChange={(e) => {
+          setSearch(e.target.value);
+          setCurrentPage(1);
+          setOpenMenuId(null);
+        }}
+        placeholder="Search name, ID, phone..."
+        className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-3 text-xs text-gray-700 outline-none focus:border-[#8B1E3F] focus:bg-white sm:text-sm"
+      />
+      {search && (
+        <button
+          type="button"
+          onClick={resetSearch}
+          aria-label="Clear search"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700"
+        >
+          <FaTimes className="text-xs" />
+        </button>
+      )}
+    </div>
+  </div>
+
+  {/* TABLE: FIXED WIDTH, NO SCROLL */}
+  <div className="w-full overflow-hidden">
+    <table className="w-full table-fixed border-collapse">
+      <colgroup>
+        <col className="w-[34%] sm:w-[24%]" />
+        <col className="w-[18%] sm:w-[14%]" />
+        <col className="hidden md:table-column md:w-[20%]" />
+        <col className="w-[20%] sm:w-[16%] md:w-[13%]" />
+        <col className="w-[16%] sm:w-[14%]" />
+        <col className="w-[12%] sm:w-[12%]" />
+      </colgroup>
+
+      <thead>
+        <tr className="border-b border-gray-200 bg-gray-50">
+          <th className="px-1.5 py-2.5 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+            Name
+          </th>
+          <th className="px-1 py-2.5 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+            Member ID
+          </th>
+          <th className="hidden px-2 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500 md:table-cell">
+            Email
+          </th>
+          <th className="px-1 py-2.5 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+            Phone
+          </th>
+          <th className="px-1 py-2.5 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+            Status
+          </th>
+          <th className="px-1 py-2.5 text-center text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+            Actions
+          </th>
+        </tr>
+      </thead>
+
+      <tbody className="divide-y divide-gray-100">
+        {currentUsers.length > 0 ? (
+          currentUsers.map((user) => (
+            <tr
+              key={user.id}
+              className="transition-colors hover:bg-gray-50"
+            >
+              {/* NAME */}
+              <td className="px-1.5 py-2.5 align-middle sm:px-3 sm:py-3">
+                <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+                  <img
+                    src={getPhotoUrl(
+                      user.photo,
+                      `${user.name} ${user.surname || ""}`
+                    )}
+                    alt={user.name}
+                    className="h-7 w-7 shrink-0 rounded-full border border-gray-200 object-cover sm:h-9 sm:w-9"
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src =
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "Member")}&background=f5f5f5&color=555555`;
+                    }}
+                  />
+                  <div className="min-w-0">
+                    <p className="break-words text-[10px] font-semibold leading-tight text-gray-800 sm:text-xs">
+                      {user.name} {user.surname || ""}
+                    </p>
+                    <p className="mt-1 text-[9px] text-gray-400 sm:text-[10px]">
+                      #{user.id}
+                    </p>
+                  </div>
+                </div>
+              </td>
+
+              {/* MEMBER ID */}
+              <td className="break-words px-1 py-2.5 text-[9px] leading-tight text-gray-600 sm:px-3 sm:text-xs">
+                {user.member_id || "-"}
+              </td>
+
+              {/* EMAIL — DESKTOP */}
+              <td className="hidden px-2 py-2.5 md:table-cell">
+                <p className="break-all text-xs text-gray-600">
+                  {user.email || "-"}
+                </p>
+              </td>
+
+              {/* PHONE */}
+              <td className="break-words px-1 py-2.5 text-[10px] leading-tight text-gray-600 sm:px-3 sm:text-xs">
+                {user.mobile || "-"}
+              </td>
+
+              {/* STATUS */}
+              <td className="px-1 py-2.5 sm:px-3">
+                <span
+                  className={`inline-block max-w-full break-words rounded-full px-1.5 py-1 text-[9px] font-semibold leading-tight sm:px-2 sm:text-[10px] ${
+                    !user.status ||
+                    user.status.toLowerCase() === "pending"
+                      ? "bg-amber-50 text-amber-700"
+                      : user.status.toLowerCase() === "approved"
+                        ? "bg-green-50 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                  }`}
                 >
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Name
-                  </th>
-
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Member ID
-                  </th>
-
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Email ID
-                  </th>
-
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Phone Number
-                  </th>
-
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Profile Category
-                  </th>
-
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Create Date
-                  </th>
-
-                  <th className="px-6 py-4 text-left font-semibold">
-                    Status
-                  </th>
-
-                  <th className="px-6 py-4 text-right font-semibold">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-
-              {/* TABLE BODY */}
-
-              <tbody className="divide-y divide-gray-100">
-                {/* LOADING */}
-
-                {loading ? (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-6 py-16 text-center"
-                    >
-                      <div className="flex flex-col items-center">
-                        <div
-                          className="
-                            w-10
-                            h-10
-                            border-4
-                            border-gray-200
-                            border-t-gray-600
-                            rounded-full
-                            animate-spin
-                          "
-                        />
-
-                        <p className="text-sm text-gray-500 mt-4">
-                          Loading matrimonial members...
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : currentUsers.length > 0 ? (
-                  /* USERS */
-
-                  currentUsers.map(
-                    (user) => (
-                      <tr
-                        key={user.id}
-                        className="
-                          hover:bg-gray-50/70
-                          transition-colors
-                        "
-                      >
-                        {/* NAME */}
-
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={getPhotoUrl(
-                                user.photo,
-                                `${user.name} ${
-                                  user.surname ||
-                                  ""
-                                }`
-                              )}
-                              alt={user.name}
-                              className="
-                                w-10
-                                h-10
-                                rounded-xl
-                                object-cover
-                                border
-                                border-gray-100
-                              "
-                              onError={(e) => {
-                                e.currentTarget.src =
-                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                    user.name
-                                  )}&background=f5f5f5&color=555555&bold=true`;
-                              }}
-                            />
-
-                            <div className="min-w-0">
-                              <p
-                                className="
-                                  font-semibold
-                                  text-gray-800
-                                  truncate
-                                  max-w-[180px]
-                                "
-                              >
-                                {user.name}{" "}
-                                {user.surname || ""}
-                              </p>
-
-                              <p className="text-xs text-gray-400 mt-0.5">
-                                ID #{user.id}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* MEMBER ID */}
-
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-medium text-gray-600">
-                            {user.member_id || "-"}
-                          </span>
-                        </td>
-
-                        {/* EMAIL */}
-
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-600 whitespace-nowrap">
-                            {user.email || "-"}
-                          </span>
-                        </td>
-
-                        {/* PHONE */}
-
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-600 whitespace-nowrap">
-                            {user.mobile || "-"}
-                          </span>
-                        </td>
-
-                        {/* PROFILE CATEGORY */}
-
-                        <td className="px-6 py-4">
-                          <span
-                            className="
-                              inline-flex
-                              items-center
-                              px-3
-                              py-1.5
-                              rounded-full
-                              text-xs
-                              font-semibold
-                              bg-gray-50
-                              text-gray-600
-                            "
-                          >
-                            {user.profile_category ||
-                              "-"}
-                          </span>
-                        </td>
-
-                        {/* CREATE DATE */}
-
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span
-                              className="
-                                text-sm
-                                font-medium
-                                text-gray-700
-                                whitespace-nowrap
-                              "
-                            >
-                              {formatDate(
-                                user.created_at
-                              )}
-                            </span>
-
-                            <span className="text-xs text-gray-400 mt-0.5">
-                              Registered
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* STATUS */}
-
-                        <td className="px-6 py-4">
-                          {isPending(
-                            user.status
-                          ) ? (
-                            <span
-                              className="
-                                inline-flex
-                                items-center
-                                gap-1.5
-                                px-3
-                                py-1.5
-                                rounded-full
-                                text-xs
-                                font-semibold
-                                bg-yellow-50
-                                text-yellow-700
-                                border
-                                border-yellow-100
-                              "
-                            >
-                              Pending
-                            </span>
-                          ) : (
-                            <div className="flex flex-col">
-                              <span
-                                className="
-                                  inline-flex
-                                  items-center
-                                  gap-1.5
-                                  w-fit
-                                  px-3
-                                  py-1.5
-                                  rounded-full
-                                  text-xs
-                                  font-semibold
-                                  bg-green-50
-                                  text-green-700
-                                  border
-                                  border-green-100
-                                "
-                              >
-                                <FaCheck className="text-[10px]" />
-                                Approved
-                              </span>
-
-                              {user.expiry_date && (
-                                <span className="text-[11px] text-gray-400 mt-1">
-                                  Expires:{" "}
-                                  {formatDate(
-                                    user.expiry_date
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* ACTIONS */}
-
-                        <td className="px-6 py-4">
-                          <div className="flex justify-end">
-                            <div className="relative">
-                              {/* ACTION BUTTON */}
-
-                              <button
-                                type="button"
-                                title="More actions"
-                                aria-label={`Actions for ${user.name}`}
-                                aria-expanded={
-                                  openMenuId ===
-                                  user.id
-                                }
-                                onClick={() =>
-                                  toggleMenu(
-                                    user.id
-                                  )
-                                }
-                                disabled={
-                                  deletingId ===
-                                    user.id ||
-                                  approvingId ===
-                                    user.id
-                                }
-                                className="
-                                  w-9
-                                  h-9
-                                  flex
-                                  items-center
-                                  justify-center
-                                  rounded-lg
-                                  border
-                                  border-gray-200
-                                  bg-white
-                                  text-gray-500
-                                  hover:text-gray-800
-                                  hover:bg-gray-50
-                                  hover:border-gray-300
-                                  active:bg-gray-100
-                                  disabled:opacity-50
-                                  transition-all
-                                "
-                              >
-                                <FaEllipsisV className="text-sm" />
-                              </button>
-
-                              {/* DROPDOWN */}
-
-                              {openMenuId ===
-                                user.id && (
-                                <div
-                                  className="
-                                    absolute
-                                    right-0
-                                    top-11
-                                    z-50
-                                    w-44
-                                    bg-white
-                                    border
-                                    border-gray-100
-                                    rounded-xl
-                                    shadow-2xl
-                                    py-1.5
-                                  "
-                                >
-                                  {/* APPROVE */}
-
-                                  {isPending(
-                                    user.status
-                                  ) && (
-                                    <>
-                                      <button
-                                        type="button"
-                                        disabled={
-                                          approvingId ===
-                                            user.id ||
-                                          deletingId ===
-                                            user.id
-                                        }
-                                        onClick={() =>
-                                          handleApprove(
-                                            user.id,
-                                            `${user.name} ${
-                                              user.surname ||
-                                              ""
-                                            }`.trim()
-                                          )
-                                        }
-                                        className="
-                                          w-full
-                                          flex
-                                          items-center
-                                          gap-3
-                                          px-4
-                                          py-2.5
-                                          text-sm
-                                          font-semibold
-                                          text-gray-700
-                                          hover:bg-gray-50
-                                          disabled:opacity-50
-                                          disabled:cursor-not-allowed
-                                          transition
-                                          text-left
-                                        "
-                                      >
-                                        {approvingId ===
-                                        user.id ? (
-                                          <>
-                                            <span
-                                              className="
-                                                w-3
-                                                h-3
-                                                border-2
-                                                border-gray-300
-                                                border-t-gray-700
-                                                rounded-full
-                                                animate-spin
-                                              "
-                                            />
-
-                                            <span>
-                                              Approving...
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <FaCheck className="text-gray-400 text-xs" />
-
-                                            <span>
-                                              Approve
-                                            </span>
-                                          </>
-                                        )}
-                                      </button>
-
-                                      <div className="my-1 border-t border-gray-100" />
-                                    </>
-                                  )}
-
-                                  {/* VIEW */}
-
-                                  <Link
-                                    href={`/admin/matrimony/view/${user.id}`}
-                                    onClick={() =>
-                                      setOpenMenuId(
-                                        null
-                                      )
-                                    }
-                                    className="
-                                      w-full
-                                      flex
-                                      items-center
-                                      gap-3
-                                      px-4
-                                      py-2.5
-                                      text-sm
-                                      text-gray-600
-                                      hover:bg-gray-50
-                                      hover:text-gray-900
-                                      transition
-                                    "
-                                  >
-                                    <FaEye className="text-gray-400 text-xs" />
-
-                                    <span>
-                                      View
-                                    </span>
-                                  </Link>
-
-                                  {/* EDIT */}
-
-                                  <Link
-                                    href={`/admin/matrimony/edit/${user.id}`}
-                                    onClick={() =>
-                                      setOpenMenuId(
-                                        null
-                                      )
-                                    }
-                                    className="
-                                      w-full
-                                      flex
-                                      items-center
-                                      gap-3
-                                      px-4
-                                      py-2.5
-                                      text-sm
-                                      text-gray-600
-                                      hover:bg-gray-50
-                                      hover:text-gray-900
-                                      transition
-                                    "
-                                  >
-                                    <FaEdit className="text-gray-400 text-xs" />
-
-                                    <span>
-                                      Edit
-                                    </span>
-                                  </Link>
-
-                                  {/* DIVIDER */}
-
-                                  <div className="my-1 border-t border-gray-100" />
-
-                                  {/* DELETE */}
-
-                                  <button
-                                    type="button"
-                                    disabled={
-                                      deletingId ===
-                                        user.id ||
-                                      approvingId ===
-                                        user.id
-                                    }
-                                    onClick={() =>
-                                      handleDelete(
-                                        user.id,
-                                        `${user.name} ${
-                                          user.surname ||
-                                          ""
-                                        }`.trim()
-                                      )
-                                    }
-                                    className="
-                                      w-full
-                                      flex
-                                      items-center
-                                      gap-3
-                                      px-4
-                                      py-2.5
-                                      text-sm
-                                      text-gray-500
-                                      hover:bg-red-50
-                                      hover:text-red-600
-                                      disabled:opacity-50
-                                      disabled:cursor-not-allowed
-                                      transition
-                                      text-left
-                                    "
-                                  >
-                                    {deletingId ===
-                                    user.id ? (
-                                      <>
-                                        <span
-                                          className="
-                                            w-3
-                                            h-3
-                                            border-2
-                                            border-gray-300
-                                            border-t-red-500
-                                            rounded-full
-                                            animate-spin
-                                          "
-                                        />
-
-                                        <span>
-                                          Deleting...
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FaTrash className="text-gray-400 text-xs" />
-
-                                        <span>
-                                          Delete
-                                        </span>
-                                      </>
-                                    )}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  )
-                ) : (
-                  /* NO RESULTS */
-
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-6 py-16 text-center"
-                    >
-                      <div className="flex flex-col items-center">
-                        <div
-                          className="
-                            w-12
-                            h-12
-                            rounded-xl
-                            bg-gray-50
-                            flex
-                            items-center
-                            justify-center
-                            mb-3
-                          "
-                        >
-                          <FaUsers className="text-gray-300" />
-                        </div>
-
-                        <p className="text-sm font-semibold text-gray-700">
-                          No members found
-                        </p>
-
-                        <p className="text-xs text-gray-400 mt-1">
-                          Try searching with a
-                          different name, email
-                          or phone number.
-                        </p>
-
-                        {search && (
-                          <button
-                            type="button"
-                            onClick={resetSearch}
-                            className="
-                              mt-4
-                              text-xs
-                              font-semibold
-                              text-[#8B1E3F]
-                              hover:underline
-                            "
-                          >
-                            Clear search
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                  {user.status || "Pending"}
+                </span>
+                {user.expiry_date && (
+                  <p className="mt-1 text-[9px] text-gray-400">
+                    {formatDate(user.expiry_date)}
+                  </p>
                 )}
-              </tbody>
-            </table>
-          </div>
+              </td>
+
+              {/* ACTIONS */}
+              <td className="px-1 py-2.5 text-center sm:px-3">
+                <div className="relative inline-block">
+                  <button
+                    type="button"
+                    title="Member actions"
+                    aria-label={`Actions for ${user.name}`}
+                    aria-expanded={openMenuId === user.id}
+                    onClick={() => toggleMenu(user.id)}
+                    disabled={
+                      deletingId === user.id ||
+                      approvingId === user.id
+                    }
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-[#8B1E3F] disabled:opacity-50 sm:h-8 sm:w-8"
+                  >
+                    <FaEllipsisV className="text-xs" />
+                  </button>
+
+                  {openMenuId === user.id && (
+                    <div className="absolute right-0 top-8 z-50 w-40 rounded-lg border border-gray-200 bg-white py-1 text-left shadow-xl">
+                      {isPending(user.status) && (
+                        <button
+                          type="button"
+                          disabled={approvingId === user.id}
+                          onClick={() =>
+                            handleApprove(
+                              user.id,
+                              `${user.name} ${user.surname || ""}`.trim()
+                            )
+                          }
+                          className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-green-50 disabled:opacity-50"
+                        >
+                          <FaCheck className="text-green-600" />
+                          {approvingId === user.id
+                            ? "Approving..."
+                            : "Approve"}
+                        </button>
+                      )}
+
+                      <Link
+                        href={`/admin/matrimony/view/${user.id}`}
+                        onClick={() => setOpenMenuId(null)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                      >
+                        <FaEye className="text-gray-400" />
+                        View
+                      </Link>
+
+                      <Link
+                        href={`/admin/matrimony/edit/${user.id}`}
+                        onClick={() => setOpenMenuId(null)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                      >
+                        <FaEdit className="text-gray-400" />
+                        Edit
+                      </Link>
+
+                      <div className="my-1 border-t border-gray-100" />
+
+                      <button
+                        type="button"
+                        disabled={deletingId === user.id}
+                        onClick={() =>
+                          handleDelete(
+                            user.id,
+                            `${user.name} ${user.surname || ""}`.trim()
+                          )
+                        }
+                        className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      >
+                        <FaTrash />
+                        {deletingId === user.id
+                          ? "Deleting..."
+                          : "Delete"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={6} className="px-3 py-12 text-center">
+              <FaUsers className="mx-auto mb-3 text-2xl text-gray-300" />
+              <p className="text-sm font-semibold text-gray-700">
+                No members found
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                Try another name, member ID, email or phone.
+              </p>
+              {search && (
+                <button
+                  type="button"
+                  onClick={resetSearch}
+                  className="mt-3 text-xs font-semibold text-[#8B1E3F] hover:underline"
+                >
+                  Clear search
+                </button>
+              )}
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+
+  {/* PAGINATION */}
+  <div className="flex flex-col gap-3 border-t border-gray-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+    <p className="text-[10px] text-gray-500 sm:text-xs">
+      Showing{" "}
+      <span className="font-semibold text-gray-700">
+        {filteredUsers.length === 0 ? 0 : indexOfFirstRow + 1}
+      </span>
+      {" - "}
+      <span className="font-semibold text-gray-700">
+        {Math.min(indexOfLastRow, filteredUsers.length)}
+      </span>
+      {" of "}
+      <span className="font-semibold text-gray-700">
+        {filteredUsers.length}
+      </span>
+    </p>
+
+    {totalPages > 0 && (
+      <div className="flex flex-wrap items-center gap-1">
+        <button
+          type="button"
+          disabled={safeCurrentPage <= 1}
+          onClick={() => {
+            setCurrentPage((page) => Math.max(1, page - 1));
+            setOpenMenuId(null);
+          }}
+          className="rounded-md border border-gray-200 px-2.5 py-1.5 text-[10px] text-gray-600 hover:bg-gray-50 disabled:opacity-40 sm:text-xs"
+        >
+          Previous
+        </button>
+
+        {Array.from({ length: totalPages }, (_, index) => index + 1)
+          .filter(
+            (page) =>
+              page === 1 ||
+              page === totalPages ||
+              Math.abs(page - safeCurrentPage) <= 1
+          )
+          .map((page, index, pages) => (
+            <span key={page} className="flex items-center gap-1">
+              {index > 0 && page - pages[index - 1] > 1 && (
+                <span className="px-1 text-xs text-gray-400">…</span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setCurrentPage(page);
+                  setOpenMenuId(null);
+                }}
+                className={`h-7 min-w-7 rounded-md px-2 text-[10px] font-semibold sm:text-xs ${
+                  safeCurrentPage === page
+                    ? "bg-[#8B1E3F] text-white"
+                    : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {page}
+              </button>
+            </span>
+          ))}
+
+        <button
+          type="button"
+          disabled={safeCurrentPage >= totalPages}
+          onClick={() => {
+            setCurrentPage((page) => Math.min(totalPages, page + 1));
+            setOpenMenuId(null);
+          }}
+          className="rounded-md border border-gray-200 px-2.5 py-1.5 text-[10px] text-gray-600 hover:bg-gray-50 disabled:opacity-40 sm:text-xs"
+        >
+          Next
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+
 
           {/* =================================================
               PAGINATION

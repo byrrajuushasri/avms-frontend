@@ -26,7 +26,8 @@ const organizers = [
     email: "vijayanathedukulla@gmail.com",
   },{
     name: "బెల్డ గురుమూర్తి గుప్త",
-    role: "నిర్వాహకులు",
+    role: "ఉపాధ్యక్షులు",
+    additionalRole: "సరూర్‌నగర్ మండల ఆర్య వైశ్య సంఘం",
     image: "/about/beld.jpeg",
     phone: "+91 92461 19408",
     tel: "+919246119408",
@@ -161,7 +162,7 @@ function OrganizerCard({
 export default function Hero() {
   return (
     <main className="overflow-hidden bg-white text-[#604b4b]">
-      <br/>
+    
 
 
 {/* Smooth Single-Line Scrolling Announcement */}
@@ -228,170 +229,162 @@ export default function Hero() {
 `}</style>
 
       {/* HERO HEADING */}
-      <section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-4 pb-8 pt-10 sm:px-6 sm:pb-12 sm:pt-14">
-        <div className="mx-auto max-w-5xl text-center">
-          
+  
+<section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-3 pb-5 pt-5 sm:px-5 sm:pb-7 sm:pt-6">
+  <div className="mx-auto max-w-5xl text-center">
+    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a67816] sm:text-xs">
+      Champapet Arya Vysya Sangham
+    </p>
 
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#a67816] sm:text-sm">
-            Champapet Arya Vysya Sangham
+    <h1 className="mx-auto mt-2 max-w-4xl font-serif text-lg font-bold leading-relaxed text-[#690015] sm:text-xl">
+      ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక
+    </h1>
+
+    <div className="mx-auto mt-3 flex items-center justify-center gap-2">
+      <span className="h-px w-9 bg-[#d9a928] sm:w-14" />
+      <FaStar className="text-xs text-[#a67816]" />
+      <span className="h-px w-9 bg-[#d9a928] sm:w-14" />
+    </div>
+  </div>
+
+  <div className="mx-auto max-w-7xl">
+    {/* ORGANIZERS */}
+    <div className="mb-5 text-center sm:mb-6">
+      <h2 className="mt-1 font-serif text-xl font-bold text-[#690015] sm:text-2xl">
+        మా నిర్వాహక బృందం
+      </h2>
+
+      <div className="mx-auto mt-2 h-1 w-12 rounded-full bg-[#d9a928]" />
+    </div>
+
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:gap-5">
+      {organizers.map((person) => (
+        <OrganizerCard key={person.name} person={person} />
+      ))}
+    </div>
+
+    {/* SERVICE GOAL */}
+    <section className="mt-7 overflow-hidden rounded-2xl border border-[#eadcb8] bg-gradient-to-br from-[#fffaf0] via-white to-[#fff6f6] sm:mt-9">
+      <div className="px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
+        {/* SECTION HEADING */}
+        <div className="text-center">
+          <h2 className="font-serif text-xl font-bold text-[#690015] sm:text-2xl">
+            మా సేవా లక్ష్యం
+          </h2>
+
+          <p className="mt-1 text-xs text-[#725454] sm:text-sm">
+            సేవే మా లక్ష్యం — కుటుంబాల సంతోషమే మా స్ఫూర్తి
           </p>
 
-          <h1 className="mx-auto mt-4 max-w-4xl font-serif text-2xl font-bold leading-relaxed text-[#690015] sm:text-xl md:text-xl">
-            ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక
-          </h1>
-
-          <div className="mx-auto mt-5 flex items-center justify-center gap-3">
-            <span className="h-px w-12 bg-[#d9a928] sm:w-20" />
-            <FaStar className="text-sm text-[#a67816]" />
-            <span className="h-px w-12 bg-[#d9a928] sm:w-20" />
-          </div>
-
-        
+          <div className="mx-auto mt-3 h-1 w-12 rounded-full bg-[#d9a928]" />
         </div>
-       
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 text-center sm:mb-10">
-             
 
-            <h2 className="mt-2 font-serif text-2xl font-bold text-[#690015] sm:text-3xl">
-              మా నిర్వాహక బృందం
-            </h2>
+        {/* STATISTICS */}
+        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+          <div className="rounded-xl border border-[#eadcb8] bg-white p-3 text-center shadow-sm transition-shadow hover:shadow-md sm:p-4">
+            <FaHeart className="mx-auto text-lg text-[#a67816]" />
 
-            <div className="mx-auto mt-3 h-1 w-16 rounded-full bg-[#d9a928]" />
+            <p className="mt-2 text-2xl font-bold text-[#690015] sm:text-3xl">
+              90%
+            </p>
 
-           
+            <p className="mt-1 text-xs font-semibold text-[#725454] sm:text-sm">
+              Brides&apos; Marriages
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:gap-7">
-            {organizers.map((person) => (
-              <OrganizerCard key={person.name} person={person} />
-            ))}
+          <div className="rounded-xl border border-[#eadcb8] bg-white p-3 text-center shadow-sm transition-shadow hover:shadow-md sm:p-4">
+            <FaUsers className="mx-auto text-lg text-[#a67816]" />
+
+            <p className="mt-2 text-2xl font-bold text-[#690015] sm:text-3xl">
+              75–80%
+            </p>
+
+            <p className="mt-1 text-xs font-semibold text-[#725454] sm:text-sm">
+              Grooms&apos; Marriages
+            </p>
           </div>
 
-          {/* SERVICE GOAL */}
-          <section className="mt-12 overflow-hidden rounded-3xl border border-[#eadcb8] bg-gradient-to-br from-[#fffaf0] via-white to-[#fff6f6] sm:mt-16">
-            <div className="px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
-              <div className="text-center">
-                
+          <div className="rounded-xl border border-[#eadcb8] bg-white p-3 text-center shadow-sm transition-shadow hover:shadow-md sm:p-4">
+            <FaCalendarAlt className="mx-auto text-lg text-[#a67816]" />
 
-                <h2 className="mt-4 font-serif text-2xl font-bold text-[#690015] sm:text-3xl">
-                  మా సేవా లక్ష్యం
-                </h2>
+            <p className="mt-2 text-2xl font-bold text-[#690015] sm:text-3xl">
+              143వ
+            </p>
 
-                <p className="mt-2 text-sm text-[#725454] sm:text-base">
-                  సేవే మా లక్ష్యం — కుటుంబాల సంతోషమే మా స్ఫూర్తి
-                </p>
+            <p className="mt-1 text-xs font-semibold text-[#725454] sm:text-sm">
+              Matrimony Meet
+            </p>
+          </div>
+        </div>
 
-                <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-[#d9a928]" />
-              </div>
-
-              {/* STATISTICS */}
-              <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
-                <div className="rounded-2xl border border-[#eadcb8] bg-white p-5 text-center shadow-sm transition-shadow hover:shadow-md sm:p-6">
-                  <FaHeart className="mx-auto text-xl text-[#a67816]" />
-
-                  <p className="mt-3 text-3xl font-bold text-[#690015] sm:text-4xl">
-                    90%
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-[#725454]">
-                    Brides&apos; Marriages
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-[#eadcb8] bg-white p-5 text-center shadow-sm transition-shadow hover:shadow-md sm:p-6">
-                  <FaUsers className="mx-auto text-xl text-[#a67816]" />
-
-                  <p className="mt-3 text-3xl font-bold text-[#690015] sm:text-4xl">
-                    75–80%
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-[#725454]">
-                    Grooms&apos; Marriages
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-[#eadcb8] bg-white p-5 text-center shadow-sm transition-shadow hover:shadow-md sm:p-6">
-                  <FaCalendarAlt className="mx-auto text-xl text-[#a67816]" />
-
-                  <p className="mt-3 text-3xl font-bold text-[#690015] sm:text-4xl">
-                    143వ
-                  </p>
-
-                  <p className="mt-2 text-sm font-semibold text-[#725454]">
-                    Matrimony Meet
-                  </p>
-                </div>
-              </div>
-
-              {/* SERVICE HISTORY */}
-              <div className="mt-8 rounded-2xl border border-[#eadcb8] bg-white p-5 sm:p-7">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#fff4d9] text-[#a67816]">
-                    <FaCalendarAlt />
-                  </div>
-
-                  <h3 className="font-serif text-lg font-bold text-[#690015] sm:text-xl">
-                    మా సేవా ప్రయాణం
-                  </h3>
-                </div>
-
-                <p className="mt-4 text-justify text-sm leading-8 text-[#604b4b] sm:text-base">
-                  ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక ప్రప్రథమంగా తేదీ
-                  30-11-2014 నుండి ప్రారంభించబడినది. 90 శాతం వధువులు,
-                  75–80 శాతం వరులు వివాహ సంపన్నత పొందియున్నారు. వివాహం
-                  చేసుకున్న వారి కుటుంబ సభ్యుల ఆశీర్వాద బలం మాకు ఎంతో
-                  స్ఫూర్తి, పట్టుదలను అందిస్తున్నాయి.
-                </p>
-
-                <p className="mt-4 text-justify text-sm leading-8 text-[#604b4b] sm:text-base">
-                  ఈ వేదిక 143వది 4-10-2026న జరిగినది. మరిన్ని వేదికలు
-                  భావి తరాలకు అందాలని, శ్రీ వాసవి కన్యకా పరమేశ్వరి
-                  అమ్మవారి అనుగ్రహం ఉండాలని ఆకాంక్షిస్తూ ఈ సేవా
-                  కార్యక్రమాన్ని కొనసాగిస్తున్నాము.
-                </p>
-
-                <div className="mt-6 flex items-start gap-3 rounded-xl bg-[#fffaf0] p-4">
-                  <FaPray className="mt-1 shrink-0 text-xl text-[#a67816]" />
-
-                  <p className="text-sm leading-7 text-[#604b4b] sm:text-base">
-                    శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి ఆశీస్సులతో
-                    ఈ సేవా కార్యక్రమం మరిన్ని కుటుంబాలకు చేరాలని
-                    మనస్ఫూర్తిగా ఆకాంక్షిస్తున్నాము.
-                  </p>
-                </div>
-              </div>
-
-             
-
-              {/* CLOSING */}
-              <div className="mt-10 border-t border-[#eadcb8] pt-8 text-center">
-                <p className="font-serif text-sm text-[#725454] sm:text-base">
-                  సదా మీ సేవలో
-                </p>
-
-                <h3 className="mt-2 font-serif text-xl font-bold text-[#690015] sm:text-2xl">
-                  నిర్వాహకులు
-                </h3>
-
-                <p className="mt-2 font-serif text-lg font-semibold text-[#a67816]">
-                  బెల్డ గురుమూర్తి గుప్త
-                </p>
-
-                <div className="mx-auto mt-4 h-px w-20 bg-[#d9a928]" />
-
-                <p className="mt-4 text-sm font-semibold text-[#604b4b] sm:text-base">
-                  చంపాపేట ఆర్య వైశ్య సంఘం
-                </p>
-
-                <p className="mt-1 text-sm text-[#725454] sm:text-base">
-                  పరిచయ వేదిక విభాగం
-                </p>
-              </div>
+        {/* SERVICE HISTORY */}
+        <div className="mt-5 rounded-xl border border-[#eadcb8] bg-white p-4 sm:p-5">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fff4d9] text-sm text-[#a67816]">
+              <FaCalendarAlt />
             </div>
-          </section>
+
+            <h3 className="font-serif text-base font-bold text-[#690015] sm:text-lg">
+              మా సేవా ప్రయాణం
+            </h3>
+          </div>
+
+          <p className="mt-3 text-justify text-xs leading-7 text-[#604b4b] sm:text-sm sm:leading-7">
+            ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక ప్రప్రథమంగా తేదీ
+            30-11-2014 నుండి ప్రారంభించబడినది. 90 శాతం వధువులు,
+            75–80 శాతం వరులు వివాహ సంపన్నత పొందియున్నారు. వివాహం
+            చేసుకున్న వారి కుటుంబ సభ్యుల ఆశీర్వాద బలం మాకు ఎంతో
+            స్ఫూర్తి, పట్టుదలను అందిస్తున్నాయి.
+          </p>
+
+          <p className="mt-3 text-justify text-xs leading-7 text-[#604b4b] sm:text-sm sm:leading-7">
+            ఈ వేదిక 143వది 4-10-2026న జరిగినది. మరిన్ని వేదికలు
+            భావి తరాలకు అందాలని, శ్రీ వాసవి కన్యకా పరమేశ్వరి
+            అమ్మవారి అనుగ్రహం ఉండాలని ఆకాంక్షిస్తూ ఈ సేవా
+            కార్యక్రమాన్ని కొనసాగిస్తున్నాము.
+          </p>
+
+          <div className="mt-4 flex items-start gap-2 rounded-lg bg-[#fffaf0] p-3">
+            <FaPray className="mt-1 shrink-0 text-base text-[#a67816]" />
+
+            <p className="text-xs leading-6 text-[#604b4b] sm:text-sm sm:leading-7">
+              శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి ఆశీస్సులతో
+              ఈ సేవా కార్యక్రమం మరిన్ని కుటుంబాలకు చేరాలని
+              మనస్ఫూర్తిగా ఆకాంక్షిస్తున్నాము.
+            </p>
+          </div>
         </div>
-      </section>
+
+        {/* CLOSING */}
+        <div className="mt-6 border-t border-[#eadcb8] pt-5 text-center">
+          <p className="font-serif text-xs text-[#725454] sm:text-sm">
+            సదా మీ సేవలో
+          </p>
+
+          <h3 className="mt-1 font-serif text-lg font-bold text-[#690015] sm:text-xl">
+            నిర్వాహకులు
+          </h3>
+
+          <p className="mt-1 font-serif text-base font-semibold text-[#a67816] sm:text-lg">
+            బెల్డ గురుమూర్తి గుప్త
+          </p>
+
+          <div className="mx-auto mt-3 h-px w-14 bg-[#d9a928]" />
+
+          <p className="mt-3 text-xs font-semibold text-[#604b4b] sm:text-sm">
+            చంపాపేట ఆర్య వైశ్య సంఘం
+          </p>
+
+          <p className="mt-1 text-xs text-[#725454] sm:text-sm">
+            పరిచయ వేదిక విభాగం
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
     </main>
   );
 }
