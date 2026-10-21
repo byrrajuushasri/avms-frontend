@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -82,10 +81,7 @@ export default function MembershipPage() {
     if (openActionId === null) return;
 
     const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setOpenActionId(null);
       }
     };
@@ -169,9 +165,7 @@ export default function MembershipPage() {
     } catch (err) {
       console.error("Fetch members error:", err);
       setMembers([]);
-      setError(
-        err instanceof Error ? err.message : "Unable to load members."
-      );
+      setError(err instanceof Error ? err.message : "Unable to load members.");
     } finally {
       setLoading(false);
     }
@@ -200,8 +194,10 @@ export default function MembershipPage() {
         member.mandal,
         member.sangham,
       ].some((value) =>
-        String(value || "").toLowerCase().includes(keyword)
-      )
+        String(value || "")
+          .toLowerCase()
+          .includes(keyword),
+      ),
     );
   }, [members, search]);
 
@@ -238,13 +234,10 @@ export default function MembershipPage() {
 
       const token = localStorage.getItem("token");
 
-      const response = await fetch(
-        `${BACKEND_URL}/membership-register/${id}`,
-        {
-          method: "DELETE",
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/membership-register/${id}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
 
       const result = await response.json().catch(() => ({}));
 
@@ -252,24 +245,20 @@ export default function MembershipPage() {
         throw new Error(result?.message || "Failed to delete member");
       }
 
-      setMembers((previous) =>
-        previous.filter((member) => member.id !== id)
-      );
+      setMembers((previous) => previous.filter((member) => member.id !== id));
 
       // Move back if deleting the last row on the current page.
       const remainingCount = totalItems - 1;
       const remainingPages = Math.max(
         1,
-        Math.ceil(remainingCount / rowsPerPage)
+        Math.ceil(remainingCount / rowsPerPage),
       );
 
       setCurrentPage((page) => Math.min(page, remainingPages));
       window.alert("Member deleted successfully.");
     } catch (err) {
       console.error("Delete member error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to delete member."
-      );
+      setError(err instanceof Error ? err.message : "Failed to delete member.");
     } finally {
       setDeleteLoading(null);
     }
@@ -322,9 +311,7 @@ export default function MembershipPage() {
     } catch (err) {
       console.error("Approve membership error:", err);
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to approve membership.",
+        err instanceof Error ? err.message : "Failed to approve membership.",
       );
     } finally {
       setApprovalLoading(null);
@@ -336,7 +323,7 @@ export default function MembershipPage() {
 
     if (member.matrimony_authorised) {
       window.alert(
-        `Matrimony already authorised.\n\nCode: ${member.matrimony_code || "-"}`
+        `Matrimony already authorised.\n\nCode: ${member.matrimony_code || "-"}`,
       );
       return;
     }
@@ -363,7 +350,7 @@ export default function MembershipPage() {
       `Authorize matrimony for "${authorizeMember.full_name}"?\n\n` +
         `Member ID: ${authorizeMember.member_id}\n` +
         `AVS ID: ${authorizeMember.avs_id || "-"}\n` +
-        `Expiry Date: ${formatDate(expiryDate)}`
+        `Expiry Date: ${formatDate(expiryDate)}`,
     );
 
     if (!confirmed) return;
@@ -383,15 +370,13 @@ export default function MembershipPage() {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({ expiryDate }),
-        }
+        },
       );
 
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(
-          result?.message || "Failed to authorize matrimony."
-        );
+        throw new Error(result?.message || "Failed to authorize matrimony.");
       }
 
       const updatedMember = result?.member;
@@ -411,13 +396,12 @@ export default function MembershipPage() {
                 matrimony_expiry_date:
                   updatedMember?.matrimony_expiry_date || expiryDate,
               }
-            : member
-        )
+            : member,
+        ),
       );
 
       const generatedCode = updatedMember?.matrimony_code || "-";
-      const finalExpiry =
-        updatedMember?.matrimony_expiry_date || expiryDate;
+      const finalExpiry = updatedMember?.matrimony_expiry_date || expiryDate;
 
       setAuthorizeMember(null);
       setExpiryDate("");
@@ -425,14 +409,12 @@ export default function MembershipPage() {
       window.alert(
         `Matrimony authorised successfully.\n\n` +
           `Matrimony Code: ${generatedCode}\n` +
-          `Expiry Date: ${formatDate(finalExpiry)}`
+          `Expiry Date: ${formatDate(finalExpiry)}`,
       );
     } catch (err) {
       console.error("Authorize matrimony error:", err);
       setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to authorize matrimony."
+        err instanceof Error ? err.message : "Failed to authorize matrimony.",
       );
     } finally {
       setAuthorizeLoading(false);
@@ -441,20 +423,14 @@ export default function MembershipPage() {
 
   const getPageNumbers = () => {
     const maxVisible = 5;
-    let start = Math.max(
-      1,
-      safeCurrentPage - Math.floor(maxVisible / 2)
-    );
+    let start = Math.max(1, safeCurrentPage - Math.floor(maxVisible / 2));
     let end = Math.min(totalPages, start + maxVisible - 1);
 
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);
     }
 
-    return Array.from(
-      { length: end - start + 1 },
-      (_, index) => start + index
-    );
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
   };
 
   return (
@@ -643,7 +619,8 @@ export default function MembershipPage() {
                       <td className="px-1 py-2 sm:px-3 sm:py-3">
                         <span
                           className={`inline-block max-w-full break-words rounded-full px-1.5 py-1 text-[9px] font-semibold leading-tight sm:px-2 sm:text-[10px] ${
-                            String(member.status || "").toLowerCase() === "active"
+                            String(member.status || "").toLowerCase() ===
+                            "active"
                               ? "bg-green-50 text-green-700"
                               : "bg-gray-100 text-gray-500"
                           }`}
@@ -654,99 +631,101 @@ export default function MembershipPage() {
 
                       {/* ACTIONS */}
                       <td className="relative px-1 py-2 text-center sm:px-3 sm:py-3">
-                        <div
-                          ref={openActionId === member.id ? menuRef : null}
-                          className="relative inline-block"
-                        >
-                          <button
-                            type="button"
-                            title="Member actions"
-                            aria-label={`Actions for ${member.full_name}`}
-                            aria-expanded={openActionId === member.id}
-                            aria-haspopup="menu"
-                            onClick={() => {
-                              setOpenActionId((current) =>
-                                current === member.id ? null : member.id
-                              );
-                            }}
-                            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-[#8B1E3F] sm:h-8 sm:w-8"
-                          >
-                            <FaEllipsisV className="text-xs" />
-                          </button>
-
-                          {openActionId === member.id && (
-                            <div
-                              role="menu"
-                              className="absolute right-0 top-full z-[100] mt-1 w-40 rounded-lg border border-gray-200 bg-white py-1 text-left shadow-xl"
+                        <div className="flex items-center justify-center gap-1">
+                          {String(member.status || "")
+                            .trim()
+                            .toLowerCase() !== "active" && (
+                            <button
+                              type="button"
+                              title="Approve membership"
+                              disabled={approvalLoading === member.id}
+                              onClick={() => {
+                                void handleApproveMembership(member);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1.5 text-[10px] font-semibold text-green-700 hover:bg-green-100 disabled:opacity-50 sm:text-xs"
                             >
-                              {String(member.status || "")
-                                .trim()
-                                .toLowerCase() === "pending" && (
+                              <FaCheck className="text-green-600" />
+                              {approvalLoading === member.id
+                                ? "Approving..."
+                                : "Approve"}
+                            </button>
+                          )}
+
+                          <div
+                            ref={openActionId === member.id ? menuRef : null}
+                            className="relative inline-block"
+                          >
+                            <button
+                              type="button"
+                              title="Member actions"
+                              aria-label={`Actions for ${member.full_name}`}
+                              aria-expanded={openActionId === member.id}
+                              aria-haspopup="menu"
+                              onClick={() => {
+                                setOpenActionId((current) =>
+                                  current === member.id ? null : member.id,
+                                );
+                              }}
+                              className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-[#8B1E3F] sm:h-8 sm:w-8"
+                            >
+                              <FaEllipsisV className="text-xs" />
+                            </button>
+
+                            {openActionId === member.id && (
+                              <div
+                                role="menu"
+                                className="absolute right-0 top-full z-[100] mt-1 w-40 rounded-lg border border-gray-200 bg-white py-1 text-left shadow-xl"
+                              >
                                 <button
                                   type="button"
                                   role="menuitem"
-                                  disabled={approvalLoading === member.id}
                                   onClick={() => {
-                                    void handleApproveMembership(member);
+                                    setOpenActionId(null);
+                                    router.push(
+                                      `/admin/membership/edit/${member.id}`,
+                                    );
                                   }}
-                                  className="flex w-full items-center gap-2 px-3 py-2.5 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                  className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50"
                                 >
-                                  <FaCheck className="text-green-600" />
-                                  {approvalLoading === member.id
-                                    ? "Approving..."
-                                    : "Approve Membership"}
+                                  <FaEdit className="text-gray-400" />
+                                  Edit
                                 </button>
-                              )}
 
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() => {
-                                  setOpenActionId(null);
-                                  router.push(
-                                    `/admin/membership/edit/${member.id}`
-                                  );
-                                }}
-                                className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50"
-                              >
-                                <FaEdit className="text-gray-400" />
-                                Edit
-                              </button>
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  disabled={deleteLoading === member.id}
+                                  onClick={() => {
+                                    void handleDelete(
+                                      member.id,
+                                      member.full_name,
+                                    );
+                                  }}
+                                  className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                >
+                                  <FaTrash className="text-red-500" />
+                                  {deleteLoading === member.id
+                                    ? "Deleting..."
+                                    : "Delete"}
+                                </button>
 
-                              <button
-                                type="button"
-                                role="menuitem"
-                                disabled={deleteLoading === member.id}
-                                onClick={() => {
-                                  void handleDelete(
-                                    member.id,
-                                    member.full_name
-                                  );
-                                }}
-                                className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
-                              >
-                                <FaTrash className="text-red-500" />
-                                {deleteLoading === member.id
-                                  ? "Deleting..."
-                                  : "Delete"}
-                              </button>
+                                <div className="my-1 border-t border-gray-100" />
 
-                              <div className="my-1 border-t border-gray-100" />
-
-                              <button
-                                type="button"
-                                role="menuitem"
-                                onClick={() =>
-                                  openMatrimonyAuthorization(member)
-                                }
-                                className="w-full px-3 py-2.5 text-left text-xs text-gray-700 hover:bg-gray-50"
-                              >
-                                {member.matrimony_authorised
-                                  ? "Matrimony Authorised"
-                                  : "Authorize Matrimony"}
-                              </button>
-                            </div>
-                          )}
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() =>
+                                    openMatrimonyAuthorization(member)
+                                  }
+                                  className="w-full px-3 py-2.5 text-left text-xs text-gray-700 hover:bg-gray-50"
+                                >
+                                  {member.matrimony_authorised
+                                    ? "Matrimony Authorised"
+                                    : "Authorize Matrimony"}
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -821,9 +800,7 @@ export default function MembershipPage() {
                 type="button"
                 disabled={safeCurrentPage >= totalPages}
                 onClick={() => {
-                  setCurrentPage((page) =>
-                    Math.min(totalPages, page + 1)
-                  );
+                  setCurrentPage((page) => Math.min(totalPages, page + 1));
                   setOpenActionId(null);
                 }}
                 aria-label="Next page"
