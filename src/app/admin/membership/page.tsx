@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,8 +10,10 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaUser,
+  FaEllipsisV,
   FaEdit,
   FaTrash,
+  FaCheck,
 } from "react-icons/fa";
 
 interface Member {
@@ -50,13 +53,15 @@ interface Member {
   matrimony_expiry_date?: string | null;
 }
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+const BACKEND_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
 const ROWS_OPTIONS = [5, 10, 20, 50];
 
 export default function MembershipPage() {
   const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const [members, setMembers] = useState<Member[]>([]);
   const [openActionId, setOpenActionId] = useState<number | null>(null);
@@ -66,28 +71,53 @@ export default function MembershipPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const [approvalLoading, setApprovalLoading] = useState<number | null>(null);
 
   const [authorizeMember, setAuthorizeMember] = useState<Member | null>(null);
   const [expiryDate, setExpiryDate] = useState("");
   const [authorizeLoading, setAuthorizeLoading] = useState(false);
 
-  const getPhotoUrl = (photo: string | null) => {
-    if (!photo) return "";
-    if (photo.startsWith("http://") || photo.startsWith("https://")) {
-      return photo;
-    }
-    return `${BACKEND_URL}${photo.startsWith("/") ? "" : "/"}${photo}`;
-  };
+  // Close the action menu when clicking outside it.
+  useEffect(() => {
+    if (openActionId === null) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
+        setOpenActionId(null);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenActionId(null);
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [openActionId]);
 
   const getLoggedInUser = () => {
-    if (typeof window === "undefined") return null;
-
     try {
       const userData = localStorage.getItem("user");
       return userData ? JSON.parse(userData) : null;
     } catch {
       return null;
     }
+  };
+
+  const getPhotoUrl = (photo: string | null) => {
+    if (!photo) return "";
+
+    if (/^https?:\/\//i.test(photo)) return photo;
+
+    return `${BACKEND_URL}${photo.startsWith("/") ? "" : "/"}${photo}`;
   };
 
   const fetchMembers = async () => {
@@ -102,6 +132,7 @@ export default function MembershipPage() {
       if (loggedInUser?.role) {
         params.append("role", loggedInUser.role);
       }
+
       if (loggedInUser?.sangham) {
         params.append("sangham", loggedInUser.sangham);
       }
@@ -134,6 +165,7 @@ export default function MembershipPage() {
 
       setMembers(memberList);
       setCurrentPage(1);
+      setOpenActionId(null);
     } catch (err) {
       console.error("Fetch members error:", err);
       setMembers([]);
@@ -146,18 +178,8 @@ export default function MembershipPage() {
   };
 
   useEffect(() => {
-    fetchMembers();
+    void fetchMembers();
   }, []);
-
-  useEffect(() => {
-    const closeMenu = () => setOpenActionId(null);
-
-    if (openActionId !== null) {
-      document.addEventListener("click", closeMenu);
-    }
-
-    return () => document.removeEventListener("click", closeMenu);
-  }, [openActionId]);
 
   const filteredMembers = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -177,7 +199,9 @@ export default function MembershipPage() {
         member.district,
         member.mandal,
         member.sangham,
-      ].some((value) => String(value || "").toLowerCase().includes(keyword))
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(keyword)
+      )
     );
   }, [members, search]);
 
@@ -202,22 +226,6 @@ export default function MembershipPage() {
     });
   };
 
-  const getMatrimonyStatus = (member: Member) => {
-    if (!member.matrimony_authorised) return "Not Authorised";
-
-    if (member.matrimony_expiry_date) {
-      const expiry = new Date(member.matrimony_expiry_date);
-      const today = new Date();
-
-      expiry.setHours(23, 59, 59, 999);
-      today.setHours(0, 0, 0, 0);
-
-      if (expiry < today) return "Expired";
-    }
-
-    return "Authorised";
-  };
-
   const handleDelete = async (id: number, name: string) => {
     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
       return;
@@ -225,6 +233,7 @@ export default function MembershipPage() {
 
     try {
       setDeleteLoading(id);
+      setOpenActionId(null);
       setError("");
 
       const token = localStorage.getItem("token");
@@ -243,9 +252,19 @@ export default function MembershipPage() {
         throw new Error(result?.message || "Failed to delete member");
       }
 
-      setMembers((prev) => prev.filter((member) => member.id !== id));
-      setOpenActionId(null);
-      alert("Member deleted successfully.");
+      setMembers((previous) =>
+        previous.filter((member) => member.id !== id)
+      );
+
+      // Move back if deleting the last row on the current page.
+      const remainingCount = totalItems - 1;
+      const remainingPages = Math.max(
+        1,
+        Math.ceil(remainingCount / rowsPerPage)
+      );
+
+      setCurrentPage((page) => Math.min(page, remainingPages));
+      window.alert("Member deleted successfully.");
     } catch (err) {
       console.error("Delete member error:", err);
       setError(
@@ -256,18 +275,74 @@ export default function MembershipPage() {
     }
   };
 
+  const handleApproveMembership = async (member: Member) => {
+    if (
+      !window.confirm(
+        `Approve membership for "${member.full_name}"? An approval email will be sent if the email address is available.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setApprovalLoading(member.id);
+      setOpenActionId(null);
+      setError("");
+
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${BACKEND_URL}/membership-register/${member.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ status: "Active" }),
+        },
+      );
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result?.message || "Failed to approve membership.");
+      }
+
+      setMembers((previous) =>
+        previous.map((item) =>
+          item.id === member.id ? { ...item, status: "Active" } : item,
+        ),
+      );
+
+      window.alert(
+        result?.email_sent
+          ? "Membership approved and approval email sent."
+          : "Membership approved. No approval email was sent; check the member email and email service configuration.",
+      );
+    } catch (err) {
+      console.error("Approve membership error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to approve membership.",
+      );
+    } finally {
+      setApprovalLoading(null);
+    }
+  };
+
   const openMatrimonyAuthorization = (member: Member) => {
     setOpenActionId(null);
 
     if (member.matrimony_authorised) {
-      alert(
+      window.alert(
         `Matrimony already authorised.\n\nCode: ${member.matrimony_code || "-"}`
       );
       return;
     }
 
     if (String(member.status || "").toLowerCase() !== "active") {
-      alert("Only Active members can be authorised for matrimony.");
+      window.alert("Only Active members can be authorised for matrimony.");
       return;
     }
 
@@ -280,7 +355,7 @@ export default function MembershipPage() {
     if (!authorizeMember) return;
 
     if (!expiryDate) {
-      alert("Please select matrimony expiry date.");
+      window.alert("Please select matrimony expiry date.");
       return;
     }
 
@@ -321,8 +396,8 @@ export default function MembershipPage() {
 
       const updatedMember = result?.member;
 
-      setMembers((prev) =>
-        prev.map((member) =>
+      setMembers((previous) =>
+        previous.map((member) =>
           member.id === authorizeMember.id
             ? {
                 ...member,
@@ -347,7 +422,7 @@ export default function MembershipPage() {
       setAuthorizeMember(null);
       setExpiryDate("");
 
-      alert(
+      window.alert(
         `Matrimony authorised successfully.\n\n` +
           `Matrimony Code: ${generatedCode}\n` +
           `Expiry Date: ${formatDate(finalExpiry)}`
@@ -365,38 +440,26 @@ export default function MembershipPage() {
   };
 
   const getPageNumbers = () => {
-    const pages: number[] = [];
     const maxVisible = 5;
-
     let start = Math.max(
       1,
       safeCurrentPage - Math.floor(maxVisible / 2)
     );
-
     let end = Math.min(totalPages, start + maxVisible - 1);
 
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);
     }
 
-    for (let page = start; page <= end; page++) {
-      pages.push(page);
-    }
-
-    return pages;
+    return Array.from(
+      { length: end - start + 1 },
+      (_, index) => start + index
+    );
   };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <p className="text-sm text-gray-500">Loading members...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-50/80">
-      <main className="mx-auto w-full max-w-[1600px] px-2 py-4 sm:px-4 lg:px-6 lg:py-6">
+    <main className="min-h-screen bg-gray-50/80 px-2 py-4 sm:px-4 lg:px-6 lg:py-6">
+      <div className="mx-auto w-full max-w-[1600px]">
         {/* PAGE HEADER */}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -418,14 +481,24 @@ export default function MembershipPage() {
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600 sm:text-sm">
-            {error}
+          <div className="mb-4 flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-xs text-red-600 sm:text-sm">
+            <p>{error}</p>
+            <button
+              type="button"
+              onClick={() => void fetchMembers()}
+              className="self-start font-semibold underline"
+            >
+              Retry
+            </button>
           </div>
         )}
 
-        {/* TABLE CARD */}
-        <div className="w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm sm:rounded-xl">
-          {/* TOOLBAR */}
+        {/* TABLE CARD
+            IMPORTANT: Do not use overflow-hidden here.
+            It clips the absolutely positioned Actions dropdown.
+        */}
+        <section className="relative w-full rounded-lg border border-gray-200 bg-white shadow-sm sm:rounded-xl">
+          {/* TOOLBAR — SINGLE SEARCH */}
           <div className="flex flex-col gap-3 border-b border-gray-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
@@ -441,9 +514,10 @@ export default function MembershipPage() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
+                onChange={(event) => {
+                  setSearch(event.target.value);
                   setCurrentPage(1);
+                  setOpenActionId(null);
                 }}
                 placeholder="Search name, AVS ID, phone..."
                 className="h-9 w-full rounded-lg border border-gray-200 pl-8 pr-3 text-xs text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10 sm:text-sm"
@@ -451,8 +525,8 @@ export default function MembershipPage() {
             </div>
           </div>
 
-          {/* NO HORIZONTAL SCROLL */}
-          <div className="w-full overflow-hidden">
+          {/* TABLE — VISIBLE OVERFLOW FOR ACTIONS MENU */}
+          <div className="relative w-full overflow-visible">
             <table className="w-full table-fixed border-collapse">
               <colgroup>
                 <col className="w-[35%] sm:w-[27%]" />
@@ -487,7 +561,16 @@ export default function MembershipPage() {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {paginatedMembers.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-3 py-10 text-center text-sm text-gray-500"
+                    >
+                      Loading members...
+                    </td>
+                  </tr>
+                ) : paginatedMembers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-3 py-10 text-center">
                       <FaUser className="mx-auto mb-2 text-xl text-gray-300" />
@@ -501,18 +584,23 @@ export default function MembershipPage() {
                   </tr>
                 ) : (
                   paginatedMembers.map((member) => (
-                    <tr key={member.id} className="transition hover:bg-gray-50">
+                    <tr
+                      key={member.id}
+                      className={`relative transition-colors hover:bg-gray-50 ${
+                        openActionId === member.id ? "z-20" : "z-0"
+                      }`}
+                    >
                       {/* MEMBER */}
                       <td className="px-1.5 py-2 align-middle sm:px-3 sm:py-3">
                         <div className="flex min-w-0 items-center gap-1.5 sm:gap-2.5">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100 sm:h-9 sm:w-9">
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-100 sm:h-9 sm:w-9">
                             {member.photo ? (
                               <img
                                 src={getPhotoUrl(member.photo)}
                                 alt={member.full_name || "Member"}
-                                className="h-full w-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none";
+                                className="h-full w-full rounded-full object-cover"
+                                onError={(event) => {
+                                  event.currentTarget.style.display = "none";
                                 }}
                               />
                             ) : (
@@ -546,7 +634,7 @@ export default function MembershipPage() {
                         </p>
                       </td>
 
-                      {/* DESIGNATION: DESKTOP */}
+                      {/* DESIGNATION */}
                       <td className="hidden break-words px-2 py-3 text-xs text-gray-600 sm:table-cell">
                         {member.designation || "-"}
                       </td>
@@ -565,38 +653,61 @@ export default function MembershipPage() {
                       </td>
 
                       {/* ACTIONS */}
-                      <td className="px-1 py-2 text-center sm:px-3 sm:py-3">
+                      <td className="relative px-1 py-2 text-center sm:px-3 sm:py-3">
                         <div
+                          ref={openActionId === member.id ? menuRef : null}
                           className="relative inline-block"
-                          onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             type="button"
                             title="Member actions"
                             aria-label={`Actions for ${member.full_name}`}
-                            onClick={() =>
-                              setOpenActionId(
-                                openActionId === member.id ? null : member.id
-                              )
-                            }
+                            aria-expanded={openActionId === member.id}
+                            aria-haspopup="menu"
+                            onClick={() => {
+                              setOpenActionId((current) =>
+                                current === member.id ? null : member.id
+                              );
+                            }}
                             className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-[#8B1E3F] sm:h-8 sm:w-8"
                           >
-                            <span className="text-lg font-bold leading-none">
-                              ⋮
-                            </span>
+                            <FaEllipsisV className="text-xs" />
                           </button>
 
                           {openActionId === member.id && (
-                            <div className="absolute right-0 top-8 z-50 w-36 rounded-lg border border-gray-200 bg-white py-1 text-left shadow-xl sm:w-40">
+                            <div
+                              role="menu"
+                              className="absolute right-0 top-full z-[100] mt-1 w-40 rounded-lg border border-gray-200 bg-white py-1 text-left shadow-xl"
+                            >
+                              {String(member.status || "")
+                                .trim()
+                                .toLowerCase() === "pending" && (
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  disabled={approvalLoading === member.id}
+                                  onClick={() => {
+                                    void handleApproveMembership(member);
+                                  }}
+                                  className="flex w-full items-center gap-2 px-3 py-2.5 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                >
+                                  <FaCheck className="text-green-600" />
+                                  {approvalLoading === member.id
+                                    ? "Approving..."
+                                    : "Approve Membership"}
+                                </button>
+                              )}
+
                               <button
                                 type="button"
+                                role="menuitem"
                                 onClick={() => {
                                   setOpenActionId(null);
                                   router.push(
                                     `/admin/membership/edit/${member.id}`
                                   );
                                 }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                                className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50"
                               >
                                 <FaEdit className="text-gray-400" />
                                 Edit
@@ -604,11 +715,15 @@ export default function MembershipPage() {
 
                               <button
                                 type="button"
+                                role="menuitem"
                                 disabled={deleteLoading === member.id}
-                                onClick={() =>
-                                  handleDelete(member.id, member.full_name)
-                                }
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                onClick={() => {
+                                  void handleDelete(
+                                    member.id,
+                                    member.full_name
+                                  );
+                                }}
+                                className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
                               >
                                 <FaTrash className="text-red-500" />
                                 {deleteLoading === member.id
@@ -616,12 +731,15 @@ export default function MembershipPage() {
                                   : "Delete"}
                               </button>
 
+                              <div className="my-1 border-t border-gray-100" />
+
                               <button
                                 type="button"
+                                role="menuitem"
                                 onClick={() =>
                                   openMatrimonyAuthorization(member)
                                 }
-                                className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50"
+                                className="w-full px-3 py-2.5 text-left text-xs text-gray-700 hover:bg-gray-50"
                               >
                                 {member.matrimony_authorised
                                   ? "Matrimony Authorised"
@@ -638,16 +756,18 @@ export default function MembershipPage() {
             </table>
           </div>
 
-          {/* PAGINATION */}
+          {/* SINGLE PAGINATION */}
           <div className="flex flex-col gap-3 border-t border-gray-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <div className="flex flex-wrap items-center gap-2 text-[10px] text-gray-500 sm:text-xs">
-              <span>Rows per page</span>
+              <label htmlFor="rows-per-page">Rows per page</label>
 
               <select
+                id="rows-per-page"
                 value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value));
+                onChange={(event) => {
+                  setRowsPerPage(Number(event.target.value));
                   setCurrentPage(1);
+                  setOpenActionId(null);
                 }}
                 className="h-7 rounded-md border border-gray-200 bg-white px-1.5 text-xs outline-none focus:border-[#8B1E3F]"
               >
@@ -668,11 +788,12 @@ export default function MembershipPage() {
               <button
                 type="button"
                 disabled={safeCurrentPage <= 1}
-                onClick={() =>
-                  setCurrentPage((page) => Math.max(1, page - 1))
-                }
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
+                onClick={() => {
+                  setCurrentPage((page) => Math.max(1, page - 1));
+                  setOpenActionId(null);
+                }}
                 aria-label="Previous page"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
               >
                 <FaChevronLeft className="text-[10px]" />
               </button>
@@ -681,7 +802,11 @@ export default function MembershipPage() {
                 <button
                   type="button"
                   key={page}
-                  onClick={() => setCurrentPage(page)}
+                  onClick={() => {
+                    setCurrentPage(page);
+                    setOpenActionId(null);
+                  }}
+                  aria-current={safeCurrentPage === page ? "page" : undefined}
                   className={`h-7 min-w-7 rounded-md px-1.5 text-[10px] font-medium ${
                     safeCurrentPage === page
                       ? "bg-[#8B1E3F] text-white"
@@ -695,20 +820,21 @@ export default function MembershipPage() {
               <button
                 type="button"
                 disabled={safeCurrentPage >= totalPages}
-                onClick={() =>
+                onClick={() => {
                   setCurrentPage((page) =>
                     Math.min(totalPages, page + 1)
-                  )
-                }
-                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
+                  );
+                  setOpenActionId(null);
+                }}
                 aria-label="Next page"
+                className="flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40"
               >
                 <FaChevronRight className="text-[10px]" />
               </button>
             </div>
           </div>
-        </div>
-      </main>
+        </section>
+      </div>
 
       {/* MATRIMONY AUTHORISATION MODAL */}
       {authorizeMember && (
@@ -722,8 +848,8 @@ export default function MembershipPage() {
           }}
         >
           <div
-            className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="border-b border-gray-200 px-4 py-3 sm:px-5 sm:py-4">
               <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
@@ -787,7 +913,7 @@ export default function MembershipPage() {
                   type="date"
                   value={expiryDate}
                   min={new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setExpiryDate(e.target.value)}
+                  onChange={(event) => setExpiryDate(event.target.value)}
                   className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10"
                 />
 
@@ -813,7 +939,7 @@ export default function MembershipPage() {
               <button
                 type="button"
                 disabled={authorizeLoading || !expiryDate}
-                onClick={handleAuthorizeMatrimony}
+                onClick={() => void handleAuthorizeMatrimony()}
                 className="rounded-lg bg-[#8B1E3F] px-3 py-2 text-xs font-semibold text-white hover:bg-[#741934] disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:text-sm"
               >
                 {authorizeLoading ? "Authorising..." : "Confirm Authorisation"}
@@ -822,6 +948,6 @@ export default function MembershipPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

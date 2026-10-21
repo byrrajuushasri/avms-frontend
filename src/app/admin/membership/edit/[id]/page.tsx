@@ -1313,6 +1313,10 @@ export default function EditMemberPage() {
                     className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
                   >
 
+                    <option value="Pending">
+                      Pending
+                    </option>
+
                     <option value="Active">
                       Active
                     </option>
