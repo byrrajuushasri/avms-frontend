@@ -1,613 +1,271 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   FaArrowLeft,
-  FaPaperPlane,
-  FaUser,
   FaEnvelope,
+  FaPaperPlane,
   FaPhone,
+  FaUser,
 } from "react-icons/fa";
 
-const messagesData = [
-  {
-    id: 1,
-    name: "Ramesh Kumar",
-    email: "ramesh@gmail.com",
-    mobile: "9876543210",
-    subject: "Profile enquiry",
-    message: "I need more details about this profile.",
-    date: "05 Aug 2026",
-    status: "New",
-  },
-  {
-    id: 2,
-    name: "Lakshmi Devi",
-    email: "lakshmi@gmail.com",
-    mobile: "9123456780",
-    subject: "Membership issue",
-    message: "Payment completed but membership not activated.",
-    date: "04 Aug 2026",
-    status: "Replied",
-  },
-  {
-    id: 3,
-    name: "Suresh Rao",
-    email: "suresh@gmail.com",
-    mobile: "9988776655",
-    subject: "Account support",
-    message: "Unable to login into my account.",
-    date: "03 Aug 2026",
-    status: "Closed",
-  },
-  {
-    id: 4,
-    name: "Anitha Reddy",
-    email: "anitha@gmail.com",
-    mobile: "9001234567",
-    subject: "Profile verification",
-    message: "I would like to know the verification process.",
-    date: "02 Aug 2026",
-    status: "New",
-  },
-  {
-    id: 5,
-    name: "Vijay Kumar",
-    email: "vijay@gmail.com",
-    mobile: "9555678901",
-    subject: "Payment enquiry",
-    message: "Please help me with my membership payment.",
-    date: "01 Aug 2026",
-    status: "Replied",
-  },
-  {
-    id: 6,
-    name: "Priya Sharma",
-    email: "priya@gmail.com",
-    mobile: "9887766554",
-    subject: "Profile enquiry",
-    message: "I want to know more information about the profile.",
-    date: "31 Jul 2026",
-    status: "New",
-  },
-  {
-    id: 7,
-    name: "Rajesh Kumar",
-    email: "rajesh@gmail.com",
-    mobile: "9776655443",
-    subject: "Membership enquiry",
-    message: "Please explain the premium membership benefits.",
-    date: "30 Jul 2026",
-    status: "Replied",
-  },
-  {
-    id: 8,
-    name: "Swathi Reddy",
-    email: "swathi@gmail.com",
-    mobile: "9665544332",
-    subject: "Account issue",
-    message: "I am unable to update my profile information.",
-    date: "29 Jul 2026",
-    status: "New",
-  },
-  {
-    id: 9,
-    name: "Mahesh Rao",
-    email: "mahesh@gmail.com",
-    mobile: "9554433221",
-    subject: "Payment issue",
-    message: "My payment was deducted but the plan is not active.",
-    date: "28 Jul 2026",
-    status: "Closed",
-  },
-  {
-    id: 10,
-    name: "Deepika Devi",
-    email: "deepika@gmail.com",
-    mobile: "9443322110",
-    subject: "Verification enquiry",
-    message: "How long does profile verification take?",
-    date: "27 Jul 2026",
-    status: "New",
-  },
-  {
-    id: 11,
-    name: "Srinivas Kumar",
-    email: "srinivas@gmail.com",
-    mobile: "9332211009",
-    subject: "Login support",
-    message: "I forgot my password and cannot login.",
-    date: "26 Jul 2026",
-    status: "Replied",
-  },
-  {
-    id: 12,
-    name: "Kavya Reddy",
-    email: "kavya@gmail.com",
-    mobile: "9221100998",
-    subject: "Profile update",
-    message: "Please help me update my profile details.",
-    date: "25 Jul 2026",
-    status: "New",
-  },
-];
+type ContactMessage = {
+  id: number;
+  name: string;
+  email: string;
+  mobile: string | null;
+  subject: string;
+  message: string;
+  status: string;
+};
+
+const API_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://avms-backend-production.up.railway.app"
+).replace(/\/+$/, "");
 
 export default function ReplyMessagePage() {
   const router = useRouter();
-  const params = useParams();
-
+  const params = useParams<{ id: string }>();
   const id = Number(params.id);
-
-  const message = messagesData.find(
-    (item) => item.id === id
-  );
-
+  const [message, setMessage] = useState<ContactMessage | null>(null);
   const [reply, setReply] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  if (!message) {
-    return (
-      <div className="min-h-screen bg-gray-50/80 flex items-center justify-center">
+  useEffect(() => {
+    const loadMessage = async () => {
+      try {
+        if (!Number.isInteger(id) || id <= 0) {
+          throw new Error("Invalid contact message.");
+        }
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+        const token =
+          localStorage.getItem("adminToken") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("access_token");
+        if (!token) {
+          throw new Error("Admin session not found. Please sign in again.");
+        }
+        const response = await fetch(`${API_URL}/contact-messages/${id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          cache: "no-store",
+        });
+        const result = await response.json().catch(() => ({}));
 
-          <h2 className="text-xl font-semibold text-gray-800">
-            Message Not Found
-          </h2>
+        if (response.status === 401) {
+          throw new Error("Admin session expired. Please sign in again.");
+        }
+        if (response.status === 403) {
+          throw new Error(
+            "Your account does not have permission to view contact messages.",
+          );
+        }
+        if (!response.ok) {
+          throw new Error(result?.message || "Unable to load message.");
+        }
 
-          <p className="text-sm text-gray-500 mt-2">
-            The requested contact message does not exist.
-          </p>
+        setMessage(result);
+      } catch (loadError) {
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Unable to load message.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-          <button
-            type="button"
-            onClick={() => router.push("/admin/contact-users")}
-            className="
-              mt-5
-              px-5
-              py-2.5
-              rounded-xl
-              bg-gray-200
-              text-gray-700
-              text-sm
-              font-semibold
-              hover:bg-gray-300
-              transition
-            "
-          >
-            Back to Contact Users
-          </button>
+    void loadMessage();
+  }, [id]);
 
-        </div>
-
-      </div>
-    );
-  }
-
-  const handleSubmit = (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (!reply.trim()) {
-      alert("Please enter your reply.");
+      setError("Please enter your reply.");
       return;
     }
 
-    console.log({
-      messageId: message.id,
-      email: message.email,
-      reply,
-    });
+    try {
+      setSubmitting(true);
+      setError("");
+      const token =
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("Admin session not found. Please sign in again.");
+      }
+      const response = await fetch(
+        `${API_URL}/contact-messages/${id}/reply`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ reply }),
+        },
+      );
+      const result = await response.json().catch(() => ({}));
 
-    alert("Reply sent successfully!");
+      if (response.status === 401) {
+        throw new Error("Admin session expired. Please sign in again.");
+      }
+      if (response.status === 403) {
+        throw new Error(
+          "Your account does not have permission to send contact replies.",
+        );
+      }
+      if (!response.ok) {
+        throw new Error(result?.message || "Unable to send reply.");
+      }
 
-    router.push("/admin/contact-users");
+      window.alert("Reply emailed successfully.");
+      router.push("/admin/contact-users");
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Unable to send reply.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/80">
-
-      <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-
-        {/* =====================================================
-            HEADER
-        ===================================================== */}
-
-        <div className="flex items-center gap-3 mb-7">
-
+    <main className="min-h-screen bg-gray-50/80 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px]">
+        <header className="mb-7 flex items-center gap-3">
           <button
             type="button"
-            onClick={() =>
-              router.push("/admin/contact-users")
-            }
-            className="
-              w-10
-              h-10
-              rounded-xl
-              border
-              border-gray-200
-              bg-white
-              flex
-              items-center
-              justify-center
-              text-gray-500
-              hover:bg-gray-50
-              hover:text-gray-800
-              transition
-            "
+            onClick={() => router.push("/admin/contact-users")}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
+            aria-label="Back to contact messages"
           >
-            <FaArrowLeft className="text-sm" />
+            <FaArrowLeft />
           </button>
-
           <div>
-
             <h1 className="text-2xl font-semibold text-gray-900">
               Reply to User
             </h1>
-
-            <p className="text-sm text-gray-500 mt-1">
-              Respond to the user's contact enquiry.
+            <p className="mt-1 text-sm text-gray-500">
+              Respond to the user&apos;s contact enquiry.
             </p>
-
           </div>
+        </header>
 
-        </div>
-
-
-        {/* =====================================================
-            USER MESSAGE CARD
-        ===================================================== */}
-
-        <div className="
-          bg-white
-          rounded-2xl
-          border
-          border-gray-100
-          shadow-sm
-          overflow-hidden
-          mb-6
-        ">
-
-          {/* CARD HEADER */}
-
-          <div className="
-            px-6
-            py-5
-            border-b
-            border-gray-100
-            bg-gray-50/50
-          ">
-
-            <div className="flex items-center gap-3">
-
-              <div className="
-                w-11
-                h-11
-                rounded-xl
-                bg-gray-100
-                flex
-                items-center
-                justify-center
-                text-gray-600
-                font-semibold
-              ">
-                {message.name
-                  .split(" ")
-                  .map((word) => word[0])
-                  .join("")
-                  .slice(0, 2)}
-              </div>
-
-              <div>
-
-                <h2 className="text-lg font-semibold text-gray-800">
-                  {message.name}
-                </h2>
-
-                <p className="text-xs text-gray-400">
-                  User #{message.id}
-                </p>
-
-              </div>
-
-            </div>
-
+        {error && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl bg-red-50 p-4 text-sm text-red-700"
+          >
+            <p>{error}</p>
+            {error.includes("session") && (
+              <button
+                type="button"
+                onClick={() => router.push("/admin/login")}
+                className="mt-2 font-semibold underline"
+              >
+                Go to admin login
+              </button>
+            )}
           </div>
+        )}
 
-
-          {/* USER DETAILS */}
-
-          <div className="
-            px-6
-            py-5
-            grid
-            grid-cols-1
-            md:grid-cols-3
-            gap-5
-          ">
-
-            {/* EMAIL */}
-
-            <div className="flex items-center gap-3">
-
-              <div className="
-                w-9
-                h-9
-                rounded-lg
-                bg-gray-50
-                flex
-                items-center
-                justify-center
-              ">
-                <FaEnvelope className="text-gray-400 text-sm" />
+        {loading ? (
+          <p className="rounded-2xl bg-white p-8 text-sm text-gray-500">
+            Loading message...
+          </p>
+        ) : message ? (
+          <>
+            <section className="mb-6 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+              <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 font-semibold text-gray-600">
+                    {message.name
+                      .split(" ")
+                      .map((word) => word[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      {message.name}
+                    </h2>
+                    <p className="text-xs text-gray-400">Message #{message.id}</p>
+                  </div>
+                </div>
               </div>
-
-              <div>
-
-                <p className="text-xs text-gray-400">
-                  Email
-                </p>
-
-                <p className="text-sm text-gray-700 font-medium">
-                  {message.email}
-                </p>
-
+              <div className="grid grid-cols-1 gap-5 px-6 py-5 md:grid-cols-3">
+                <div className="flex items-center gap-3">
+                  <FaEnvelope className="text-gray-400" />
+                  <span className="text-sm text-gray-700">{message.email}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FaPhone className="text-gray-400" />
+                  <span className="text-sm text-gray-700">
+                    {message.mobile || "Not provided"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FaUser className="text-gray-400" />
+                  <span className="text-sm text-gray-700">{message.subject}</span>
+                </div>
               </div>
-
-            </div>
-
-
-            {/* MOBILE */}
-
-            <div className="flex items-center gap-3">
-
-              <div className="
-                w-9
-                h-9
-                rounded-lg
-                bg-gray-50
-                flex
-                items-center
-                justify-center
-              ">
-                <FaPhone className="text-gray-400 text-sm" />
-              </div>
-
-              <div>
-
-                <p className="text-xs text-gray-400">
-                  Mobile
+              <div className="border-t border-gray-100 px-6 py-5">
+                <p className="mb-2 text-xs font-semibold uppercase text-gray-400">
+                  User Message
                 </p>
-
-                <p className="text-sm text-gray-700 font-medium">
-                  {message.mobile}
+                <p className="whitespace-pre-wrap text-sm leading-6 text-gray-700">
+                  {message.message}
                 </p>
-
               </div>
+            </section>
 
-            </div>
-
-
-            {/* SUBJECT */}
-
-            <div className="flex items-center gap-3">
-
-              <div className="
-                w-9
-                h-9
-                rounded-lg
-                bg-gray-50
-                flex
-                items-center
-                justify-center
-              ">
-                <FaUser className="text-gray-400 text-sm" />
-              </div>
-
-              <div>
-
-                <p className="text-xs text-gray-400">
-                  Subject
-                </p>
-
-                <p className="text-sm text-gray-700 font-medium">
-                  {message.subject}
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* ORIGINAL MESSAGE */}
-
-          <div className="px-6 pb-6">
-
-            <div className="
-              rounded-xl
-              bg-gray-50/80
-              border
-              border-gray-100
-              p-5
-            ">
-
-              <div className="flex items-center justify-between mb-3">
-
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  Original Message
-                </p>
-
-                <span className="text-xs text-gray-400">
-                  {message.date}
-                </span>
-
-              </div>
-
-              <p className="text-sm text-gray-600 leading-6">
-                {message.message}
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* =====================================================
-            REPLY FORM
-        ===================================================== */}
-
-        <form
-          onSubmit={handleSubmit}
-          className="
-            bg-white
-            rounded-2xl
-            border
-            border-gray-100
-            shadow-sm
-            overflow-hidden
-          "
-        >
-
-          {/* FORM HEADER */}
-
-          <div className="
-            px-6
-            py-5
-            border-b
-            border-gray-100
-            bg-gray-50/50
-          ">
-
-            <h2 className="text-lg font-semibold text-gray-800">
-              Write Reply
-            </h2>
-
-            <p className="text-sm text-gray-400 mt-1">
-              Send a response to {message.email}.
-            </p>
-
-          </div>
-
-
-          {/* TEXTAREA */}
-
-          <div className="p-6">
-
-            <label className="
-              block
-              text-sm
-              font-medium
-              text-gray-700
-              mb-2
-            ">
-              Reply Message
-            </label>
-
-            <textarea
-              value={reply}
-              onChange={(e) =>
-                setReply(e.target.value)
-              }
-              rows={8}
-              placeholder="Write your reply here..."
-              className="
-                w-full
-                px-4
-                py-3
-                rounded-xl
-                border
-                border-gray-200
-                bg-gray-50/50
-                text-sm
-                text-gray-700
-                placeholder:text-gray-400
-                outline-none
-                resize-none
-                focus:bg-white
-                focus:border-gray-300
-                focus:ring-4
-                focus:ring-gray-100
-                transition
-              "
-            />
-
-          </div>
-
-
-          {/* BUTTONS */}
-
-          <div className="
-            px-6
-            py-5
-            border-t
-            border-gray-100
-            bg-gray-50/50
-            flex
-            flex-col-reverse
-            sm:flex-row
-            justify-end
-            gap-3
-          ">
-
-            <button
-              type="button"
-              onClick={() =>
-                router.push("/admin/contact-users")
-              }
-              className="
-                w-full
-                sm:w-auto
-                h-11
-                px-6
-                rounded-xl
-                border
-                border-gray-200
-                bg-white
-                text-gray-600
-                text-sm
-                font-semibold
-                hover:bg-gray-50
-                transition
-              "
+            <form
+              onSubmit={handleSubmit}
+              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
             >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              className="
-                w-full
-                sm:w-auto
-                h-11
-                px-6
-                rounded-xl
-                bg-gray-200
-                text-gray-700
-                text-sm
-                font-semibold
-                inline-flex
-                items-center
-                justify-center
-                gap-2
-                hover:bg-gray-300
-                transition
-              "
-            >
-              <FaPaperPlane className="text-xs" />
-              Send Reply
-            </button>
-
-          </div>
-
-        </form>
-
-      </main>
-
-    </div>
+              <label
+                htmlFor="reply"
+                className="mb-3 block text-sm font-semibold text-gray-700"
+              >
+                Your Reply
+              </label>
+              <textarea
+                id="reply"
+                rows={7}
+                value={reply}
+                onChange={(event) => setReply(event.target.value)}
+                maxLength={10000}
+                required
+                placeholder="Write your reply here..."
+                className="w-full rounded-xl border border-gray-200 p-4 text-sm outline-none focus:border-[#8B1E3F]"
+              />
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#8B1E3F] px-5 py-3 text-sm font-semibold text-white hover:bg-[#741934] disabled:opacity-60"
+                >
+                  <FaPaperPlane />
+                  {submitting ? "Sending..." : "Send Reply"}
+                </button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <p className="rounded-2xl bg-white p-8 text-sm text-gray-500">
+            Contact message not found.
+          </p>
+        )}
+      </div>
+    </main>
   );
 }

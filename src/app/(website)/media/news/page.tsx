@@ -451,7 +451,7 @@ export default function StateNewsPage() {
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                  Telangana State Arya Vysya Mahasabha
+                  Arya Vysya Mahasabha
                 </h1>
 
                 <p className="text-sm text-gray-500 mt-1">
@@ -608,7 +608,7 @@ export default function StateNewsPage() {
                   </div>
 
                   <div className="px-4 py-3 text-sm text-gray-700 font-medium">
-                    Telangana State Arya Vysya Mahasabha latest
+                    Arya Vysya Mahasabha latest
                     community updates and activities.
                   </div>
 
@@ -785,7 +785,7 @@ export default function StateNewsPage() {
                   </h2>
 
                   <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                    Telangana State Arya Vysya Mahasabha updates
+                    Arya Vysya Mahasabha updates
                   </p>
 
                 </div>
@@ -991,7 +991,7 @@ export default function StateNewsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
 
               <p className="text-xs text-gray-500">
-                Telangana State Arya Vysya Mahasabha
+                Arya Vysya Mahasabha
               </p>
 
               <a

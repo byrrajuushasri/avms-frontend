@@ -1192,9 +1192,8 @@ export default function AdminDashboard() {
                         <th className="px-6 py-4 text-left font-semibold">
                           Mobile
                         </th>
-
                         <th className="px-6 py-4 text-left font-semibold">
-                          Location
+                          Gender
                         </th>
 
                         <th className="px-6 py-4 text-left font-semibold">
@@ -1365,11 +1364,7 @@ export default function AdminDashboard() {
 
                               <td className="px-6 py-4">
 
-                                <p className="text-sm text-gray-600">
-                                  {
-                                    location
-                                  }
-                                </p>
+                               
 
                                 {user.gender && (
                                   <p className="text-xs text-gray-400 mt-1">

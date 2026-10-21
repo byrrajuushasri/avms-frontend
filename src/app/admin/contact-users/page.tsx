@@ -5,10 +5,8 @@ import Link from "next/link";
 
 import {
   FaSearch,
-  FaEye,
   FaTrash,
   FaReply,
-  FaEdit,
   FaEllipsisV,
   FaEnvelopeOpenText,
   FaTimes,
@@ -18,138 +16,31 @@ import {
   FaClock,
 } from "react-icons/fa";
 
-/* =========================================================
-   CONTACT MESSAGES
-========================================================= */
+type ContactMessage = {
+  id: number;
+  name: string;
+  email: string;
+  mobile: string | null;
+  subject: string;
+  message: string;
+  date: string;
+  status: "New" | "Replied" | "Closed";
+};
 
-const messagesData = [
-  {
-    id: 1,
-    name: "Ramesh Kumar",
-    email: "ramesh@gmail.com",
-    mobile: "9876543210",
-    subject: "Profile enquiry",
-    message: "I need more details about this profile.",
-    date: "05 Aug 2026",
-    status: "New",
-  },
-  {
-    id: 2,
-    name: "Lakshmi Devi",
-    email: "lakshmi@gmail.com",
-    mobile: "9123456780",
-    subject: "Membership issue",
-    message: "Payment completed but membership not activated.",
-    date: "04 Aug 2026",
-    status: "Replied",
-  },
-  {
-    id: 3,
-    name: "Suresh Rao",
-    email: "suresh@gmail.com",
-    mobile: "9988776655",
-    subject: "Account support",
-    message: "Unable to login into my account.",
-    date: "03 Aug 2026",
-    status: "Closed",
-  },
-  {
-    id: 4,
-    name: "Anitha Reddy",
-    email: "anitha@gmail.com",
-    mobile: "9001234567",
-    subject: "Profile verification",
-    message: "I would like to know the verification process.",
-    date: "02 Aug 2026",
-    status: "New",
-  },
-  {
-    id: 5,
-    name: "Vijay Kumar",
-    email: "vijay@gmail.com",
-    mobile: "9555678901",
-    subject: "Payment enquiry",
-    message: "Please help me with my membership payment.",
-    date: "01 Aug 2026",
-    status: "Replied",
-  },
-  {
-    id: 6,
-    name: "Priya Sharma",
-    email: "priya@gmail.com",
-    mobile: "9887766554",
-    subject: "Profile enquiry",
-    message: "I want to know more information about the profile.",
-    date: "31 Jul 2026",
-    status: "New",
-  },
-  {
-    id: 7,
-    name: "Rajesh Kumar",
-    email: "rajesh@gmail.com",
-    mobile: "9776655443",
-    subject: "Membership enquiry",
-    message: "Please explain the premium membership benefits.",
-    date: "30 Jul 2026",
-    status: "Replied",
-  },
-  {
-    id: 8,
-    name: "Swathi Reddy",
-    email: "swathi@gmail.com",
-    mobile: "9665544332",
-    subject: "Account issue",
-    message: "I am unable to update my profile information.",
-    date: "29 Jul 2026",
-    status: "New",
-  },
-  {
-    id: 9,
-    name: "Mahesh Rao",
-    email: "mahesh@gmail.com",
-    mobile: "9554433221",
-    subject: "Payment issue",
-    message: "My payment was deducted but the plan is not active.",
-    date: "28 Jul 2026",
-    status: "Closed",
-  },
-  {
-    id: 10,
-    name: "Deepika Devi",
-    email: "deepika@gmail.com",
-    mobile: "9443322110",
-    subject: "Verification enquiry",
-    message: "How long does profile verification take?",
-    date: "27 Jul 2026",
-    status: "New",
-  },
-  {
-    id: 11,
-    name: "Srinivas Kumar",
-    email: "srinivas@gmail.com",
-    mobile: "9332211009",
-    subject: "Login support",
-    message: "I forgot my password and cannot login.",
-    date: "26 Jul 2026",
-    status: "Replied",
-  },
-  {
-    id: 12,
-    name: "Kavya Reddy",
-    email: "kavya@gmail.com",
-    mobile: "9221100998",
-    subject: "Profile update",
-    message: "Please help me update my profile details.",
-    date: "25 Jul 2026",
-    status: "New",
-  },
-];
+const API_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://avms-backend-production.up.railway.app"
+).replace(/\/+$/, "");
 
 /* =========================================================
    PAGE
 ========================================================= */
 
 export default function ContactUsersPage() {
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
 
@@ -169,6 +60,64 @@ export default function ContactUsersPage() {
   ========================================================= */
 
   const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        setLoadError("");
+        const token =
+          localStorage.getItem("adminToken") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("access_token");
+        if (!token) {
+          setLoadError("Admin session not found. Please sign in again.");
+          return;
+        }
+        const response = await fetch(`${API_URL}/contact-messages`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          cache: "no-store",
+        });
+        const result = await response.json().catch(() => []);
+
+        if (response.status === 401) {
+          throw new Error("Admin session expired. Please sign in again.");
+        }
+        if (response.status === 403) {
+          throw new Error(
+            "Your account does not have permission to view contact messages.",
+          );
+        }
+        if (!response.ok) {
+          throw new Error(
+            result?.message || "Unable to load contact messages.",
+          );
+        }
+
+        setMessages(
+          (Array.isArray(result) ? result : []).map((item) => ({
+            id: item.id,
+            name: item.name,
+            email: item.email,
+            mobile: item.mobile || "",
+            subject: item.subject,
+            message: item.message,
+            date: item.created_at,
+            status: item.status,
+          })),
+        );
+      } catch (error) {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load contact messages.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadMessages();
+  }, []);
 
   /* =========================================================
      OUTSIDE CLICK
@@ -195,13 +144,13 @@ export default function ContactUsersPage() {
      FILTER
   ========================================================= */
 
-  const filteredMessages = messagesData.filter((item) => {
+  const filteredMessages = messages.filter((item) => {
     const searchValue = search.toLowerCase().trim();
 
     const matchesSearch =
       item.name.toLowerCase().includes(searchValue) ||
       item.email.toLowerCase().includes(searchValue) ||
-      item.mobile.includes(searchValue) ||
+      (item.mobile || "").includes(searchValue) ||
       item.subject.toLowerCase().includes(searchValue) ||
       item.message.toLowerCase().includes(searchValue);
 
@@ -290,11 +239,46 @@ export default function ContactUsersPage() {
      DELETE
   ========================================================= */
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteId === null) return;
 
-    console.log("Delete contact user:", deleteId);
+    try {
+      const token =
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("Admin session not found. Please sign in again.");
+      }
+      const response = await fetch(
+        `${API_URL}/contact-messages/${deleteId}`,
+        {
+          method: "DELETE",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
+      const result = await response.json().catch(() => ({}));
 
+      if (response.status === 401) {
+        throw new Error("Admin session expired. Please sign in again.");
+      }
+      if (response.status === 403) {
+        throw new Error(
+          "Your account does not have permission to delete contact messages.",
+        );
+      }
+      if (!response.ok) {
+        throw new Error(result?.message || "Unable to delete message.");
+      }
+
+      setMessages((previous) =>
+        previous.filter((item) => item.id !== deleteId),
+      );
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Unable to delete message.",
+      );
+    }
     setDeleteId(null);
     setOpenActionId(null);
   };
@@ -319,6 +303,23 @@ export default function ContactUsersPage() {
           </p>
 
         </div>
+
+        {loadError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl bg-red-50 p-4 text-sm text-red-700"
+          >
+            <p>{loadError}</p>
+            {loadError.includes("session") && (
+              <Link
+                href="/admin/login"
+                className="mt-2 inline-block font-semibold underline"
+              >
+                Go to admin login
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* =====================================================
             MAIN CARD
@@ -588,7 +589,13 @@ export default function ContactUsersPage() {
 
               <tbody className="divide-y divide-gray-100">
 
-                {currentMessages.length > 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-16 text-center text-sm text-gray-500">
+                      Loading contact messages...
+                    </td>
+                  </tr>
+                ) : currentMessages.length > 0 ? (
 
                   currentMessages.map((item) => (
 
@@ -964,7 +971,7 @@ export default function ContactUsersPage() {
                   </tr>
 
                 )}
-
+<br></br><br></br><br></br>
               </tbody>
 
             </table>

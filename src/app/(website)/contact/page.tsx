@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import type { FormEvent } from "react";
 import {
   FaPhoneAlt,
   FaEnvelope,
@@ -8,6 +10,65 @@ import {
 } from "react-icons/fa";
 
 export default function ContactPage() {
+  const [submitting, setSubmitting] = useState(false);
+  const [messageStatus, setMessageStatus] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const apiUrl = (
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://avms-backend-production.up.railway.app"
+  ).replace(/\/+$/, "");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setMessageStatus(null);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch(`${apiUrl}/contact-messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          email: formData.get("email"),
+          mobile: formData.get("mobile"),
+          subject: formData.get("subject"),
+          message: formData.get("message"),
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(result?.message)
+            ? result.message.join(", ")
+            : result?.message || "Unable to send your message.",
+        );
+      }
+
+      form.reset();
+      setMessageStatus({
+        type: "success",
+        text: "Your message has been sent to our team.",
+      });
+    } catch (error) {
+      setMessageStatus({
+        type: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Unable to send your message. Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <main className="bg-[#fff8f8]">
 
@@ -22,7 +83,7 @@ export default function ContactPage() {
           </h1>
 
           <p className="mt-5 text-lg text-gray-600">
-            We'd love to hear from you. Get in touch with our support team.
+            We&apos;d love to hear from you. Get in touch with our support team.
           </p>
 
         </div>
@@ -43,42 +104,71 @@ export default function ContactPage() {
               Send Us a Message
             </h2>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleSubmit}>
 
               <input
                 type="text"
+                name="name"
                 placeholder="Full Name"
+                required
+                maxLength={150}
                 className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
               />
 
               <input
                 type="email"
+                name="email"
                 placeholder="Email Address"
+                required
+                maxLength={150}
                 className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
               />
 
               <input
                 type="text"
+                name="mobile"
                 placeholder="Mobile Number"
+                maxLength={30}
                 className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
               />
 
               <input
                 type="text"
+                name="subject"
                 placeholder="Subject"
+                required
+                maxLength={200}
                 className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
               />
 
               <textarea
                 rows={5}
+                name="message"
                 placeholder="Your Message"
+                required
+                maxLength={10000}
                 className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
               />
 
+              {messageStatus && (
+                <p
+                  role="status"
+                  className={
+                    messageStatus.type === "success"
+                      ? "text-sm text-green-700"
+                      : "text-sm text-red-600"
+                  }
+                >
+                  {messageStatus.text}
+                </p>
+              )}
+
               <button
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl font-semibold transition"
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Send Message
+                {submitting ? "Sending..." : "Send Message"}
               </button>
 
             </form>

@@ -16,6 +16,8 @@ import {
   FaTimes,
   FaChevronLeft,
   FaChevronRight,
+  FaNewspaper,
+  FaEnvelope,
 } from "react-icons/fa";
 
 /* =========================================================
@@ -55,7 +57,29 @@ const menu = [
     ],
   },
 
-  
+  {
+    name: "Contact Messages",
+    path: "/admin/contact-users",
+    icon: FaEnvelope,
+    roles: [
+      "admin",
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
+  },
+
+   {
+    name: "Blog",
+    path: "/admin/media",
+    icon: FaNewspaper,
+    roles: [
+      "super_admin",
+      "sangam_admin",
+    ],
+  },
  
 
   {
@@ -762,4 +786,3 @@ export default function AdminSidebar({
     </>
   );
 }
-

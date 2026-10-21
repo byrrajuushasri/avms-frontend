@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -12,6 +11,7 @@ import {
   FaEnvelope,
   FaHome,
   FaInfoCircle,
+  FaNewspaper,
   FaUsers,
   FaCrown,
   FaTimes,
@@ -27,6 +27,7 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { label: "Home", href: "/", icon: FaHome },
   { label: "About Us", href: "/about", icon: FaInfoCircle },
+  { label: "Blog", href: "/media/news", icon: FaNewspaper },
   { label: "Membership", href: "/membership", icon: FaCrown },
   {
     label: "Matrimony Registration",
