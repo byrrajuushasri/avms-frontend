@@ -1,12 +1,16 @@
-
 "use client";
 
+import { useEffect, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
+
 import {
-  useEffect,
-  useState,
-  type ChangeEvent,
-  type FormEvent,
-} from "react";
+  getCountries,
+  getCountryCallingCode,
+  parsePhoneNumberFromString,
+} from "libphonenumber-js";
+
+import type { CountryCode } from "libphonenumber-js";
+
 import toast, { Toaster } from "react-hot-toast";
 
 /* =========================================================
@@ -45,6 +49,28 @@ type FormData = {
 
 type ErrorState = Record<string, string>;
 
+
+
+const preferredCountries: CountryCode[] = [
+  "IN",
+  "US",
+  "GB",
+  "AE",
+  "CA",
+  "AU",
+  "SG",
+  "SA",
+  "QA",
+  "KW",
+  "OM",
+];
+
+const countryList: CountryCode[] = [
+  ...preferredCountries,
+  ...getCountries().filter(
+    (country) => !preferredCountries.includes(country)
+  ),
+];
 /* =========================================================
    GOTRAM LIST
 ========================================================= */
@@ -331,6 +357,11 @@ export default function MembershipPage() {
 
   const [showGotramList, setShowGotramList] =
     useState(false);
+    const [selectedCountry, setSelectedCountry] =
+  useState<CountryCode>("IN");
+
+const [mobileNational, setMobileNational] =
+  useState("");
 
   /* =========================================================
      API URL
@@ -605,40 +636,57 @@ export default function MembershipPage() {
       value,
     } = e.target;
 
-    /* MOBILE */
-    if (name === "mobile") {
-      const onlyNumbers =
-        value.replace(/\D/g, "");
+  
 
-      if (onlyNumbers.length > 10) {
-        return;
-      }
+if (name === "mobile") {
+  const onlyNumbers = value.replace(/\D/g, "");
+  const maxDigits = selectedCountry === "IN" ? 10 : 15;
 
-      setFormData((prev) => ({
-        ...prev,
-        mobile: onlyNumbers,
-      }));
+  if (onlyNumbers.length > maxDigits) {
+    return;
+  }
 
-      if (!onlyNumbers) {
-        setFieldError(
-          "mobile",
-          "Mobile number is required"
-        );
-      } else if (
-        !/^[6-9]\d{9}$/.test(
-          onlyNumbers
-        )
-      ) {
-        setFieldError(
-          "mobile",
-          "Enter a valid 10-digit Indian mobile number"
-        );
-      } else {
-        clearFieldError("mobile");
-      }
+  setMobileNational(onlyNumbers);
 
-      return;
-    }
+  if (!onlyNumbers) {
+    setFormData((prev) => ({
+      ...prev,
+      mobile: "",
+    }));
+
+    setFieldError("mobile", "Mobile number is required");
+    return;
+  }
+
+  const parsedNumber = parsePhoneNumberFromString(
+    onlyNumbers,
+    selectedCountry
+  );
+
+  if (!parsedNumber?.isValid()) {
+    setFormData((prev) => ({
+      ...prev,
+      mobile: "",
+    }));
+
+    setFieldError(
+      "mobile",
+      selectedCountry === "IN"
+        ? "Please enter a valid 10-digit Indian mobile number"
+        : "Enter a valid mobile number for the selected country"
+    );
+
+    return;
+  }
+
+  setFormData((prev) => ({
+    ...prev,
+    mobile: parsedNumber.number,
+  }));
+
+  clearFieldError("mobile");
+  return;
+}
 
     /* FULL NAME */
     if (name === "full_name") {
@@ -926,29 +974,28 @@ export default function MembershipPage() {
      GOTRAM SEARCH CHANGE
   ========================================================= */
 
-  const handleGotramSearch = (
-    e: ChangeEvent<HTMLInputElement>
-  ) => {
-    const value = e.target.value;
+ const handleGotramSearch = (
+  e: ChangeEvent<HTMLInputElement>
+) => {
+  const value = e.target.value;
 
-    setGotramSearch(value);
+  setGotramSearch(value);
 
-    setFormData((prev) => ({
-      ...prev,
-      gotram: value,
-    }));
+  // Keep typed Gotram in form data,
+  // including custom Gotram names.
+  setFormData((prev) => ({
+    ...prev,
+    gotram: value,
+  }));
 
-    setShowGotramList(true);
+  setShowGotramList(true);
 
-    if (!value.trim()) {
-      setFieldError(
-        "gotram",
-        "Gotram is required"
-      );
-    } else {
-      clearFieldError("gotram");
-    }
-  };
+  if (!value.trim()) {
+    setFieldError("gotram", "Gotram is required");
+  } else {
+    clearFieldError("gotram");
+  }
+};
 
   /* =========================================================
      SELECT GOTRAM
@@ -1176,14 +1223,20 @@ export default function MembershipPage() {
         "Only letters and spaces are allowed";
     }
 
-    if (
-      !/^[6-9]\d{9}$/.test(
-        formData.mobile
-      )
-    ) {
-      newErrors.mobile =
-        "Enter a valid 10-digit Indian mobile number";
-    }
+  const parsedMobile = parsePhoneNumberFromString(
+  formData.mobile
+);
+
+if (!formData.mobile) {
+  newErrors.mobile = "Mobile number is required";
+} else if (!parsedMobile?.isValid()) {
+  newErrors.mobile = "Please enter a valid mobile number";
+} else if (
+  selectedCountry === "IN" &&
+  mobileNational.length !== 10
+) {
+  newErrors.mobile = "Please enter exactly 10 digits";
+}
 
     const emailRegex =
       /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1517,6 +1570,8 @@ export default function MembershipPage() {
       setFormData({
         ...initialFormData,
       });
+setSelectedCountry("IN");
+setMobileNational("");
 
       setGotramSearch("");
       setShowGotramList(false);
@@ -1694,28 +1749,84 @@ export default function MembershipPage() {
                   </div>
 
 
-                  {/* MOBILE */}
-                  <div>
-                    <label className={labelClass}>
-                      Mobile Number *
-                    </label>
+{/* INTERNATIONAL MOBILE */}
+<div className="w-full min-w-0">
+  <label className={labelClass}>
+    Mobile Number *
+  </label>
 
-                    <input
-                      type="tel"
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={handleChange}
-                      placeholder="Enter 10 Digit Mobile Number"
-                      inputMode="numeric"
-                      maxLength={10}
-                      className={getInputClass(
-                        "mobile"
-                      )}
-                    />
+  <div className="mt-1 flex w-full min-w-0 items-stretch gap-2">
+    {/* Country Code */}
+    <div className="w-[125px] shrink-0 sm:w-[150px]">
+      <select
+        value={selectedCountry}
+        aria-label="Country calling code"
+        onChange={(e) => {
+          const country = e.target.value as CountryCode;
 
-                    <ErrorMessage field="mobile" />
-                  </div>
+          setSelectedCountry(country);
 
+          const parsedNumber = mobileNational
+            ? parsePhoneNumberFromString(mobileNational, country)
+            : undefined;
+
+          const internationalNumber = mobileNational
+            ? parsedNumber?.number ??
+              `+${getCountryCallingCode(country)}${mobileNational}`
+            : "";
+
+          setFormData((prev) => ({
+            ...prev,
+            mobile: internationalNumber,
+          }));
+
+          if (!mobileNational) {
+            clearFieldError("mobile");
+          } else if (!parsedNumber?.isValid()) {
+            setFieldError(
+              "mobile",
+              "Enter a valid mobile number for the selected country"
+            );
+          } else {
+            clearFieldError("mobile");
+          }
+        }}
+        className={`${getInputClass("mobile")} h-11 w-full min-w-0 cursor-pointer px-2 text-sm`}
+      >
+        {countryList.map((country) => (
+          <option key={country} value={country}>
+            {country} (+{getCountryCallingCode(country)})
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Phone Number */}
+    <div className="min-w-0 flex-1">
+      <input
+  type="tel"
+  name="mobile"
+  value={mobileNational}
+  onChange={handleChange}
+  placeholder={
+    selectedCountry === "IN"
+      ? "Enter 10-digit mobile number"
+      : "Enter phone number"
+  }
+  autoComplete="tel-national"
+  inputMode="numeric"
+  maxLength={selectedCountry === "IN" ? 10 : 15}
+  className={`${getInputClass("mobile")} h-11 w-full min-w-0 px-3`}
+/>
+    </div>
+  </div>
+
+  <p className="mt-1 text-xs text-gray-500">
+    Calling code: +{getCountryCallingCode(selectedCountry)}
+  </p>
+
+  <ErrorMessage field="mobile" />
+</div>
 
                   {/* EMAIL */}
                   <div>
@@ -1834,8 +1945,8 @@ export default function MembershipPage() {
                   {/* =================================================
                       SEARCHABLE GOTRAM
                   ================================================== */}
+            {/* SEARCHABLE GOTRAM */}
                   <div className="relative">
-
                     <label className={labelClass}>
                       Gotram *
                     </label>
@@ -1845,50 +1956,34 @@ export default function MembershipPage() {
                       name="gotram"
                       value={gotramSearch}
                       onChange={handleGotramSearch}
-                      onFocus={() =>
-                        setShowGotramList(true)
-                      }
+                      onFocus={() => setShowGotramList(true)}
+                      onBlur={() => setShowGotramList(false)}
                       placeholder="Type Gotram..."
                       autoComplete="off"
                       maxLength={100}
-                      className={getInputClass(
-                        "gotram"
-                      )}
+                      className={getInputClass("gotram")}
                     />
 
-                    {/* SEARCH RESULTS */}
-                    {showGotramList && (
+                    {/* SHOW MATCHING GOTRAMS ONLY */}
+                    {showGotramList && filteredGotramList.length > 0 && (
                       <div className="absolute left-0 right-0 z-50 mt-1 max-h-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
-
-                        {filteredGotramList.length > 0 ? (
-                          filteredGotramList.map(
-                            (gotram) => (
-                              <button
-                                type="button"
-                                key={gotram}
-                                onMouseDown={(e) => {
-                                  e.preventDefault();
-                                  handleGotramSelect(
-                                    gotram
-                                  );
-                                }}
-                                className="block w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-rose-50 hover:text-rose-700"
-                              >
-                                {gotram}
-                              </button>
-                            )
-                          )
-                        ) : (
-                          <p className="px-4 py-3 text-sm text-gray-500">
-                            No Gotram found
-                          </p>
-                        )}
-
+                        {filteredGotramList.map((gotram) => (
+                          <button
+                            type="button"
+                            key={gotram}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleGotramSelect(gotram);
+                            }}
+                            className="block w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-rose-50 hover:text-rose-700 last:border-b-0"
+                          >
+                            {gotram}
+                          </button>
+                        ))}
                       </div>
                     )}
 
                     <ErrorMessage field="gotram" />
-
                   </div>
 
 
@@ -2331,5 +2426,5 @@ export default function MembershipPage() {
       </div>
     </>
   );
-}   
+}
 

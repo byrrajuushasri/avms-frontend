@@ -252,14 +252,8 @@ const profileCategoryList = [
     value: "Business",
     label: "Business",
   },
-  {
-    value: "Divorced",
-    label: "Divorced",
-  },
-  {
-    value: "Handicapped",
-    label: "Physically Handicapped",
-  },
+  
+  
   {
     value: "Dearth",
     label: "Dearth",
@@ -536,6 +530,49 @@ export default function RegisterPage() {
   ] = useState<any>(null);
 
   /* =========================================================
+     MEMBERSHIP PHOTOS
+     Reads the photo saved during Membership registration.
+     Supports the primary photo and optional photo arrays if
+     the backend returns them in the future.
+  ========================================================= */
+
+  const membershipPhotos: string[] = (() => {
+    const member = verificationMember || {};
+    const values: unknown[] = [
+      member.photo,
+      member.profile_photo,
+      ...(Array.isArray(member.additional_photos)
+        ? member.additional_photos
+        : []),
+      ...(Array.isArray(member.photos)
+        ? member.photos
+        : []),
+    ];
+
+    return Array.from(
+      new Set(
+        values
+          .filter((value): value is string =>
+            typeof value === "string" && value.trim().length > 0
+          )
+          .map((value) => value.trim())
+      )
+    );
+  })();
+
+  const getMembershipPhotoUrl = (photoPath: string) => {
+    if (/^https?:\/\//i.test(photoPath)) {
+      return photoPath;
+    }
+
+    const normalizedPath = photoPath.startsWith("/")
+      ? photoPath
+      : `/${photoPath}`;
+
+    return `${BACKEND_URL}${normalizedPath}`;
+  };
+
+  /* =========================================================
      CONSENT
   ========================================================= */
 
@@ -579,31 +616,41 @@ export default function RegisterPage() {
      FORM DATA
   ========================================================= */
 
-  const [formData, setFormData] =
-    useState({
-      profile_category: "Professional",
-      mother_name: "",
-      father_gotram: "",
-      mother_gotram: "",
-      grandmother_gotram: "",
-      nakshatram: "",
-      padham: "",
-      rasi: "",
-      color: "",
-      height: "",
-      education: "",
-      annual_income: "",
-      address: "",
-      father_occupation: "",
-      mother_occupation: "",
-      brother_details: "",
-      sister_details: "",
-      property_details: "",
-      preferred_requirements: "",
-      area_volunteer_name: "",
-      area_volunteer_contact: "",
-      area_volunteer_position: "",
-    });
+ const [formData, setFormData] = useState({
+  profile_category: "Professional",
+
+  // Marital details
+  marital_status: "",
+  number_of_children: "0",
+  previous_marriage_conditions: "",
+
+  // Physical and family details
+  physical_status: "Normal",
+  family_status: "",
+  additional_details: "",
+
+  mother_name: "",
+  father_gotram: "",
+  mother_gotram: "",
+  grandmother_gotram: "",
+  nakshatram: "",
+  padham: "",
+  rasi: "",
+  color: "",
+  height: "",
+  education: "",
+  annual_income: "",
+  address: "",
+  father_occupation: "",
+  mother_occupation: "",
+  brother_details: "",
+  sister_details: "",
+  property_details: "",
+  preferred_requirements: "",
+  area_volunteer_name: "",
+  area_volunteer_contact: "",
+  area_volunteer_position: "",
+});
 
   /* =========================================================
      BROTHER / SISTER COUNT
@@ -898,6 +945,20 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!formData.marital_status.trim()) {
+  alert("Please select Marital Status.");
+  return;
+}
+
+if (
+  !["Never Married", "Divorced", "Awaiting Divorce"].includes(
+    formData.marital_status
+  )
+) {
+  alert("Please select a valid Marital Status.");
+  return;
+}
+
     if (!formData.mother_name.trim()) {
       alert(
         "Please enter Mother's Name."
@@ -1004,59 +1065,44 @@ export default function RegisterPage() {
          NORMAL FIELDS
       ===================================================== */
 
-      const normalFields = {
-        profile_category:
-          formData.profile_category,
+const normalFields = {
+  profile_category: formData.profile_category,
 
-        mother_name:
-          formData.mother_name,
+  marital_status: formData.marital_status,
 
-        father_gotram:
-          fatherGotram,
+  number_of_children:
+    formData.marital_status === "Never Married"
+      ? "0"
+      : formData.number_of_children,
 
-        mother_gotram:
-          motherGotram,
+  previous_marriage_conditions:
+    formData.marital_status === "Divorced" ||
+    formData.marital_status === "Awaiting Divorce"
+      ? formData.previous_marriage_conditions.trim()
+      : "",
 
-        grandmother_gotram:
-          grandmotherGotram,
+  physical_status: formData.physical_status,
+  family_status: formData.family_status,
+  additional_details: formData.additional_details,
 
-        nakshatram:
-          formData.nakshatram,
+  mother_name: formData.mother_name,
+  father_gotram: formData.father_gotram.trim(),
+  mother_gotram: formData.mother_gotram.trim(),
+  grandmother_gotram: formData.grandmother_gotram.trim(),
 
-        padham:
-          formData.padham,
-
-        rasi:
-          formData.rasi,
-
-        color:
-          formData.color,
-
-        height:
-          formData.height,
-
-        education:
-          formData.education,
-
-        annual_income:
-          formData.annual_income,
-
-        address:
-          formData.address,
-
-        father_occupation:
-          formData.father_occupation,
-
-        mother_occupation:
-          formData.mother_occupation,
-
-        property_details:
-          formData.property_details,
-
-        preferred_requirements:
-          formData.preferred_requirements,
-      };
-
+  nakshatram: formData.nakshatram,
+  padham: formData.padham,
+  rasi: formData.rasi,
+  color: formData.color,
+  height: formData.height,
+  education: formData.education,
+  annual_income: formData.annual_income,
+  address: formData.address,
+  father_occupation: formData.father_occupation,
+  mother_occupation: formData.mother_occupation,
+  property_details: formData.property_details,
+  preferred_requirements: formData.preferred_requirements,
+};
       Object.entries(
         normalFields
       ).forEach(
@@ -1497,6 +1543,61 @@ export default function RegisterPage() {
                   </div>
 
                 </div>
+
+                {/* =================================================
+                    MEMBERSHIP PHOTOS / ADDITIONAL PHOTOS
+                ================================================= */}
+
+                <div className="mt-5 rounded-xl border border-pink-200 bg-white p-4">
+                  <div className="mb-3">
+                    <h4 className="font-bold text-[#8B1E3F]">
+                      Membership Photo(s)
+                    </h4>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Photos uploaded during Membership Registration are shown here for you to review.
+                    </p>
+                  </div>
+
+                  {membershipPhotos.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                      {membershipPhotos.map((photoPath, index) => {
+                        const photoUrl = getMembershipPhotoUrl(photoPath);
+
+                        return (
+                          <div
+                            key={`${photoPath}-${index}`}
+                            className="overflow-hidden rounded-xl border border-pink-100 bg-pink-50"
+                          >
+                            <a
+                              href={photoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block"
+                              title="Open full-size membership photo"
+                            >
+                              <img
+                                src={photoUrl}
+                                alt={`Membership photo ${index + 1}`}
+                                className="h-44 w-full object-cover transition hover:scale-[1.02]"
+                                loading="lazy"
+                                onError={(event) => {
+                                  event.currentTarget.style.display = "none";
+                                }}
+                              />
+                            </a>
+                            <div className="p-2 text-center text-xs font-medium text-gray-600">
+                              {index === 0 ? "Membership Photo" : `Additional Photo ${index}`}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-pink-200 bg-pink-50/50 px-4 py-5 text-center text-sm text-gray-600">
+                      No photo was returned from your Membership record. If you uploaded a photo already, please check that the Membership API returns the saved <code>photo</code> path.
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1874,6 +1975,80 @@ export default function RegisterPage() {
 
               </div>
 
+{/* =================================================
+    PHYSICAL STATUS
+================================================= */}
+
+<div>
+  <FieldLabel required>
+    Physical Status
+  </FieldLabel>
+
+  <select
+    name="physical_status"
+    value={formData.physical_status}
+    onChange={handleChange}
+    required
+    className={inputClass}
+  >
+    <option value="Normal">Normal</option>
+    <option value="Physically Handicapped">
+      Physically Handicapped
+    </option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+
+{/* =================================================
+    FAMILY STATUS
+================================================= */}
+
+<div>
+  <FieldLabel>
+    Family Status
+  </FieldLabel>
+
+  <select
+    name="family_status"
+    value={formData.family_status}
+    onChange={handleChange}
+    className={inputClass}
+  >
+    <option value="">Select Family Status</option>
+    <option value="Middle Class">Middle Class</option>
+    <option value="Upper Middle Class">
+      Upper Middle Class
+    </option>
+    <option value="Rich">Rich</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+
+{/* =================================================
+    ADDITIONAL DETAILS
+================================================= */}
+
+<div className="md:col-span-2">
+  <FieldLabel>
+    Additional Details
+  </FieldLabel>
+
+  <textarea
+    name="additional_details"
+    value={formData.additional_details}
+    onChange={handleChange}
+    rows={4}
+    maxLength={2000}
+    placeholder="Enter any additional profile or family details..."
+    className={`${textareaClass} resize-y`}
+  />
+
+  <p className="mt-1 text-right text-xs text-gray-500">
+    {formData.additional_details.length}/2000 characters
+  </p>
+</div>
+
+
               {/* =================================================
                   ADDRESS
               ================================================= */}
@@ -1972,6 +2147,104 @@ export default function RegisterPage() {
                 </select>
 
               </div>
+
+{/* =================================================
+    MARITAL STATUS
+================================================= */}
+
+<div>
+  <FieldLabel required>
+    Marital Status
+  </FieldLabel>
+
+  <select
+    name="marital_status"
+    value={formData.marital_status}
+    onChange={(e) => {
+      const status = e.target.value;
+
+      setFormData((prev) => ({
+        ...prev,
+        marital_status: status,
+        ...(status === "Never Married"
+          ? {
+              number_of_children: "0",
+              previous_marriage_conditions: "",
+            }
+          : {}),
+      }));
+    }}
+    required
+    className={inputClass}
+  >
+    <option value="">Select Marital Status</option>
+    <option value="Never Married">Never Married</option>
+    <option value="Divorced">Divorced</option>
+    <option value="Awaiting Divorce">Awaiting Divorce</option>
+  </select>
+</div>
+
+{/* =================================================
+    PREVIOUS MARRIAGE DETAILS
+================================================= */}
+
+{(formData.marital_status === "Divorced" ||
+  formData.marital_status === "Awaiting Divorce") && (
+  <div className="md:col-span-2 rounded-2xl border border-pink-200 bg-pink-50/60 p-5 sm:p-6">
+    <h3 className="text-lg font-bold text-[#8B1E3F]">
+      Previous Marriage Details
+    </h3>
+
+    <p className="mt-1 text-sm text-gray-600">
+      Please provide details about your previous marriage.
+    </p>
+
+    <div className="mt-4 grid gap-5 md:grid-cols-2">
+      {/* NUMBER OF CHILDREN */}
+      <div>
+        <FieldLabel required>
+          Number of Children
+        </FieldLabel>
+
+        <select
+          name="number_of_children"
+          value={formData.number_of_children}
+          onChange={handleChange}
+          required
+          className={inputClass}
+        >
+          <option value="0">0 - No Children</option>
+          <option value="1">1 Child</option>
+          <option value="2">2 Children</option>
+          <option value="3">3 Children</option>
+          <option value="4">4 Children</option>
+          <option value="5">5 or More Children</option>
+        </select>
+      </div>
+
+      {/* PREVIOUS MARRIAGE CONDITIONS */}
+      <div className="md:col-span-2">
+        <FieldLabel>
+          Previous Marriage Conditions / Other Details
+        </FieldLabel>
+
+        <textarea
+          name="previous_marriage_conditions"
+          value={formData.previous_marriage_conditions}
+          onChange={handleChange}
+          rows={4}
+          maxLength={1000}
+          placeholder="Enter previous marriage conditions or other details, if any..."
+          className={`${textareaClass} resize-y`}
+        />
+
+        <p className="mt-1 text-right text-xs text-gray-500">
+          {formData.previous_marriage_conditions.length}/1000 characters
+        </p>
+      </div>
+    </div>
+  </div>
+)}
 
               {/* =================================================
                   BROTHER DETAILS
