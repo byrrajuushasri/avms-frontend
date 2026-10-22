@@ -920,7 +920,7 @@ export default function MediaPage() {
           <div className="w-12 h-12 border-4 border-[#8B1E3F]/20 border-t-[#8B1E3F] rounded-full animate-spin" />
 
           <p className="text-sm font-semibold text-gray-500">
-            Loading Media & News...
+            Loading Blog...
           </p>
 
         </div>
@@ -945,11 +945,11 @@ export default function MediaPage() {
 
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-              Media & News
+              Blog
             </h1>
 
             <p className="text-sm text-gray-500 mt-1">
-              Manage news, media and announcements
+              Manage Blog and announcements
             </p>
           </div>
 
@@ -972,7 +972,7 @@ export default function MediaPage() {
             className="h-11 px-5 rounded-xl bg-[#8B1E3F] hover:bg-[#721732] text-white flex items-center gap-2 font-semibold text-sm transition shadow-lg shadow-[#8B1E3F]/20"
           >
             <FaPlus />
-            Add News
+            Add Blog Post
           </button>
 
         </div>
@@ -1003,7 +1003,7 @@ export default function MediaPage() {
 
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Total News
+                Total Blog Posts
               </p>
 
               <p className="text-2xl font-bold text-gray-800 mt-2">
@@ -1115,7 +1115,7 @@ export default function MediaPage() {
                   e.target.value
                 )
               }
-              placeholder="Search news..."
+              placeholder="Search blog posts..."
               className="w-full h-11 pl-11 pr-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#8B1E3F]/10 focus:border-[#8B1E3F] text-sm"
             />
 
