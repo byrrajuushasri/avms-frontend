@@ -286,7 +286,7 @@ const labelClass = "text-sm font-medium text-gray-700";
 
 function FieldLabel({
   children,
-  required = false,
+  required = true,
 }: {
   children: ReactNode;
   required?: boolean;
@@ -310,7 +310,7 @@ function GotramSelect({
   label,
   value,
   onChange,
-  required = false,
+  required = true,
 }: {
   name: string;
   label: string;
@@ -725,7 +725,7 @@ export default function RegisterPage() {
     setBrotherCount(count);
 
     setBrotherMarried(0);
-    setBrotherUnmarried(0);
+    setBrotherUnmarried(count);
   };
 
   /* =========================================================
@@ -740,7 +740,7 @@ export default function RegisterPage() {
     setSisterCount(count);
 
     setSisterMarried(0);
-    setSisterUnmarried(0);
+    setSisterUnmarried(count);
   };
 
   /* =========================================================
@@ -1458,6 +1458,7 @@ const normalFields = {
                   maxLength={10}
                   inputMode="numeric"
                   autoComplete="tel"
+                  required
                   className={`${inputClass} ${
                     memberVerified
                       ? "cursor-not-allowed bg-gray-100"
@@ -1637,6 +1638,56 @@ const normalFields = {
 
             <form
               onSubmit={handleSubmit}
+              onInvalidCapture={(event) => {
+                const field = event.target;
+
+                if (
+                  !(
+                    field instanceof HTMLInputElement ||
+                    field instanceof HTMLSelectElement ||
+                    field instanceof HTMLTextAreaElement
+                  )
+                ) {
+                  return;
+                }
+
+                if (
+                  field instanceof HTMLInputElement &&
+                  field.type === "checkbox"
+                ) {
+                  field.setCustomValidity(
+                    "Please accept the declaration and consent before submitting."
+                  );
+                  return;
+                }
+
+                let container = field.parentElement;
+                let label = "";
+
+                while (container && !label) {
+                  label =
+                    container
+                      .querySelector("label")
+                      ?.textContent?.replace("*", "")
+                      .trim() || "";
+                  container = container.parentElement;
+                }
+
+                field.setCustomValidity(
+                  `Please enter ${label || "this field"}.`
+                );
+              }}
+              onChangeCapture={(event) => {
+                const field = event.target;
+
+                if (
+                  field instanceof HTMLInputElement ||
+                  field instanceof HTMLSelectElement ||
+                  field instanceof HTMLTextAreaElement
+                ) {
+                  field.setCustomValidity("");
+                }
+              }}
               className="grid gap-5 md:grid-cols-2"
             >
 
@@ -1764,6 +1815,7 @@ const normalFields = {
                     formData.nakshatram
                   }
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -1799,6 +1851,7 @@ const normalFields = {
                   name="padham"
                   value={formData.padham}
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -1838,6 +1891,7 @@ const normalFields = {
                   name="rasi"
                   value={formData.rasi}
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -1873,6 +1927,7 @@ const normalFields = {
                   name="color"
                   value={formData.color}
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -1910,6 +1965,7 @@ const normalFields = {
                   value={formData.height}
                   onChange={handleChange}
                   placeholder="Example: 5.6"
+                  required
                   className={inputClass}
                 />
 
@@ -1931,6 +1987,7 @@ const normalFields = {
                     formData.education
                   }
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -1970,6 +2027,7 @@ const normalFields = {
                   }
                   onChange={handleChange}
                   placeholder="Annual Income"
+                  required
                   className={inputClass}
                 />
 
@@ -2012,6 +2070,7 @@ const normalFields = {
     name="family_status"
     value={formData.family_status}
     onChange={handleChange}
+    required
     className={inputClass}
   >
     <option value="">Select Family Status</option>
@@ -2040,6 +2099,7 @@ const normalFields = {
     rows={4}
     maxLength={2000}
     placeholder="Enter any additional profile or family details..."
+    required
     className={`${textareaClass} resize-y`}
   />
 
@@ -2065,6 +2125,7 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Full Address"
                   rows={3}
+                  required
                   className={textareaClass}
                 />
 
@@ -2086,6 +2147,7 @@ const normalFields = {
                     formData.father_occupation
                   }
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -2123,6 +2185,7 @@ const normalFields = {
                     formData.mother_occupation
                   }
                   onChange={handleChange}
+                  required
                   className={inputClass}
                 >
                   <option value="">
@@ -2235,6 +2298,7 @@ const normalFields = {
           rows={4}
           maxLength={1000}
           placeholder="Enter previous marriage conditions or other details, if any..."
+          required
           className={`${textareaClass} resize-y`}
         />
 
@@ -2275,6 +2339,7 @@ const normalFields = {
                         onChange={
                           handleBrotherCount
                         }
+                        required
                         className={inputClass}
                       >
                         <option value="0">
@@ -2320,6 +2385,7 @@ const normalFields = {
                           onChange={
                             handleBrotherMarried
                           }
+                          required
                           className={inputClass}
                         >
                           {Array.from(
@@ -2415,6 +2481,7 @@ const normalFields = {
                         onChange={
                           handleSisterCount
                         }
+                        required
                         className={inputClass}
                       >
                         <option value="0">
@@ -2460,6 +2527,7 @@ const normalFields = {
                           onChange={
                             handleSisterMarried
                           }
+                          required
                           className={inputClass}
                         >
                           {Array.from(
@@ -2544,6 +2612,7 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Property Details"
                   rows={3}
+                  required
                   className={textareaClass}
                 />
 
@@ -2567,6 +2636,7 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Partner Requirements"
                   rows={3}
+                  required
                   className={textareaClass}
                 />
 
@@ -2717,6 +2787,7 @@ const normalFields = {
                             handleChange
                           }
                           placeholder="Enter Name"
+                          required
                           className={inputClass}
                         />
 
@@ -2740,6 +2811,7 @@ const normalFields = {
                           placeholder="Enter Contact Number"
                           maxLength={10}
                           inputMode="numeric"
+                          required
                           className={inputClass}
                         />
 
@@ -2761,6 +2833,7 @@ const normalFields = {
                             handleChange
                           }
                           placeholder="e.g. Area Volunteer / Sangham Representative"
+                          required
                           className={inputClass}
                         />
 

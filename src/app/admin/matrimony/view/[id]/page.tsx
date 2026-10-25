@@ -54,7 +54,7 @@ interface Member {
 
   profile_category?: string | null;
 
-  father_name?: string | null;
+  
   mother_name?: string | null;
 
   /* =======================================================
@@ -663,10 +663,7 @@ export default function ViewProfilePage() {
               value={member.profile_category}
             />
 
-            <Info
-              label="Father's Name"
-              value={member.father_name}
-            />
+             
 
             <Info
               label="Mother's Name"
@@ -785,10 +782,7 @@ export default function ViewProfilePage() {
 
           <InfoGrid>
 
-            <Info
-              label="Father's Name"
-              value={member.father_name}
-            />
+             
 
             <Info
               label="Father's Occupation"
@@ -1188,10 +1182,7 @@ export default function ViewProfilePage() {
               value={member.status}
             />
 
-            <Info
-              label="Membership"
-              value={member.membership}
-            />
+           
 
             <Info
               label="Mobile"
