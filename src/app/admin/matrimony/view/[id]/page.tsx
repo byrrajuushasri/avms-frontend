@@ -533,7 +533,7 @@ export default function ViewProfilePage() {
             <div
               className="
                 w-36
-                h-36
+                h-50
                 rounded-2xl
                 bg-pink-50
                 overflow-hidden

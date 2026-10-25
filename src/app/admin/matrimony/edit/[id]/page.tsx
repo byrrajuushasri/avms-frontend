@@ -14,6 +14,9 @@ import {
   FaCamera,
 } from "react-icons/fa";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
+import AdminDialog, {
+  type AdminDialogOptions,
+} from "@/components/admin/AdminDialog";
 
 /* =========================================================
    BACKEND
@@ -438,6 +441,7 @@ export default function EditMatrimonialMemberPage() {
     show: false,
     message: "",
   });
+  const [dialog, setDialog] = useState<AdminDialogOptions | null>(null);
 
   const showToast = (message: string) => {
     setToast({
@@ -867,18 +871,22 @@ export default function EditMatrimonialMemberPage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert(
-        "Please select a valid image file."
-      );
+      setDialog({
+        title: "Invalid image",
+        message: "Please select a valid image file.",
+        tone: "error",
+      });
 
       e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert(
-        "Please select an image smaller than 5MB."
-      );
+      setDialog({
+        title: "Image is too large",
+        message: "Please select an image smaller than 5MB.",
+        tone: "error",
+      });
 
       e.target.value = "";
       return;
@@ -1006,30 +1014,38 @@ export default function EditMatrimonialMemberPage() {
     ========================================= */
 
     if (!profile.profile_category) {
-      alert(
-        "Please select Profile Category."
-      );
+      setDialog({
+        title: "Required information",
+        message: "Please select Profile Category.",
+        tone: "error",
+      });
       return;
     }
 
     if (!profile.father_name.trim()) {
-      alert(
-        "Please enter Father's Name."
-      );
+      setDialog({
+        title: "Required information",
+        message: "Please enter Father's Name.",
+        tone: "error",
+      });
       return;
     }
 
     if (!profile.mother_name.trim()) {
-      alert(
-        "Please enter Mother's Name."
-      );
+      setDialog({
+        title: "Required information",
+        message: "Please enter Mother's Name.",
+        tone: "error",
+      });
       return;
     }
 
     if (!profile.mobile.trim()) {
-      alert(
-        "Mobile number is missing."
-      );
+      setDialog({
+        title: "Required information",
+        message: "Mobile number is missing.",
+        tone: "error",
+      });
       return;
     }
 
@@ -1051,11 +1067,11 @@ export default function EditMatrimonialMemberPage() {
         !brother.marital_status.trim() ||
         !brother.occupation.trim()
       ) {
-        alert(
-          `Please complete Brother ${
-            i + 1
-          } details.`
-        );
+        setDialog({
+          title: "Incomplete brother details",
+          message: `Please complete Brother ${i + 1} details.`,
+          tone: "error",
+        });
 
         return;
       }
@@ -1079,11 +1095,11 @@ export default function EditMatrimonialMemberPage() {
         !sister.marital_status.trim() ||
         !sister.occupation.trim()
       ) {
-        alert(
-          `Please complete Sister ${
-            i + 1
-          } details.`
-        );
+        setDialog({
+          title: "Incomplete sister details",
+          message: `Please complete Sister ${i + 1} details.`,
+          tone: "error",
+        });
 
         return;
       }
@@ -1094,9 +1110,11 @@ export default function EditMatrimonialMemberPage() {
     ========================================= */
 
     if (!profile.consent) {
-      alert(
-        "Please confirm the consent before saving."
-      );
+      setDialog({
+        title: "Consent required",
+        message: "Please confirm the consent before saving.",
+        tone: "error",
+      });
 
       return;
     }
@@ -1405,11 +1423,12 @@ export default function EditMatrimonialMemberPage() {
         err
       );
 
-      alert(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong"
-      );
+      setDialog({
+        title: "Unable to update profile",
+        message:
+          err instanceof Error ? err.message : "Something went wrong",
+        tone: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -1535,6 +1554,13 @@ export default function EditMatrimonialMemberPage() {
           </div>
 
         </div>
+      )}
+
+      {dialog && (
+        <AdminDialog
+          {...dialog}
+          onClose={() => setDialog(null)}
+        />
       )}
 
       {/* =================================================

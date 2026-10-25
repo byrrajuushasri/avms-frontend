@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
+import AdminDialog, {
+  type AdminDialogOptions,
+} from "@/components/admin/AdminDialog";
 import {
   FaPlus,
   FaSearch,
@@ -76,6 +79,7 @@ export default function MembershipPage() {
   const [authorizeMember, setAuthorizeMember] = useState<Member | null>(null);
   const [expiryDate, setExpiryDate] = useState("");
   const [authorizeLoading, setAuthorizeLoading] = useState(false);
+  const [dialog, setDialog] = useState<AdminDialogOptions | null>(null);
 
   // Close the action menu when clicking outside it.
   useEffect(() => {
@@ -219,11 +223,7 @@ export default function MembershipPage() {
     });
   };
 
-  const handleDelete = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) {
-      return;
-    }
-
+  const handleDelete = async (id: number) => {
     try {
       setDeleteLoading(id);
       setOpenActionId(null);
@@ -252,24 +252,25 @@ export default function MembershipPage() {
       );
 
       setCurrentPage((page) => Math.min(page, remainingPages));
-      window.alert("Member deleted successfully.");
+      setDialog({
+        title: "Member deleted",
+        message: "The member was deleted successfully.",
+        tone: "success",
+      });
     } catch (err) {
       console.error("Delete member error:", err);
-      setError(err instanceof Error ? err.message : "Failed to delete member.");
+      setDialog({
+        title: "Unable to delete member",
+        message:
+          err instanceof Error ? err.message : "Failed to delete member.",
+        tone: "error",
+      });
     } finally {
       setDeleteLoading(null);
     }
   };
 
   const handleApproveMembership = async (member: Member) => {
-    if (
-      !window.confirm(
-        `Approve membership for "${member.full_name}"? An approval email will be sent if the email address is available.`,
-      )
-    ) {
-      return;
-    }
-
     try {
       setApprovalLoading(member.id);
       setOpenActionId(null);
@@ -300,16 +301,23 @@ export default function MembershipPage() {
         ),
       );
 
-      window.alert(
-        result?.email_sent
+      setDialog({
+        title: "Membership approved",
+        message: result?.email_sent
           ? "Membership approved and approval email sent."
           : "Membership approved. No approval email was sent; check the member email and email service configuration.",
-      );
+        tone: "success",
+      });
     } catch (err) {
       console.error("Approve membership error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to approve membership.",
-      );
+      setDialog({
+        title: "Unable to approve membership",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to approve membership.",
+        tone: "error",
+      });
     } finally {
       setApprovalLoading(null);
     }
@@ -319,14 +327,19 @@ export default function MembershipPage() {
     setOpenActionId(null);
 
     if (member.matrimony_authorised) {
-      window.alert(
-        `Matrimony already authorised.\n\nCode: ${member.matrimony_code || "-"}`,
-      );
+      setDialog({
+        title: "Matrimony already authorised",
+        message: `Matrimony code: ${member.matrimony_code || "-"}`,
+      });
       return;
     }
 
     if (String(member.status || "").toLowerCase() !== "active") {
-      window.alert("Only Active members can be authorised for matrimony.");
+      setDialog({
+        title: "Membership must be active",
+        message: "Only active members can be authorised for matrimony.",
+        tone: "error",
+      });
       return;
     }
 
@@ -339,19 +352,35 @@ export default function MembershipPage() {
     if (!authorizeMember) return;
 
     if (!expiryDate) {
-      window.alert("Please select matrimony expiry date.");
+      setDialog({
+        title: "Expiry date required",
+        message: "Please select a matrimony expiry date.",
+        tone: "error",
+      });
       return;
     }
 
-    const confirmed = window.confirm(
-      `Authorize matrimony for "${authorizeMember.full_name}"?\n\n` +
-        `Member ID: ${authorizeMember.member_id}\n` +
-        `AVS ID: ${authorizeMember.avs_id || "-"}\n` +
+    const memberToAuthorize = authorizeMember;
+    setDialog({
+      title: "Confirm matrimony authorisation",
+      message:
+        `Authorise matrimony for "${memberToAuthorize.full_name}"?\n\n` +
+        `Member ID: ${memberToAuthorize.member_id}\n` +
+        `AVS ID: ${memberToAuthorize.avs_id || "-"}\n` +
         `Expiry Date: ${formatDate(expiryDate)}`,
-    );
+      tone: "info",
+      confirmLabel: "Authorise",
+      onConfirm: () => {
+        setDialog(null);
+        void submitMatrimonyAuthorisation(memberToAuthorize, expiryDate);
+      },
+    });
+  };
 
-    if (!confirmed) return;
-
+  const submitMatrimonyAuthorisation = async (
+    memberToAuthorize: Member,
+    selectedExpiryDate: string,
+  ) => {
     try {
       setAuthorizeLoading(true);
       setError("");
@@ -359,14 +388,14 @@ export default function MembershipPage() {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `${BACKEND_URL}/membership/member/${authorizeMember.id}/authorize-matrimony`,
+        `${BACKEND_URL}/membership/member/${memberToAuthorize.id}/authorize-matrimony`,
         {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ expiryDate }),
+          body: JSON.stringify({ expiryDate: selectedExpiryDate }),
         },
       );
 
@@ -380,7 +409,7 @@ export default function MembershipPage() {
 
       setMembers((previous) =>
         previous.map((member) =>
-          member.id === authorizeMember.id
+          member.id === memberToAuthorize.id
             ? {
                 ...member,
                 ...(updatedMember || {}),
@@ -391,28 +420,36 @@ export default function MembershipPage() {
                   updatedMember?.matrimony_authorised_date ||
                   new Date().toISOString(),
                 matrimony_expiry_date:
-                  updatedMember?.matrimony_expiry_date || expiryDate,
+                  updatedMember?.matrimony_expiry_date || selectedExpiryDate,
               }
             : member,
         ),
       );
 
       const generatedCode = updatedMember?.matrimony_code || "-";
-      const finalExpiry = updatedMember?.matrimony_expiry_date || expiryDate;
+      const finalExpiry =
+        updatedMember?.matrimony_expiry_date || selectedExpiryDate;
 
       setAuthorizeMember(null);
       setExpiryDate("");
 
-      window.alert(
-        `Matrimony authorised successfully.\n\n` +
-          `Matrimony Code: ${generatedCode}\n` +
-          `Expiry Date: ${formatDate(finalExpiry)}`,
-      );
+      setDialog({
+        title: "Matrimony authorised",
+        message:
+          `Matrimony code: ${generatedCode}\n` +
+          `Expiry date: ${formatDate(finalExpiry)}`,
+        tone: "success",
+      });
     } catch (err) {
       console.error("Authorize matrimony error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to authorize matrimony.",
-      );
+      setDialog({
+        title: "Unable to authorise matrimony",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to authorise matrimony.",
+        tone: "error",
+      });
     } finally {
       setAuthorizeLoading(false);
     }
@@ -637,7 +674,17 @@ export default function MembershipPage() {
                               title="Approve membership"
                               disabled={approvalLoading === member.id}
                               onClick={() => {
-                                void handleApproveMembership(member);
+                                setDialog({
+                                  title: "Approve membership",
+                                  message:
+                                    `Approve membership for "${member.full_name}"? ` +
+                                    "An approval email will be sent if the email address is available.",
+                                  confirmLabel: "Approve",
+                                  onConfirm: () => {
+                                    setDialog(null);
+                                    void handleApproveMembership(member);
+                                  },
+                                });
                               }}
                               className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1.5 text-[10px] font-semibold text-green-700 hover:bg-green-100 disabled:opacity-50 sm:text-xs"
                             >
@@ -693,10 +740,19 @@ export default function MembershipPage() {
                                   role="menuitem"
                                   disabled={deleteLoading === member.id}
                                   onClick={() => {
-                                    void handleDelete(
-                                      member.id,
-                                      member.full_name,
-                                    );
+                                    setOpenActionId(null);
+                                    setDialog({
+                                      title: "Delete member?",
+                                      message:
+                                        `Are you sure you want to delete "${member.full_name}"? ` +
+                                        "This action cannot be undone.",
+                                      tone: "danger",
+                                      confirmLabel: "Delete",
+                                      onConfirm: () => {
+                                        setDialog(null);
+                                        void handleDelete(member.id);
+                                      },
+                                    });
                                   }}
                                   className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
                                 >
@@ -809,6 +865,14 @@ export default function MembershipPage() {
           </div>
         </section>
       </div>
+
+      {dialog && (
+        <AdminDialog
+          {...dialog}
+          busy={dialog.busy || deleteLoading !== null || approvalLoading !== null || authorizeLoading}
+          onClose={() => setDialog(null)}
+        />
+      )}
 
       {/* MATRIMONY AUTHORISATION MODAL */}
       {authorizeMember && (

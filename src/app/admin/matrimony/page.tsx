@@ -15,6 +15,9 @@ import {
   FaCheck,
 } from "react-icons/fa";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
+import AdminDialog, {
+  type AdminDialogOptions,
+} from "@/components/admin/AdminDialog";
 
 interface MatrimonialUser {
   id: number;
@@ -65,6 +68,7 @@ export default function AdminDashboard() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [dialog, setDialog] = useState<AdminDialogOptions | null>(null);
 
   const rowsPerPage = 5;
 
@@ -144,10 +148,6 @@ export default function AdminDashboard() {
   };
 
   const handleApprove = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to approve ${name}?`)) {
-      return;
-    }
-
     try {
       setApprovingId(id);
       setOpenMenuId(null);
@@ -184,26 +184,28 @@ export default function AdminDashboard() {
         )
       );
 
-      window.alert(
-        "Matrimonial profile approved successfully. Please verify the approval email in your backend."
-      );
+      setDialog({
+        title: "Profile approved",
+        message:
+          "Matrimonial profile approved successfully. Please verify the approval email in your backend.",
+        tone: "success",
+      });
     } catch (err) {
       console.error("Approve member error:", err);
-      window.alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to approve matrimonial profile."
-      );
+      setDialog({
+        title: "Unable to approve profile",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to approve matrimonial profile.",
+        tone: "error",
+      });
     } finally {
       setApprovingId(null);
     }
   };
 
   const handleDelete = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete ${name}?`)) {
-      return;
-    }
-
     try {
       setDeletingId(id);
       setOpenMenuId(null);
@@ -236,14 +238,21 @@ export default function AdminDashboard() {
         Math.max(1, Math.min(page, newTotalPages || 1))
       );
 
-      window.alert("Matrimonial profile deleted successfully.");
+      setDialog({
+        title: "Profile deleted",
+        message: `${name}'s matrimonial profile was deleted successfully.`,
+        tone: "success",
+      });
     } catch (err) {
       console.error("Delete member error:", err);
-      window.alert(
-        err instanceof Error
-          ? err.message
-          : "Failed to delete matrimonial profile."
-      );
+      setDialog({
+        title: "Unable to delete profile",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to delete matrimonial profile.",
+        tone: "error",
+      });
     } finally {
       setDeletingId(null);
     }
@@ -501,12 +510,20 @@ export default function AdminDashboard() {
                                 type="button"
                                 role="menuitem"
                                 disabled={approvingId === user.id}
-                                onClick={() =>
-                                  void handleApprove(
-                                    user.id,
-                                    `${user.name} ${user.surname || ""}`.trim()
-                                  )
-                                }
+                                onClick={() => {
+                                  const name =
+                                    `${user.name} ${user.surname || ""}`.trim();
+                                  setOpenMenuId(null);
+                                  setDialog({
+                                    title: "Approve matrimonial profile",
+                                    message: `Approve the matrimonial profile for ${name}?`,
+                                    confirmLabel: "Approve",
+                                    onConfirm: () => {
+                                      setDialog(null);
+                                      void handleApprove(user.id, name);
+                                    },
+                                  });
+                                }}
                                 className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-green-50 disabled:opacity-50"
                               >
                                 <FaCheck className="text-green-600" />
@@ -542,12 +559,22 @@ export default function AdminDashboard() {
                               type="button"
                               role="menuitem"
                               disabled={deletingId === user.id}
-                              onClick={() =>
-                                void handleDelete(
-                                  user.id,
-                                  `${user.name} ${user.surname || ""}`.trim()
-                                )
-                              }
+                              onClick={() => {
+                                const name =
+                                  `${user.name} ${user.surname || ""}`.trim();
+                                setOpenMenuId(null);
+                                setDialog({
+                                  title: "Delete matrimonial profile?",
+                                  message:
+                                    `Delete ${name}'s profile? This action cannot be undone.`,
+                                  tone: "danger",
+                                  confirmLabel: "Delete",
+                                  onConfirm: () => {
+                                    setDialog(null);
+                                    void handleDelete(user.id, name);
+                                  },
+                                });
+                              }}
                               className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
                             >
                               <FaTrash />
@@ -671,6 +698,13 @@ export default function AdminDashboard() {
           )}
         </div>
       </section>
+      {dialog && (
+        <AdminDialog
+          {...dialog}
+          busy={dialog.busy || deletingId !== null || approvingId !== null}
+          onClose={() => setDialog(null)}
+        />
+      )}
     </main>  
   );
 }

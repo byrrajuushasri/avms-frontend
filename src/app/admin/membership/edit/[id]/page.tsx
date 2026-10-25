@@ -10,6 +10,9 @@ import {
   FaUser,
   FaCamera,
 } from "react-icons/fa";
+import AdminDialog, {
+  type AdminDialogOptions,
+} from "@/components/admin/AdminDialog";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 interface Member {
@@ -98,6 +101,8 @@ export default function EditMemberPage() {
 
   const [error, setError] =
     useState("");
+  const [dialog, setDialog] =
+    useState<AdminDialogOptions | null>(null);
 
   // =========================================================
   // PHOTO URL
@@ -650,16 +655,12 @@ export default function EditMemberPage() {
       // SUCCESS
       // =====================================================
 
-      alert(
-        result?.message ||
-          "Member updated successfully!"
-      );
-
-      router.push(
-        "/admin/membership"
-      );
-
-      router.refresh();
+      setDialog({
+        title: "Member updated",
+        message:
+          result?.message || "Member updated successfully.",
+        tone: "success",
+      });
 
     } catch (err) {
       console.error(
@@ -697,6 +698,18 @@ export default function EditMemberPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/80">
+      {dialog && (
+        <AdminDialog
+          {...dialog}
+          onClose={() => {
+            setDialog(null);
+            if (dialog.tone === "success") {
+              router.push("/admin/membership");
+              router.refresh();
+            }
+          }}
+        />
+      )}
 
       <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-[1200px] mx-auto">
 
