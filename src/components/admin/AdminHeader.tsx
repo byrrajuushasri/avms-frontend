@@ -10,6 +10,7 @@ import {
   FaCheck,
   FaTrash,
 } from "react-icons/fa";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 interface AdminHeaderProps {
   setOpen: (open: boolean) => void;
@@ -579,28 +580,7 @@ export default function AdminHeader({
   const getPhotoUrl = (
     photo?: string | null
   ) => {
-    if (!photo) {
-      return "";
-    }
-
-    if (
-      photo.startsWith(
-        "http://"
-      ) ||
-      photo.startsWith(
-        "https://"
-      )
-    ) {
-      return photo;
-    }
-
-    if (
-      photo.startsWith("/")
-    ) {
-      return `${BACKEND_URL}${photo}`;
-    }
-
-    return `${BACKEND_URL}/${photo}`;
+    return getStorageImageUrl(photo, BACKEND_URL) || "";
   };
 
   const photoUrl =

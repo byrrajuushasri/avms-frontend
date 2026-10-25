@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 import {
   FaMapMarkerAlt,
   FaGraduationCap,
@@ -118,46 +119,7 @@ export default function MatchesPage() {
   // =========================================================
 
   const getImageUrl = (photo?: string | null): string => {
-    if (!photo) {
-      return DEFAULT_IMAGE;
-    }
-
-    const value = String(photo).trim();
-
-    if (!value) {
-      return DEFAULT_IMAGE;
-    }
-
-    // Already full URL
-    if (
-      value.startsWith("http://") ||
-      value.startsWith("https://")
-    ) {
-      return value;
-    }
-
-    // Starts with /uploads/
-    if (value.startsWith("/uploads/")) {
-      return `${API_BASE_URL}${value}`;
-    }
-
-    // Starts with uploads/
-    if (value.startsWith("uploads/")) {
-      return `${API_BASE_URL}/${value}`;
-    }
-
-    // /matrimonial/file.jpg
-    if (value.startsWith("/matrimonial/")) {
-      return `${API_BASE_URL}/uploads${value}`;
-    }
-
-    // /members/file.jpg
-    if (value.startsWith("/members/")) {
-      return `${API_BASE_URL}/uploads${value}`;
-    }
-
-    // filename only
-    return `${API_BASE_URL}/uploads/matrimonial/${value}`;
+    return getStorageImageUrl(photo, API_BASE_URL) || DEFAULT_IMAGE;
   };
 
   // =========================================================

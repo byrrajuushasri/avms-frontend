@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 import {
   FaPlus,
   FaSearch,
@@ -109,11 +110,7 @@ export default function MembershipPage() {
   };
 
   const getPhotoUrl = (photo: string | null) => {
-    if (!photo) return "";
-
-    if (/^https?:\/\//i.test(photo)) return photo;
-
-    return `${BACKEND_URL}${photo.startsWith("/") ? "" : "/"}${photo}`;
+    return getStorageImageUrl(photo, BACKEND_URL) || "";
   };
 
   const fetchMembers = async () => {

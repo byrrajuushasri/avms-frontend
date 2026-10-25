@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 interface ProfileGalleryProps {
   images?: string[];
@@ -25,41 +26,7 @@ export default function ProfileGallery({
   const getImageUrl = (
     image?: string | null
   ): string => {
-    if (!image) {
-      return DEFAULT_IMAGE;
-    }
-
-    const value = String(image).trim();
-
-    if (!value) {
-      return DEFAULT_IMAGE;
-    }
-
-    // Full URL
-    if (
-      value.startsWith("http://") ||
-      value.startsWith("https://")
-    ) {
-      return value;
-    }
-
-    // /uploads/matrimonial/file.jpg
-    if (value.startsWith("/uploads/")) {
-      return `${API_BASE_URL}${value}`;
-    }
-
-    // uploads/matrimonial/file.jpg
-    if (value.startsWith("uploads/")) {
-      return `${API_BASE_URL}/${value}`;
-    }
-
-    // /matrimonial/file.jpg
-    if (value.startsWith("/matrimonial/")) {
-      return `${API_BASE_URL}/uploads${value}`;
-    }
-
-    // filename only
-    return `${API_BASE_URL}/uploads/matrimonial/${value}`;
+    return getStorageImageUrl(image, API_BASE_URL) || DEFAULT_IMAGE;
   };
 
   // =========================================================

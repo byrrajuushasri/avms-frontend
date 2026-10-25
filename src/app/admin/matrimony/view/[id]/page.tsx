@@ -22,6 +22,7 @@ import {
   FaFemale,
   FaMale,
 } from "react-icons/fa";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 /* =========================================================
    BACKEND URL
@@ -379,20 +380,7 @@ export default function ViewProfilePage() {
   const getPhotoUrl = (
     photo: string | null | undefined
   ) => {
-    if (!photo) return null;
-
-    if (
-      photo.startsWith("http://") ||
-      photo.startsWith("https://")
-    ) {
-      return photo;
-    }
-
-    if (photo.startsWith("/")) {
-      return `${API_URL}${photo}`;
-    }
-
-    return `${API_URL}/uploads/matrimonial/${photo}`;
+    return getStorageImageUrl(photo, API_URL);
   };
 
   const photoUrl = getPhotoUrl(member.photo);

@@ -10,6 +10,7 @@ import {
   FaUser,
   FaCamera,
 } from "react-icons/fa";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 interface Member {
   id: number;
@@ -103,20 +104,7 @@ export default function EditMemberPage() {
   // =========================================================
 
   const getPhotoUrl = (photo: string) => {
-    if (!photo) {
-      return "";
-    }
-
-    if (
-      photo.startsWith("http://") ||
-      photo.startsWith("https://")
-    ) {
-      return photo;
-    }
-
-    return `${BACKEND_URL}${
-      photo.startsWith("/") ? "" : "/"
-    }${photo}`;
+    return getStorageImageUrl(photo, BACKEND_URL) || "";
   };
 
   // =========================================================

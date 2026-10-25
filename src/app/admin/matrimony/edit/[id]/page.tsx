@@ -13,6 +13,7 @@ import {
   FaUsers,
   FaCamera,
 } from "react-icons/fa";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 /* =========================================================
    BACKEND
@@ -457,22 +458,10 @@ export default function EditMatrimonialMemberPage() {
   ======================================================= */
 
   const getPhotoUrl = (photo: string) => {
-    if (!photo) {
-      return "/images/default-profile.jpg";
-    }
-
-    if (
-      photo.startsWith("http://") ||
-      photo.startsWith("https://")
-    ) {
-      return photo;
-    }
-
-    if (photo.startsWith("/")) {
-      return `${BACKEND_URL}${photo}`;
-    }
-
-    return `${BACKEND_URL}/uploads/matrimonial/${photo}`;
+    return (
+      getStorageImageUrl(photo, BACKEND_URL) ||
+      "/images/default-profile.jpg"
+    );
   };
 
   /* =======================================================

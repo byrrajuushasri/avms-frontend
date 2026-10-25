@@ -14,6 +14,7 @@ import {
   ChevronRight,
   User,
 } from "lucide-react";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 // =========================================================
 // CONFIG
@@ -218,18 +219,7 @@ const getPhotoUrl = (
     return null;
   }
 
-  if (
-    photo.startsWith("http://") ||
-    photo.startsWith("https://")
-  ) {
-    return photo;
-  }
-
-  if (photo.startsWith("/")) {
-    return `${API_URL}${photo}`;
-  }
-
-  return `${API_URL}/${photo}`;
+  return getStorageImageUrl(photo, API_URL);
 };
 
 // =========================================================

@@ -14,6 +14,7 @@ import {
   FaTimes,
   FaCheck,
 } from "react-icons/fa";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 interface MatrimonialUser {
   id: number;
@@ -267,15 +268,9 @@ export default function AdminDashboard() {
   };
 
   const getPhotoUrl = (photo: string | null, name: string) => {
-    if (photo) {
-      if (/^https?:\/\//i.test(photo)) return photo;
+    const photoUrl = getStorageImageUrl(photo, BACKEND_URL);
 
-      if (photo.startsWith("/")) return `${BACKEND_URL}${photo}`;
-
-      if (photo.startsWith("uploads/")) return `${BACKEND_URL}/${photo}`;
-
-      return `${BACKEND_URL}/uploads/matrimonial/${photo}`;
-    }
+    if (photoUrl) return photoUrl;
 
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(
       name || "Member"

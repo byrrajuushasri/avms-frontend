@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import ProfileGallery from "@/components/ProfileGallery";
 import ProfileInfo from "@/components/ProfileInfo";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 interface Profile {
   id?: number | string;
@@ -91,47 +92,7 @@ export default function ProfilePage() {
   const getImageUrl = (
     photo?: string | null
   ): string => {
-    if (!photo) {
-      return DEFAULT_IMAGE;
-    }
-
-    const value = String(photo).trim();
-
-    if (!value) {
-      return DEFAULT_IMAGE;
-    }
-
-    // Already full URL
-    if (
-      value.startsWith("http://") ||
-      value.startsWith("https://")
-    ) {
-      return value;
-    }
-
-    // /uploads/matrimonial/file.jpg
-    if (
-      value.startsWith("/uploads/matrimonial/")
-    ) {
-      return `${API_BASE_URL}${value}`;
-    }
-
-    // uploads/matrimonial/file.jpg
-    if (
-      value.startsWith("uploads/matrimonial/")
-    ) {
-      return `${API_BASE_URL}/${value}`;
-    }
-
-    // /matrimonial/file.jpg
-    if (
-      value.startsWith("/matrimonial/")
-    ) {
-      return `${API_BASE_URL}/uploads${value}`;
-    }
-
-    // filename only
-    return `${API_BASE_URL}/uploads/matrimonial/${value}`;
+    return getStorageImageUrl(photo, API_BASE_URL) || DEFAULT_IMAGE;
   };
 
   // =========================================================

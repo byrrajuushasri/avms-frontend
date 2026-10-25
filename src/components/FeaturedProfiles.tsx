@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, type SyntheticEvent } from "react";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 import {
   FaHeart,
@@ -217,28 +218,10 @@ export default function FeaturedProfiles() {
       profile.photo ||
       profile.profile_photo;
 
-    if (!photo || !String(photo).trim()) {
-      return "/images/default-profile.jpg";
-    }
-
-    const photoString = String(photo).trim();
-
-    if (
-      photoString.startsWith("http://") ||
-      photoString.startsWith("https://")
-    ) {
-      return photoString;
-    }
-
-    if (photoString.startsWith("/")) {
-      return `${API_BASE_URL}${photoString}`;
-    }
-
-    if (photoString.startsWith("uploads/")) {
-      return `${API_BASE_URL}/${photoString}`;
-    }
-
-    return `${API_BASE_URL}/uploads/matrimonial/${photoString}`;
+    return (
+      getStorageImageUrl(photo, API_BASE_URL) ||
+      "/images/default-profile.jpg"
+    );
   };
 
   // =========================================================
@@ -568,4 +551,3 @@ export default function FeaturedProfiles() {
     </section>
   );
 }
-

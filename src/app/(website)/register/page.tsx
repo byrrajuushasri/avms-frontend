@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { useRouter } from "next/navigation";
+import { getStorageImageUrl } from "@/lib/storage-image-url";
 
 import {
   FaHeart,
@@ -561,15 +562,7 @@ export default function RegisterPage() {
   })();
 
   const getMembershipPhotoUrl = (photoPath: string) => {
-    if (/^https?:\/\//i.test(photoPath)) {
-      return photoPath;
-    }
-
-    const normalizedPath = photoPath.startsWith("/")
-      ? photoPath
-      : `/${photoPath}`;
-
-    return `${BACKEND_URL}${normalizedPath}`;
+    return getStorageImageUrl(photoPath, BACKEND_URL) || "";
   };
 
   /* =========================================================
