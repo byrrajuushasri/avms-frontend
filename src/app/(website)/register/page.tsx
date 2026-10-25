@@ -1572,7 +1572,7 @@ const normalFields = {
                               <img
                                 src={photoUrl}
                                 alt={`Membership photo ${index + 1}`}
-                                className="h-44 w-full object-cover transition hover:scale-[1.02]"
+                                className="h-full w-full object-cover transition hover:scale-[1.02]"
                                 loading="lazy"
                                 onError={(event) => {
                                   event.currentTarget.style.display = "none";

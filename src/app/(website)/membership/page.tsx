@@ -2035,7 +2035,7 @@ setMobileNational("");
                         <img
                           src={photoPreview}
                           alt="Selected member"
-                          className="h-32 w-32 rounded-2xl border border-rose-200 object-cover shadow-sm"
+                          className="h-60 w-32 rounded-2xl border border-rose-200 object-cover shadow-sm"
                         />
                       </div>
                     )}
