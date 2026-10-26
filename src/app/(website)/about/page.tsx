@@ -278,7 +278,7 @@ export default function AboutPage() {
               icon={<FaCalendarAlt />}
               title="2014"
               subtitle="పరిచయ వేదిక ప్రారంభం"
-              detail="28-11-2014"
+              detail="30-11-2014 "
             />
 
             {/* 143rd */}
