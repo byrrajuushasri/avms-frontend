@@ -1,15 +1,89 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   FaGoogle,
-  FaFacebookF,
   FaEnvelope,
   FaLock,
   FaHeart,
 } from "react-icons/fa";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000";
+
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+    setError("");
+
+    if (!login.trim() || !password) {
+      setError("Enter your email or mobile number and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${backendUrl}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          login: login.trim(),
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const message = Array.isArray(data?.message)
+          ? data.message.join(", ")
+          : data?.message || "Unable to log in. Check your credentials.";
+        throw new Error(message);
+      }
+
+      if (!data?.access_token || !data?.user) {
+        throw new Error("Login information was not received from the server.");
+      }
+
+      if (data.user.account_type !== "matrimonial") {
+        throw new Error(
+          "Use the password you created for your matrimonial profile to log in here."
+        );
+      }
+
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("token");
+      localStorage.removeItem("admin");
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      router.replace("/search");
+    } catch (loginError) {
+      setError(
+        loginError instanceof Error
+          ? loginError.message
+          : "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
 
@@ -45,7 +119,7 @@ export default function LoginPage() {
 
           </div>
 
-          <form className="mt-8 space-y-5">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
 
             {/* Email */}
 
@@ -61,7 +135,11 @@ export default function LoginPage() {
 
                 <input
                   type="text"
+                  value={login}
+                  onChange={(event) => setLogin(event.target.value)}
                   placeholder="Enter your email or mobile number"
+                  autoComplete="username"
+                  required
                   className="w-full outline-none text-sm"
                 />
 
@@ -94,13 +172,23 @@ export default function LoginPage() {
 
                 <input
                   type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
+                  required
                   className="w-full outline-none text-sm"
                 />
 
               </div>
 
             </div>
+
+            {error && (
+              <p role="alert" className="text-sm text-red-600">
+                {error}
+              </p>
+            )}
 
             {/* Remember */}
 
@@ -123,9 +211,10 @@ export default function LoginPage() {
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full h-12 rounded-xl bg-gradient-to-r from-[#d81b60] via-[#e91e63] to-[#f06292] text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
 
             {/* Divider */}

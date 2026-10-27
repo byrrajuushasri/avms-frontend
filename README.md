@@ -18,6 +18,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## SEO configuration
+
+Set `NEXT_PUBLIC_SITE_URL` to the canonical production origin (for example,
+`https://www.example.com`) before building and deploying. The value is used
+for canonical URLs, Open Graph metadata, `sitemap.xml`, and `robots.txt`.
+
+The sitemap includes public content pages only. Account, registration, search,
+and individual profile pages are excluded from indexing.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

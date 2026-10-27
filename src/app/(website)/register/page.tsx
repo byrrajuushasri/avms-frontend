@@ -630,6 +630,7 @@ export default function RegisterPage() {
 
  const [formData, setFormData] = useState({
   profile_category: "Professional",
+  password: "",
 
   // Marital details
   marital_status: "",
@@ -641,6 +642,7 @@ export default function RegisterPage() {
   family_status: "",
   additional_details: "",
 
+  father_name: "",
   mother_name: "",
   father_gotram: "",
   mother_gotram: "",
@@ -869,8 +871,7 @@ export default function RegisterPage() {
         }
       );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       console.log(
         "CHECK MEMBER RESPONSE:",
@@ -883,8 +884,10 @@ export default function RegisterPage() {
             ?.matrimonial_member_id || "";
 
         showGreenToast(
-          data.message ||
-            "This Member is already registered in Matrimonial.",
+          Array.isArray(data.message)
+            ? data.message.join(", ")
+            : data.message ||
+                "This Member is already registered in Matrimonial.",
           matrimonialId
         );
 
@@ -917,6 +920,10 @@ export default function RegisterPage() {
       );
 
       setVerificationMember(member);
+      setFormData((previous) => ({
+        ...previous,
+        father_name: member.father_name || "",
+      }));
 
       setVerificationMessage(
         "Member verified successfully. You can now complete the Matrimonial form."
@@ -947,7 +954,9 @@ export default function RegisterPage() {
     const errors: Record<string, string> = {};
     const requiredFields: Array<[string, string]> = [
       ["profile_category", "Profile Category"],
+      ["password", "Password"],
       ["marital_status", "Marital Status"],
+      ["father_name", "Father's Name"],
       ["mother_name", "Mother's Name"],
       ["father_gotram", "Father Gotram"],
       ["mother_gotram", "Mother Gotram"],
@@ -989,6 +998,13 @@ export default function RegisterPage() {
     if (!verificationMember?.email?.trim()) {
       errors.email =
         "Email address is required. Please update your Membership details before registering.";
+    }
+
+    if (
+      formData.password.trim().length > 0 &&
+      formData.password.trim().length < 6
+    ) {
+      errors.password = "Password must contain at least 6 characters.";
     }
 
     if (
@@ -1102,6 +1118,11 @@ export default function RegisterPage() {
         verifiedMobile
       );
 
+      formDataToSend.append(
+        "password",
+        formData.password
+      );
+
       /* =====================================================
          GOTRAM
       ===================================================== */
@@ -1139,6 +1160,7 @@ const normalFields = {
   family_status: formData.family_status,
   additional_details: formData.additional_details,
 
+  father_name: formData.father_name.trim(),
   mother_name: formData.mother_name,
   father_gotram: formData.father_gotram.trim(),
   mother_gotram: formData.mother_gotram.trim(),
@@ -1288,8 +1310,29 @@ const normalFields = {
           }
         );
 
-      const data =
-        await response.json();
+      const responseText = await response.text();
+      let data: {
+        success?: boolean;
+        alreadyRegistered?: boolean;
+        message?: string | string[];
+        data?: {
+          member_id?: string;
+          matrimonial_member_id?: string;
+        };
+      };
+
+      try {
+        data = JSON.parse(responseText) as typeof data;
+      } catch {
+        console.error(
+          "Registration server returned a non-JSON response:",
+          response.status,
+          responseText
+        );
+        throw new Error(
+          `Registration server returned an unexpected response (HTTP ${response.status}). Please try again.`
+        );
+      }
 
       console.log(
         "REGISTER RESPONSE:",
@@ -1335,8 +1378,10 @@ const normalFields = {
           "";
 
         showGreenToast(
-          data.message ||
-            "This Member is already registered in Matrimonial.",
+          Array.isArray(data.message)
+            ? data.message.join(", ")
+            : data.message ||
+                "This Member is already registered in Matrimonial.",
           matrimonialId
         );
 
@@ -1714,6 +1759,32 @@ const normalFields = {
                 </div>
               )}
 
+              <div>
+                <FieldLabel required>
+                  Password
+                </FieldLabel>
+
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a password"
+                  minLength={6}
+                  autoComplete="new-password"
+                  required
+                  className={getInputClass("password")}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Use this password with your registered email to log in after admin approval.
+                </p>
+                {fieldErrors.password && (
+                  <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+                    {fieldErrors.password}
+                  </p>
+                )}
+              </div>
+
               {/* =================================================
                   PROFILE CATEGORY
               ================================================= */}
@@ -1754,6 +1825,29 @@ const normalFields = {
 
                 </select>
                 <FieldError field="profile_category" />
+
+              </div>
+
+              {/* =================================================
+                  FATHER NAME
+              ================================================= */}
+
+              <div>
+
+                <FieldLabel required>
+                  Father's Name
+                </FieldLabel>
+
+                <input
+                  type="text"
+                  name="father_name"
+                  value={formData.father_name}
+                  onChange={handleChange}
+                  placeholder="Father's Name"
+                  required
+                  className={getInputClass("father_name")}
+                />
+                <FieldError field="father_name" />
 
               </div>
 
@@ -2910,12 +3004,18 @@ const normalFields = {
 
                     <input
                       type="checkbox"
+                      name="consent"
                       checked={consent}
-                      onChange={(e) =>
-                        setConsent(
-                          e.target.checked
-                        )
-                      }
+                      aria-invalid={Boolean(fieldErrors.consent)}
+                      onChange={(e) => {
+                        setConsent(e.target.checked);
+                        setFieldErrors((previous) => {
+                          if (!previous.consent) return previous;
+                          const next = { ...previous };
+                          delete next.consent;
+                          return next;
+                        });
+                      }}
                       required
                       className="mt-1 h-5 w-5 shrink-0 cursor-pointer accent-rose-700"
                     />
@@ -2942,6 +3042,7 @@ const normalFields = {
                       Consent accepted successfully.
                     </p>
                   )}
+                  <FieldError field="consent" />
 
                 </div>
 
@@ -2955,17 +3056,12 @@ const normalFields = {
 
                 <button
                   type="submit"
-                  disabled={
-                    loading ||
-                    !consent
-                  }
+                  disabled={loading}
                   className="h-12 w-full rounded-xl bg-gradient-to-r from-[#d81b60] via-[#e91e63] to-[#f06292] text-sm font-semibold text-white shadow-md transition hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60 sm:w-80"
                 >
 
                   {loading
                     ? "Creating Profile..."
-                    : !consent
-                    ? "Accept Consent to Continue"
                     : "Create Matrimonial Profile"}
 
                 </button>

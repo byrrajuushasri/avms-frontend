@@ -1,24 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function RegisterSuccessContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const matrimonialId = searchParams.get("matrimonialId") || "";
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push("/");
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [router]);
-
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center  ">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-lg">
         {/* Success Icon */}
         <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
@@ -61,12 +51,11 @@ export default function RegisterSuccessContent() {
           </div>
         )}
 
-        {/* Redirect Message */}
-        <p className="text-sm text-gray-500">
-          You will be redirected to the home page in a few seconds...
+        <p className="text-sm text-gray-600">
+          You will receive an email once your registration is approved by the
+          admin. After approval, log in to search and view profiles.
         </p>
 
-        
       </div>
     </main>
   );

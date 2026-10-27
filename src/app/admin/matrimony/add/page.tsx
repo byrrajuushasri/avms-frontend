@@ -11,6 +11,9 @@ import {
 
 import { useRouter } from "next/navigation";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
+import AdminDialog, {
+  type AdminDialogOptions,
+} from "@/components/admin/AdminDialog";
 
 import {
   FaHeart,
@@ -287,7 +290,7 @@ const labelClass = "text-sm font-medium text-gray-700";
 
 function FieldLabel({
   children,
-  required = false,
+  required = true,
 }: {
   children: ReactNode;
   required?: boolean;
@@ -311,13 +314,15 @@ function GotramSelect({
   label,
   value,
   onChange,
-  required = false,
+  required = true,
+  error,
 }: {
   name: string;
   label: string;
   value: string;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
+  error?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState(value);
@@ -428,7 +433,11 @@ function GotramSelect({
           placeholder="Search Gotram..."
           autoComplete="off"
           required={required}
-          className={`${inputClass} pl-10 pr-10`}
+          className={`${inputClass} pl-10 pr-10 ${
+            error
+              ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+              : ""
+          }`}
         />
 
         <FaChevronDown
@@ -469,6 +478,12 @@ function GotramSelect({
             </div>
           )}
         </div>
+      )}
+
+      {error && (
+        <p className="mt-1 text-xs font-medium text-red-600">
+          {error}
+        </p>
       )}
     </div>
   );
@@ -585,6 +600,10 @@ export default function RegisterPage() {
     message: "",
     memberId: "",
   });
+  const [dialog, setDialog] =
+    useState<AdminDialogOptions | null>(null);
+  const [fieldErrors, setFieldErrors] =
+    useState<Record<string, string>>({});
 
   const showGreenToast = (
     message: string,
@@ -611,6 +630,7 @@ export default function RegisterPage() {
 
  const [formData, setFormData] = useState({
   profile_category: "Professional",
+  password: "",
 
   // Marital details
   marital_status: "",
@@ -704,7 +724,35 @@ export default function RegisterPage() {
       ...prev,
       [name]: value,
     }));
+
+    setFieldErrors((previous) => {
+      if (!previous[name]) return previous;
+      const next = { ...previous };
+      delete next[name];
+      return next;
+    });
   };
+
+  const getInputClass = (field: string) =>
+    `${inputClass} ${
+      fieldErrors[field]
+        ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+        : ""
+    }`;
+
+  const getTextareaClass = (field: string) =>
+    `${textareaClass} ${
+      fieldErrors[field]
+        ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+        : ""
+    }`;
+
+  const FieldError = ({ field }: { field: string }) =>
+    fieldErrors[field] ? (
+      <p className="mt-1 text-xs font-medium text-red-600">
+        {fieldErrors[field]}
+      </p>
+    ) : null;
 
   /* =========================================================
      BROTHER COUNT
@@ -718,7 +766,7 @@ export default function RegisterPage() {
     setBrotherCount(count);
 
     setBrotherMarried(0);
-    setBrotherUnmarried(0);
+    setBrotherUnmarried(count);
   };
 
   /* =========================================================
@@ -733,7 +781,7 @@ export default function RegisterPage() {
     setSisterCount(count);
 
     setSisterMarried(0);
-    setSisterUnmarried(0);
+    setSisterUnmarried(count);
   };
 
   /* =========================================================
@@ -896,6 +944,111 @@ export default function RegisterPage() {
      SUBMIT
   ========================================================= */
 
+  const validateMatrimonyForm = () => {
+    const errors: Record<string, string> = {};
+    const requiredFields: Array<[string, string]> = [
+      ["profile_category", "Profile Category"],
+      ["password", "Password"],
+      ["marital_status", "Marital Status"],
+      ["mother_name", "Mother's Name"],
+      ["father_gotram", "Father Gotram"],
+      ["mother_gotram", "Mother Gotram"],
+      ["grandmother_gotram", "Grand Mother Gotram"],
+      ["nakshatram", "Nakshatram"],
+      ["padham", "Nakshatram Padham"],
+      ["rasi", "Rasi"],
+      ["color", "Color"],
+      ["height", "Height"],
+      ["education", "Education"],
+      ["annual_income", "Salary / Income"],
+      ["family_status", "Family Status"],
+      ["additional_details", "Additional Details"],
+      ["address", "Address"],
+      ["father_occupation", "Father Details"],
+      ["mother_occupation", "Mother Details"],
+      ["property_details", "Property Details"],
+      ["preferred_requirements", "Preferred Requirements"],
+      ["area_volunteer_name", "Name"],
+      ["area_volunteer_contact", "Contact Number"],
+      ["area_volunteer_position", "Position of that Area"],
+    ];
+
+    for (const [field, label] of requiredFields) {
+      const value = formData[field as keyof typeof formData];
+      if (typeof value !== "string" || !value.trim()) {
+        errors[field] = `Please enter ${label}.`;
+      }
+    }
+
+    if (
+      !["Never Married", "Divorced", "Awaiting Divorce"].includes(
+        formData.marital_status
+      )
+    ) {
+      errors.marital_status = "Please select a valid Marital Status.";
+    }
+
+    if (!verificationMember?.email?.trim()) {
+      errors.email =
+        "Email address is required. Please update your Membership details before registering.";
+    }
+
+    if (
+      formData.password.trim().length > 0 &&
+      formData.password.trim().length < 6
+    ) {
+      errors.password = "Password must contain at least 6 characters.";
+    }
+
+    if (
+      formData.marital_status === "Divorced" ||
+      formData.marital_status === "Awaiting Divorce"
+    ) {
+      if (
+        formData.number_of_children === "" ||
+        !Number.isInteger(Number(formData.number_of_children)) ||
+        Number(formData.number_of_children) < 0
+      ) {
+        errors.number_of_children =
+          "Please enter a valid Number of Children (0 or more).";
+      }
+
+      if (!formData.previous_marriage_conditions.trim()) {
+        errors.previous_marriage_conditions =
+          "Please enter Previous Marriage Conditions / Other Details.";
+      }
+    }
+
+    if (brotherMarried + brotherUnmarried !== brotherCount) {
+      errors.brother_married =
+        "Please select the correct Married Brothers count.";
+    }
+
+    if (sisterMarried + sisterUnmarried !== sisterCount) {
+      errors.sister_married =
+        "Please select the correct Married Sisters count.";
+    }
+
+    if (!consent) {
+      errors.consent =
+        "Please accept the Declaration & Consent before submitting.";
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      window.setTimeout(() => {
+        const firstInvalidField = document.querySelector<HTMLElement>(
+          `[name="${Object.keys(errors)[0]}"]`
+        );
+        firstInvalidField?.focus();
+      }, 0);
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (
     e: FormEvent<HTMLFormElement>
   ) => {
@@ -904,9 +1057,12 @@ export default function RegisterPage() {
     if (loading) return;
 
     if (!memberVerified) {
-      alert(
-        "Please verify your Membership before registering for Matrimonial."
-      );
+      setDialog({
+        title: "Membership verification required",
+        message:
+          "Please verify your Membership before registering for Matrimonial.",
+        tone: "error",
+      });
       return;
     }
 
@@ -914,112 +1070,26 @@ export default function RegisterPage() {
       verificationData.mobile.trim();
 
     if (!verifiedMobile) {
-      alert(
-        "Membership verification details are missing. Please verify again."
-      );
+      setDialog({
+        title: "Membership verification required",
+        message:
+          "Membership verification details are missing. Please verify again.",
+        tone: "error",
+      });
       return;
     }
 
     if (!memberId) {
-      alert(
-        "Membership ID is missing. Please verify your Membership again."
-      );
+      setDialog({
+        title: "Membership verification required",
+        message:
+          "Membership ID is missing. Please verify your Membership again.",
+        tone: "error",
+      });
       return;
     }
 
-    /* =====================================================
-       REQUIRED VALIDATION
-    ===================================================== */
-
-    if (!formData.profile_category.trim()) {
-      alert(
-        "Please select Profile Category."
-      );
-      return;
-    }
-
-    if (!formData.marital_status.trim()) {
-  alert("Please select Marital Status.");
-  return;
-}
-
-if (
-  !["Never Married", "Divorced", "Awaiting Divorce"].includes(
-    formData.marital_status
-  )
-) {
-  alert("Please select a valid Marital Status.");
-  return;
-}
-
-    if (!formData.mother_name.trim()) {
-      alert(
-        "Please enter Mother's Name."
-      );
-      return;
-    }
-
-    if (!formData.father_gotram.trim()) {
-      alert(
-        "Please select Father's Gotram."
-      );
-      return;
-    }
-
-    if (!formData.mother_gotram.trim()) {
-      alert(
-        "Please select Mother's Gotram."
-      );
-      return;
-    }
-
-    if (!formData.grandmother_gotram.trim()) {
-      alert(
-        "Please select Grand Mother's Gotram."
-      );
-      return;
-    }
-
-    /* =====================================================
-       BROTHER VALIDATION
-    ===================================================== */
-
-    if (
-      brotherMarried +
-        brotherUnmarried !==
-      brotherCount
-    ) {
-      alert(
-        "Please select the correct Brother Married / Unmarried count."
-      );
-      return;
-    }
-
-    /* =====================================================
-       SISTER VALIDATION
-    ===================================================== */
-
-    if (
-      sisterMarried +
-        sisterUnmarried !==
-      sisterCount
-    ) {
-      alert(
-        "Please select the correct Sister Married / Unmarried count."
-      );
-      return;
-    }
-
-    /* =====================================================
-       CONSENT
-    ===================================================== */
-
-    if (!consent) {
-      alert(
-        "Please read and accept the Declaration & Consent before submitting."
-      );
-      return;
-    }
+    if (!validateMatrimonyForm()) return;
 
     setLoading(true);
 
@@ -1039,6 +1109,11 @@ if (
       formDataToSend.append(
         "mobile",
         verifiedMobile
+      );
+
+      formDataToSend.append(
+        "password",
+        formData.password
       );
 
       /* =====================================================
@@ -1286,25 +1361,29 @@ const normalFields = {
          ERROR
       ===================================================== */
 
-      alert(
-        Array.isArray(
-          data.message
-        )
-          ? data.message.join(
-              ", "
-            )
-          : data.message ||
-              "Registration Failed"
-      );
+      setDialog({
+        title: "Registration failed",
+        message: Array.isArray(data.message)
+          ? data.message.join(", ")
+          : data.message || "Registration failed. Please try again.",
+        tone: "error",
+      });
     } catch (error) {
       console.error(
         "Registration Error:",
         error
       );
 
-      alert(
-        "Backend server connection failed. Please check whether NestJS is running on port 5000."
-      );
+      setDialog({
+        title: "Registration failed",
+        message:
+          error instanceof TypeError
+            ? "Could not connect to the registration server. Please check your connection and try again."
+            : error instanceof Error
+              ? error.message
+              : "An unexpected error occurred. Please try again.",
+        tone: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -1316,6 +1395,12 @@ const normalFields = {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
+      {dialog && (
+        <AdminDialog
+          {...dialog}
+          onClose={() => setDialog(null)}
+        />
+      )}
 
       {/* =====================================================
           GREEN TOAST
@@ -1451,6 +1536,7 @@ const normalFields = {
                   maxLength={10}
                   inputMode="numeric"
                   autoComplete="tel"
+                  required
                   className={`${inputClass} ${
                     memberVerified
                       ? "cursor-not-allowed bg-gray-100"
@@ -1571,7 +1657,7 @@ const normalFields = {
                               <img
                                 src={photoUrl}
                                 alt={`Membership photo ${index + 1}`}
-                                className="h-44 w-full object-cover transition hover:scale-[1.02]"
+                                className="h-full w-full object-cover transition hover:scale-[1.02]"
                                 loading="lazy"
                                 onError={(event) => {
                                   event.currentTarget.style.display = "none";
@@ -1630,8 +1716,43 @@ const normalFields = {
 
             <form
               onSubmit={handleSubmit}
+              noValidate
               className="grid gap-5 md:grid-cols-2"
             >
+              {fieldErrors.email && (
+                <div
+                  role="alert"
+                  className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+                >
+                  {fieldErrors.email}
+                </div>
+              )}
+
+              <div>
+                <FieldLabel required>
+                  Password
+                </FieldLabel>
+
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a password"
+                  minLength={6}
+                  autoComplete="new-password"
+                  required
+                  className={getInputClass("password")}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Use this password with your registered email to log in after admin approval.
+                </p>
+                {fieldErrors.password && (
+                  <p role="alert" className="mt-1 text-xs font-medium text-red-600">
+                    {fieldErrors.password}
+                  </p>
+                )}
+              </div>
 
               {/* =================================================
                   PROFILE CATEGORY
@@ -1650,7 +1771,7 @@ const normalFields = {
                   }
                   onChange={handleChange}
                   required
-                  className={inputClass}
+                  className={getInputClass("profile_category")}
                 >
                   <option value="">
                     Select Category
@@ -1672,6 +1793,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="profile_category" />
 
               </div>
 
@@ -1694,8 +1816,9 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Mother's Name"
                   required
-                  className={inputClass}
+                  className={getInputClass("mother_name")}
                 />
+                <FieldError field="mother_name" />
 
               </div>
 
@@ -1711,6 +1834,7 @@ const normalFields = {
                 }
                 onChange={handleChange}
                 required
+                error={fieldErrors.father_gotram}
               />
 
               {/* =================================================
@@ -1725,6 +1849,7 @@ const normalFields = {
                 }
                 onChange={handleChange}
                 required
+                error={fieldErrors.mother_gotram}
               />
 
               {/* =================================================
@@ -1739,6 +1864,7 @@ const normalFields = {
                 }
                 onChange={handleChange}
                 required
+                error={fieldErrors.grandmother_gotram}
               />
 
               {/* =================================================
@@ -1757,7 +1883,8 @@ const normalFields = {
                     formData.nakshatram
                   }
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("nakshatram")}
                 >
                   <option value="">
                     Select Nakshatram
@@ -1775,6 +1902,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="nakshatram" />
 
               </div>
 
@@ -1792,7 +1920,8 @@ const normalFields = {
                   name="padham"
                   value={formData.padham}
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("padham")}
                 >
                   <option value="">
                     Select Padham
@@ -1814,6 +1943,7 @@ const normalFields = {
                     4
                   </option>
                 </select>
+                <FieldError field="padham" />
 
               </div>
 
@@ -1831,7 +1961,8 @@ const normalFields = {
                   name="rasi"
                   value={formData.rasi}
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("rasi")}
                 >
                   <option value="">
                     Select Rasi
@@ -1849,6 +1980,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="rasi" />
 
               </div>
 
@@ -1866,7 +1998,8 @@ const normalFields = {
                   name="color"
                   value={formData.color}
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("color")}
                 >
                   <option value="">
                     Select Color
@@ -1884,6 +2017,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="color" />
 
               </div>
 
@@ -1903,8 +2037,10 @@ const normalFields = {
                   value={formData.height}
                   onChange={handleChange}
                   placeholder="Example: 5.6"
-                  className={inputClass}
+                  required
+                  className={getInputClass("height")}
                 />
+                <FieldError field="height" />
 
               </div>
 
@@ -1924,7 +2060,8 @@ const normalFields = {
                     formData.education
                   }
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("education")}
                 >
                   <option value="">
                     Select Education
@@ -1942,6 +2079,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="education" />
 
               </div>
 
@@ -1963,8 +2101,10 @@ const normalFields = {
                   }
                   onChange={handleChange}
                   placeholder="Annual Income"
-                  className={inputClass}
+                  required
+                  className={getInputClass("annual_income")}
                 />
+                <FieldError field="annual_income" />
 
               </div>
 
@@ -1982,7 +2122,7 @@ const normalFields = {
     value={formData.physical_status}
     onChange={handleChange}
     required
-    className={inputClass}
+    className={getInputClass("physical_status")}
   >
     <option value="Normal">Normal</option>
     <option value="Physically Handicapped">
@@ -1990,6 +2130,7 @@ const normalFields = {
     </option>
     <option value="Other">Other</option>
   </select>
+  <FieldError field="physical_status" />
 </div>
 
 {/* =================================================
@@ -2005,7 +2146,8 @@ const normalFields = {
     name="family_status"
     value={formData.family_status}
     onChange={handleChange}
-    className={inputClass}
+    required
+    className={getInputClass("family_status")}
   >
     <option value="">Select Family Status</option>
     <option value="Middle Class">Middle Class</option>
@@ -2015,6 +2157,7 @@ const normalFields = {
     <option value="Rich">Rich</option>
     <option value="Other">Other</option>
   </select>
+  <FieldError field="family_status" />
 </div>
 
 {/* =================================================
@@ -2033,8 +2176,10 @@ const normalFields = {
     rows={4}
     maxLength={2000}
     placeholder="Enter any additional profile or family details..."
-    className={`${textareaClass} resize-y`}
+    required
+    className={`${getTextareaClass("additional_details")} resize-y`}
   />
+  <FieldError field="additional_details" />
 
   <p className="mt-1 text-right text-xs text-gray-500">
     {formData.additional_details.length}/2000 characters
@@ -2058,8 +2203,10 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Full Address"
                   rows={3}
-                  className={textareaClass}
+                  required
+                  className={getTextareaClass("address")}
                 />
+                <FieldError field="address" />
 
               </div>
 
@@ -2079,7 +2226,8 @@ const normalFields = {
                     formData.father_occupation
                   }
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("father_occupation")}
                 >
                   <option value="">
                     Select Father Details
@@ -2097,6 +2245,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="father_occupation" />
 
               </div>
 
@@ -2116,7 +2265,8 @@ const normalFields = {
                     formData.mother_occupation
                   }
                   onChange={handleChange}
-                  className={inputClass}
+                  required
+                  className={getInputClass("mother_occupation")}
                 >
                   <option value="">
                     Select Mother Details
@@ -2138,6 +2288,7 @@ const normalFields = {
                   )}
 
                 </select>
+                <FieldError field="mother_occupation" />
 
               </div>
 
@@ -2168,13 +2319,14 @@ const normalFields = {
       }));
     }}
     required
-    className={inputClass}
+    className={getInputClass("marital_status")}
   >
     <option value="">Select Marital Status</option>
     <option value="Never Married">Never Married</option>
     <option value="Divorced">Divorced</option>
     <option value="Awaiting Divorce">Awaiting Divorce</option>
   </select>
+  <FieldError field="marital_status" />
 </div>
 
 {/* =================================================
@@ -2204,7 +2356,7 @@ const normalFields = {
           value={formData.number_of_children}
           onChange={handleChange}
           required
-          className={inputClass}
+          className={getInputClass("number_of_children")}
         >
           <option value="0">0 - No Children</option>
           <option value="1">1 Child</option>
@@ -2213,6 +2365,7 @@ const normalFields = {
           <option value="4">4 Children</option>
           <option value="5">5 or More Children</option>
         </select>
+        <FieldError field="number_of_children" />
       </div>
 
       {/* PREVIOUS MARRIAGE CONDITIONS */}
@@ -2228,8 +2381,10 @@ const normalFields = {
           rows={4}
           maxLength={1000}
           placeholder="Enter previous marriage conditions or other details, if any..."
-          className={`${textareaClass} resize-y`}
+          required
+          className={`${getTextareaClass("previous_marriage_conditions")} resize-y`}
         />
+        <FieldError field="previous_marriage_conditions" />
 
         <p className="mt-1 text-right text-xs text-gray-500">
           {formData.previous_marriage_conditions.length}/1000 characters
@@ -2268,6 +2423,7 @@ const normalFields = {
                         onChange={
                           handleBrotherCount
                         }
+                        required
                         className={inputClass}
                       >
                         <option value="0">
@@ -2313,6 +2469,7 @@ const normalFields = {
                           onChange={
                             handleBrotherMarried
                           }
+                          required
                           className={inputClass}
                         >
                           {Array.from(
@@ -2408,6 +2565,7 @@ const normalFields = {
                         onChange={
                           handleSisterCount
                         }
+                        required
                         className={inputClass}
                       >
                         <option value="0">
@@ -2453,6 +2611,7 @@ const normalFields = {
                           onChange={
                             handleSisterMarried
                           }
+                          required
                           className={inputClass}
                         >
                           {Array.from(
@@ -2537,8 +2696,10 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Property Details"
                   rows={3}
-                  className={textareaClass}
+                  required
+                  className={getTextareaClass("property_details")}
                 />
+                <FieldError field="property_details" />
 
               </div>
 
@@ -2560,8 +2721,10 @@ const normalFields = {
                   onChange={handleChange}
                   placeholder="Partner Requirements"
                   rows={3}
-                  className={textareaClass}
+                  required
+                  className={getTextareaClass("preferred_requirements")}
                 />
+                <FieldError field="preferred_requirements" />
 
               </div>
 
@@ -2710,8 +2873,10 @@ const normalFields = {
                             handleChange
                           }
                           placeholder="Enter Name"
-                          className={inputClass}
+                          required
+                          className={getInputClass("area_volunteer_name")}
                         />
+                        <FieldError field="area_volunteer_name" />
 
                       </div>
 
@@ -2733,8 +2898,10 @@ const normalFields = {
                           placeholder="Enter Contact Number"
                           maxLength={10}
                           inputMode="numeric"
-                          className={inputClass}
+                          required
+                          className={getInputClass("area_volunteer_contact")}
                         />
+                        <FieldError field="area_volunteer_contact" />
 
                       </div>
 
@@ -2754,8 +2921,10 @@ const normalFields = {
                             handleChange
                           }
                           placeholder="e.g. Area Volunteer / Sangham Representative"
-                          className={inputClass}
+                          required
+                          className={getInputClass("area_volunteer_position")}
                         />
+                        <FieldError field="area_volunteer_position" />
 
                       </div>
 

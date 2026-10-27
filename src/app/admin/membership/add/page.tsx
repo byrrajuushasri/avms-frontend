@@ -229,6 +229,7 @@ const executiveBodies = [
 
 const designations = [
   "Member",
+  "Member with Matrimony",
   "General Secretary",
   "President",
   "Vice President",
@@ -260,7 +261,7 @@ const initialFormData: FormData = {
   sangham: "",
 
   executive_body: "State Body",
-  designation: "Member",
+  designation: "",
 };
 
 /* =========================================================
@@ -2117,6 +2118,43 @@ setMobileNational("");
                     />
 
                   </div>
+ {/* DESIGNATION */}
+                  <div>
+
+                    <label className={labelClass}>
+                      Position Details *
+                    </label>
+
+                    <select
+                      name="designation"
+                      value={formData.designation}
+                      onChange={handleChange}
+                      className={getInputClass(
+                        "designation"
+                      )}
+                    >
+                      <option value="">
+                        Select Designation
+                      </option>
+
+                      {designations.map(
+                        (designation) => (
+                          <option
+                            key={designation}
+                            value={designation}
+                          >
+                            {designation}
+                          </option>
+                        )
+                      )}
+
+                    </select>
+
+                    <ErrorMessage
+                      field="designation"
+                    />
+
+                  </div>
 
                 </div>
               </section>
@@ -2348,44 +2386,7 @@ setMobileNational("");
                   )}
 
 
-                  {/* DESIGNATION */}
-                  <div>
-
-                    <label className={labelClass}>
-                      Position Details *
-                    </label>
-
-                    <select
-                      name="designation"
-                      value={formData.designation}
-                      onChange={handleChange}
-                      className={getInputClass(
-                        "designation"
-                      )}
-                    >
-                      <option value="">
-                        Select Designation
-                      </option>
-
-                      {designations.map(
-                        (designation) => (
-                          <option
-                            key={designation}
-                            value={designation}
-                          >
-                            {designation}
-                          </option>
-                        )
-                      )}
-
-                    </select>
-
-                    <ErrorMessage
-                      field="designation"
-                    />
-
-                  </div>
-
+                 
                 </div>
 
               </section>

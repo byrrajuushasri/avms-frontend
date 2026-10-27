@@ -1293,6 +1293,9 @@ export default function EditMemberPage() {
                     <option value="user">
                       Member
                     </option>
+                     <option value="matrimony">
+                      Member with Matrimony
+                    </option>
 
                   </select>
 

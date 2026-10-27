@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,10 +12,10 @@ import {
   FaEnvelope,
   FaHome,
   FaInfoCircle,
-  
   FaUsers,
   FaCrown,
   FaTimes,
+  FaSignInAlt,
 } from "react-icons/fa";
 
 type MenuItem = {
@@ -27,7 +28,6 @@ type MenuItem = {
 const menuItems: MenuItem[] = [
   { label: "Home", href: "/", icon: FaHome },
   { label: "About Us", href: "/about", icon: FaInfoCircle },
-  
   { label: "Membership", href: "/membership", icon: FaCrown },
   {
     label: "Matrimony Registration",
@@ -35,6 +35,11 @@ const menuItems: MenuItem[] = [
     icon: FaUsers,
   },
   { label: "Contact", href: "/contact", icon: FaEnvelope },
+  {
+    label: "Privacy Policy",
+    href: "/privacy-policy",
+    icon: FaEnvelope,
+  },
 ];
 
 export default function Header() {
@@ -252,13 +257,13 @@ export default function Header() {
 
           {/* MOBILE HEADER */}
           <div className="md:hidden">
-            <div className="grid grid-cols-[42px_1fr_42px] items-center gap-1 px-2 xs:grid-cols-[48px_1fr_48px] sm:grid-cols-[58px_1fr_58px]">
-              {/* LEFT LOGO */}
+            <div className="grid grid-cols-[36px_minmax(0,1fr)_36px_36px] items-center gap-1 px-1 xs:grid-cols-[42px_minmax(0,1fr)_42px_42px] xs:gap-1.5 sm:grid-cols-[50px_minmax(0,1fr)_50px_44px] sm:gap-2 sm:px-2">
+              {/* VASAVI AMMAVARU */}
               <div className="flex justify-start">
                 <img
-                  src="/images/vinayaka.jpg"
-                  alt="Aarya Vysya Mahasabha"
-                  className="h-auto w-[40px] object-contain xs:w-[46px] sm:w-[55px]"
+                  src="/images/logo1.jpg"
+                  alt="Vasavi Ammavaru"
+                  className="h-auto w-[34px] object-contain xs:w-[40px] sm:w-[48px]"
                 />
               </div>
 
@@ -274,13 +279,30 @@ export default function Header() {
                 />
               </Link>
 
-              {/* RIGHT LOGO */}
+              {/* GANESH */}
               <div className="flex justify-end">
                 <img
-                  src="/images/logo1.jpg"
-                  alt="Aarya Vysya Logo"
-                  className="h-auto w-[40px] object-contain xs:w-[46px] sm:w-[55px]"
+                  src="/images/vinayaka.jpg"
+                  alt="Lord Ganesh"
+                  className="h-auto w-[34px] object-contain xs:w-[40px] sm:w-[48px]"
                 />
+              </div>
+
+              {/* MOBILE MENU TOGGLE */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen((prev) => !prev);
+                    setExpanded(new Set());
+                  }}
+                  aria-label={mobileOpen ? "Close menu" : "Open menu"}
+                  aria-expanded={mobileOpen}
+                  aria-controls="mobile-navigation"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#eadbb9] bg-white text-base text-[#800018] shadow-sm transition hover:bg-[#fff5e5] focus:outline-none focus:ring-2 focus:ring-[#d9b76e] xs:h-10 xs:w-10 sm:h-11 sm:w-11"
+                >
+                  {mobileOpen ? <FaTimes /> : <FaBars />}
+                </button>
               </div>
             </div>
 
@@ -305,19 +327,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* MOBILE MENU BUTTON */}
-        <button
-          type="button"
-          onClick={() => {
-            setMobileOpen((prev) => !prev);
-            setExpanded(new Set());
-          }}
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          aria-expanded={mobileOpen}
-          className="absolute right-2 top-7 z-[120] flex h-8 w-8 items-center justify-center rounded-md border border-[#eadbb9] bg-white text-base text-[#800018] shadow-sm transition hover:bg-[#fff5e5] md:hidden"
-        >
-          {mobileOpen ? <FaTimes /> : <FaBars />}
-        </button>
       </div>
 
       {/* DESKTOP NAVIGATION */}
@@ -328,10 +337,7 @@ export default function Header() {
             const hasChildren = !!item.children?.length;
 
             return (
-              <div
-                key={item.label}
-                className="group relative flex"
-              >
+              <div key={item.label} className="group relative flex">
                 {hasChildren ? (
                   <button
                     type="button"
@@ -360,12 +366,24 @@ export default function Header() {
               </div>
             );
           })}
+
+          {/* DESKTOP LOGIN BUTTON */}
+          <Link
+            href="/login"
+            className="my-1 ml-3 flex items-center justify-center gap-2 rounded-md border border-[#e7c875] bg-[#d9b76e] px-5 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c] focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            <FaSignInAlt />
+            Login
+          </Link>
         </div>
       </nav>
 
       {/* MOBILE NAVIGATION */}
       {mobileOpen && (
-        <div className="absolute left-0 right-0 top-full z-[100] max-h-[calc(100vh-70px)] overflow-y-auto overscroll-contain border-t border-[#eadbb9] bg-white shadow-2xl md:hidden">
+        <div
+          id="mobile-navigation"
+          className="absolute left-0 right-0 top-full z-[100] max-h-[calc(100vh-70px)] overflow-y-auto overscroll-contain border-t border-[#eadbb9] bg-white shadow-2xl md:hidden"
+        >
           <div>
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -373,10 +391,7 @@ export default function Header() {
               const isOpen = expanded.has(item.label);
 
               return (
-                <div
-                  key={item.label}
-                  className="border-b border-[#f0e8dc]"
-                >
+                <div key={item.label} className="border-b border-[#f0e8dc]">
                   {hasChildren ? (
                     <button
                       type="button"
@@ -413,6 +428,18 @@ export default function Header() {
                 </div>
               );
             })}
+
+            {/* MOBILE LOGIN BUTTON */}
+            <div className="border-b border-[#f0e8dc] p-3">
+              <Link
+                href="/login"
+                onClick={closeMobile}
+                className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[#e7c875] bg-[#d9b76e] px-5 py-3 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c]"
+              >
+                <FaSignInAlt />
+                Login
+              </Link>
+            </div>
           </div>
         </div>
       )}

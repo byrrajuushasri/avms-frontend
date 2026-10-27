@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
 import {
   FaMapMarkerAlt,
@@ -88,12 +88,43 @@ interface MatchProfile {
 // =========================================================
 
 const DEFAULT_IMAGE = "/images/default-profile.jpg";
+const PROFILES_PER_PAGE = 8;
+
+interface MatrimonialSessionUser {
+  account_type?: string;
+  matrimonial_id?: number | string | null;
+}
+
+const subscribeToStorage = (callback: () => void) => {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+};
+
+const getStoredUser = () => localStorage.getItem("user");
 
 // =========================================================
 // PAGE
 // =========================================================
 
 export default function MatchesPage() {
+  const storedUser = useSyncExternalStore(
+    subscribeToStorage,
+    getStoredUser,
+    () => null
+  );
+  const loggedInUser = useMemo<MatrimonialSessionUser | null>(() => {
+    if (!storedUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(storedUser) as MatrimonialSessionUser;
+    } catch (parseError) {
+      console.error("Failed to read logged-in user:", parseError);
+      return null;
+    }
+  }, [storedUser]);
+
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -102,6 +133,7 @@ export default function MatchesPage() {
   const [gender, setGender] = useState("");
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // =========================================================
   // BACKEND URL
@@ -469,6 +501,14 @@ export default function MatchesPage() {
       city,
     ]);
 
+  const totalPages = Math.ceil(
+    filteredMatches.length / PROFILES_PER_PAGE
+  );
+  const paginatedMatches = filteredMatches.slice(
+    (currentPage - 1) * PROFILES_PER_PAGE,
+    currentPage * PROFILES_PER_PAGE
+  );
+
   // =========================================================
   // DYNAMIC CITIES
   // =========================================================
@@ -498,6 +538,7 @@ export default function MatchesPage() {
     setGender("");
     setAge("");
     setCity("");
+    setCurrentPage(1);
   };
 
   // =========================================================
@@ -583,24 +624,36 @@ export default function MatchesPage() {
 
         {/* HEADER */}
 
-        <div className="mb-10 text-center">
-          <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700">
-            <FaHeart />
-            Arya Vysya Matrimony
-          </span>
+        <div className="mb-10 flex flex-col items-center gap-5 sm:flex-row sm:justify-between">
+          <div className="text-center sm:text-left">
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-700">
+              <FaHeart />
+              Arya Vysya Matrimony
+            </span>
 
-          <h1 className="text-2xl text-gray-900 sm:text-3xl">
-            Find Your{" "}
-            <span className="font-semibold text-rose-600">
-              Perfect Match
-            </span>{" "}
-            ❤️
-          </h1>
+            <h1 className="text-2xl text-gray-900 sm:text-3xl">
+              Find Your{" "}
+              <span className="font-semibold text-rose-600">
+                Perfect Match
+              </span>{" "}
+              ❤️
+            </h1>
 
-          <p className="mx-auto mt-3 max-w-2xl text-gray-500">
-            Discover Arya Vysya profiles based on your
-            preferred partner details.
-          </p>
+            <p className="mt-3 max-w-2xl text-gray-500">
+              Discover Arya Vysya profiles based on your
+              preferred partner details.
+            </p>
+          </div>
+
+          {loggedInUser?.account_type === "matrimonial" &&
+            loggedInUser.matrimonial_id && (
+              <Link
+                href={`/profile/${loggedInUser.matrimonial_id}`}
+                className="inline-flex w-full items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-center font-semibold text-white shadow-sm transition hover:bg-rose-700 sm:w-auto sm:shrink-0"
+              >
+                Edit My Profile
+              </Link>
+            )}
         </div>
 
         {/* SEARCH PANEL */}
@@ -655,7 +708,10 @@ export default function MatchesPage() {
                   type="text"
                   value={search}
                   onChange={(e) =>
-                    setSearch(e.target.value)
+                    {
+                      setSearch(e.target.value);
+                      setCurrentPage(1);
+                    }
                   }
                   placeholder="Search profile..."
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
@@ -676,7 +732,10 @@ export default function MatchesPage() {
                 <select
                   value={gender}
                   onChange={(e) =>
-                    setGender(e.target.value)
+                    {
+                      setGender(e.target.value);
+                      setCurrentPage(1);
+                    }
                   }
                   className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
                 >
@@ -708,7 +767,10 @@ export default function MatchesPage() {
                 <select
                   value={age}
                   onChange={(e) =>
-                    setAge(e.target.value)
+                    {
+                      setAge(e.target.value);
+                      setCurrentPage(1);
+                    }
                   }
                   className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
                 >
@@ -744,7 +806,10 @@ export default function MatchesPage() {
                 <select
                   value={city}
                   onChange={(e) =>
-                    setCity(e.target.value)
+                    {
+                      setCity(e.target.value);
+                      setCurrentPage(1);
+                    }
                   }
                   className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
                 >
@@ -803,7 +868,7 @@ export default function MatchesPage() {
 
         {filteredMatches.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredMatches.map((member) => (
+            {paginatedMatches.map((member) => (
               <div
                 key={member.id}
                 className="group overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-md transition-all duration-300 hover:shadow-2xl"
@@ -930,6 +995,53 @@ export default function MatchesPage() {
               Clear Filters
             </button>
           </div>
+        )}
+
+        {totalPages > 1 && (
+          <nav
+            aria-label="Profile pages"
+            className="mt-8 flex flex-wrap items-center justify-center gap-2"
+          >
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((page) => Math.max(1, page - 1))
+              }
+              disabled={currentPage === 1}
+              className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  aria-current={currentPage === page ? "page" : undefined}
+                  className={`h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition ${
+                    currentPage === page
+                      ? "border-rose-600 bg-rose-600 text-white"
+                      : "border-rose-200 bg-white text-rose-700 hover:bg-rose-50"
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            )}
+
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((page) => Math.min(totalPages, page + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </nav>
         )}
       </div>
     </main>
