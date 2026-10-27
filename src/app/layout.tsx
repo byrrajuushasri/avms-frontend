@@ -18,6 +18,9 @@ export const metadata = {
     description:
       "Free Arya Vysya matrimonial registration, membership and marriage services from Telangana State Arya Vysya Mahasabha in Hyderabad.",
   },
+   icons: {
+    icon: "images/favicon.png",
+  },
 };
 
 export default function RootLayout({
