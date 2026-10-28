@@ -20,7 +20,7 @@ export default function LoginPage() {
   const backendUrl =
     process.env.NEXT_PUBLIC_BACKEND_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000";
+    "https://avms-backend-production.up.railway.app";
 
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>

@@ -47,7 +47,7 @@ export default function FeaturedProfiles() {
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_BACKEND_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000";
+    "https://avms-backend-production.up.railway.app";
 
   const API_BASE_URL = BACKEND_URL.replace(/\/+$/, "");
 
