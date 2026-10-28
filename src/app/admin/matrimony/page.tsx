@@ -59,6 +59,11 @@ const BACKEND_URL = (
   "https://avms-backend-production.up.railway.app"
 ).replace(/\/+$/, "");
 
+const getAdminToken = () =>
+  localStorage.getItem("adminToken") ||
+  localStorage.getItem("token") ||
+  localStorage.getItem("access_token");
+
 export default function AdminDashboard() {
   const [users, setUsers] = useState<MatrimonialUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,14 +82,15 @@ export default function AdminDashboard() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${BACKEND_URL}/matrimonial-users`,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        }
-      );
+      const token = getAdminToken();
+      const response = await fetch(`${BACKEND_URL}/matrimonial-users`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: "no-store",
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch users: ${response.status}`);
@@ -104,7 +110,11 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => {
-    void fetchUsers();
+    const timeoutId = window.setTimeout(() => {
+      void fetchUsers();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const searchValue = search.toLowerCase().trim();
@@ -147,17 +157,21 @@ export default function AdminDashboard() {
     setOpenMenuId(null);
   };
 
-  const handleApprove = async (id: number, name: string) => {
+  const handleApprove = async (id: number) => {
     try {
       setApprovingId(id);
       setOpenMenuId(null);
       setError("");
 
+      const token = getAdminToken();
       const response = await fetch(
         `${BACKEND_URL}/matrimonial-users/${id}/approve`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
         }
       );
 
@@ -211,9 +225,15 @@ export default function AdminDashboard() {
       setOpenMenuId(null);
       setError("");
 
+      const token = getAdminToken();
       const response = await fetch(
         `${BACKEND_URL}/matrimonial-users/${id}`,
-        { method: "DELETE" }
+        {
+          method: "DELETE",
+          headers: token
+            ? { Authorization: `Bearer ${token}` }
+            : undefined,
+        }
       );
 
       const data = await response.json().catch(() => null);
@@ -520,7 +540,7 @@ export default function AdminDashboard() {
                                     confirmLabel: "Approve",
                                     onConfirm: () => {
                                       setDialog(null);
-                                      void handleApprove(user.id, name);
+                                      void handleApprove(user.id);
                                     },
                                   });
                                 }}

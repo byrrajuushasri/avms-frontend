@@ -43,7 +43,7 @@ const organizers = [
   },
   {
     name: "ఊరే రవీందర్ గుప్త ",
-    role: "సహాయ నిర్వాహకులు మరియు చైర్మన్ ",
+    role: "సహాయ నిర్వహకులు మరియు చైర్మన్ ",
     additionalRole: "ఆర్యవైశ్య మహాసభ సరూర్ నగర్ మండల వివాహ కమిటీ",
     image: "/about/vooreravinder.jpg",
     phone: "+91 9441090964",
