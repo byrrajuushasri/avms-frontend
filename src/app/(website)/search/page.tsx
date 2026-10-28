@@ -239,11 +239,20 @@ export default function MatchesPage() {
         console.log("MATCHES API:", apiUrl);
         console.log("=================================");
 
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+          throw new Error(
+            "Your session has expired. Please log in again."
+          );
+        }
+
         const response = await fetch(apiUrl, {
           method: "GET",
           cache: "no-store",
           headers: {
             Accept: "application/json",
+            Authorization: `Bearer ${token}`,
           },
         });
 

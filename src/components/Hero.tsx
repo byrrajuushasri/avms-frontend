@@ -34,7 +34,7 @@ const organizers = [
     email: "beldaguru@gmail.com",
   },
  {
-    name: "వూరె మధుసూదన్",
+    name: "ఊరే మధుసూదన్",
     role: "ప్రధాన కార్యదర్శి",
     
     phone: "+91 98851 91943",
@@ -42,9 +42,9 @@ const organizers = [
     email: "vooremadhusudan@gmail.com",
   },
   {
-    name: "వూరె రవీందర్",
-    role: "గౌరవ అధ్యక్షులు",
-    additionalRole: "సహాయ నిర్వాహకులు",
+    name: "ఊరే రవీందర్ గుప్త ",
+    role: "సహాయ నిర్వాహకులు మరియు చైర్మన్ ",
+    additionalRole: "ఆర్యవైశ్య మహాసభ సరూర్ నగర్ మండల వివాహ కమిటీ",
     image: "/about/vooreravinder.jpg",
     phone: "+91 9441090964",
     tel: "+919441090964",

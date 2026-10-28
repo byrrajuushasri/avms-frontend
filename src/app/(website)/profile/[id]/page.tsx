@@ -381,14 +381,18 @@ export default function ProfilePage() {
           "================================="
         );
 
-        const response = await fetch(apiUrl, {
-          method: "GET",
-          cache: "no-store",
-          headers: {
-            Accept: "application/json",
-          },
-        });
+       const accessToken = localStorage.getItem("access_token");
 
+const response = await fetch(apiUrl, {
+  method: "GET",
+  cache: "no-store",
+  headers: {
+    Accept: "application/json",
+    ...(accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : {}),
+  },
+});
         console.log(
           "Profile API status:",
           response.status

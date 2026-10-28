@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -9,47 +10,41 @@ import {
   FaRulerVertical,
   FaCheckCircle,
   FaPrayingHands,
+  FaHeart,
+  FaUser,
+  FaUsers,
+  FaGlobe,
 } from "react-icons/fa";
 
 interface Profile {
   id?: number | string;
   member_id?: string | null;
-
   name?: string | null;
   full_name?: string | null;
-
   date_of_birth?: string | null;
   dob?: string | null;
-
   height?: string | null;
   education?: string | null;
-
   occupation?: string | null;
   profession?: string | null;
-
   annual_income?: string | number | null;
   income?: string | number | null;
-
   address?: string | null;
   city?: string | null;
   district?: string | null;
   mandal?: string | null;
   sangham?: string | null;
-
   religion?: string | null;
   caste?: string | null;
   gotram?: string | null;
   mother_tongue?: string | null;
   marital_status?: string | null;
   physical_status?: string | null;
-
   about?: string | null;
   about_me?: string | null;
   description?: string | null;
-
   gender?: string | null;
   status?: string | null;
-
   [key: string]: unknown;
 }
 
@@ -60,62 +55,21 @@ interface ProfileInfoProps {
 export default function ProfileInfo({
   profile,
 }: ProfileInfoProps) {
-  // =========================================================
-  // WAIT FOR PROFILE DATA
-  // =========================================================
-
   if (!profile) {
     return (
-      <div className="w-full animate-pulse">
-
-        {/* Header skeleton */}
-        <div className="mb-4 flex gap-3">
-          <div className="h-7 w-32 rounded-full bg-gray-200" />
-          <div className="h-7 w-36 rounded-full bg-gray-200" />
+      <div className="animate-pulse space-y-4">
+        <div className="h-7 w-40 rounded-lg bg-gray-200" />
+        <div className="h-9 w-56 rounded-lg bg-gray-200" />
+        <div className="grid grid-cols-2 gap-2">
+          {[1, 2, 3, 4, 5, 6].map((item) => (
+            <div key={item} className="h-16 rounded-xl bg-gray-100" />
+          ))}
         </div>
-
-        <div className="h-10 w-64 rounded bg-gray-200" />
-
-        <div className="mt-3 h-5 w-40 rounded bg-gray-200" />
-
-        {/* Details skeleton */}
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {[1, 2, 3, 4, 5, 6].map(
-            (item) => (
-              <div
-                key={item}
-                className="h-28 rounded-xl bg-gray-100"
-              />
-            )
-          )}
-        </div>
-
-        <div className="mt-10">
-          <div className="mb-4 h-8 w-48 rounded bg-gray-200" />
-
-          <div className="space-y-3">
-            <div className="h-5 w-full rounded bg-gray-100" />
-            <div className="h-5 w-4/5 rounded bg-gray-100" />
-            <div className="h-5 w-3/5 rounded bg-gray-100" />
-          </div>
-        </div>
-
       </div>
     );
   }
 
-  // =========================================================
-  // NAME
-  // =========================================================
-
-  const name =
-    profile.full_name ||
-    profile.name ||
-    "Profile";
-
-  // =========================================================
-  // MEMBER ID
-  // =========================================================
+  const name = profile.full_name || profile.name || "Profile";
 
   const memberId =
     profile.member_id ||
@@ -123,381 +77,285 @@ export default function ProfileInfo({
       ? `AVM${String(profile.id).padStart(6, "0")}`
       : "AVM");
 
-  // =========================================================
-  // AGE
-  // =========================================================
-
-  const calculateAge = (
-    dob?: string | null
-  ): number | null => {
-    if (!dob) {
-      return null;
-    }
+  const calculateAge = (dob?: string | null): number | null => {
+    if (!dob) return null;
 
     const birthDate = new Date(dob);
-
-    if (
-      Number.isNaN(
-        birthDate.getTime()
-      )
-    ) {
-      return null;
-    }
+    if (Number.isNaN(birthDate.getTime())) return null;
 
     const today = new Date();
-
-    let age =
-      today.getFullYear() -
-      birthDate.getFullYear();
-
-    const monthDifference =
-      today.getMonth() -
-      birthDate.getMonth();
+    let age = today.getFullYear() - birthDate.getFullYear();
 
     if (
-      monthDifference < 0 ||
-      (
-        monthDifference === 0 &&
-        today.getDate() <
-          birthDate.getDate()
-      )
+      today.getMonth() < birthDate.getMonth() ||
+      (today.getMonth() === birthDate.getMonth() &&
+        today.getDate() < birthDate.getDate())
     ) {
       age--;
     }
 
-    if (age < 0 || age > 100) {
-      return null;
-    }
-
-    return age;
+    return age >= 0 && age <= 100 ? age : null;
   };
 
-  const age = calculateAge(
-    profile.date_of_birth ||
-      profile.dob
-  );
-
-  // =========================================================
-  // PROFESSION
-  // =========================================================
-
-  const profession =
-    profile.occupation ||
-    profile.profession ||
-    null;
-
-  // =========================================================
-  // INCOME
-  // =========================================================
-
-  const income =
-    profile.annual_income ||
-    profile.income ||
-    null;
-
-  // =========================================================
-  // LOCATION
-  // =========================================================
-
-  const locationParts = [
-    profile.city,
-    profile.mandal,
-    profile.district,
-  ].filter(Boolean);
+  const age = calculateAge(profile.date_of_birth || profile.dob);
+  const profession = profile.occupation || profile.profession;
+  const income = profile.annual_income ?? profile.income;
 
   const location =
-    locationParts.length > 0
-      ? locationParts.join(", ")
-      : profile.address || null;
-
-  // =========================================================
-  // ABOUT
-  // =========================================================
+    [profile.city, profile.mandal, profile.district]
+      .filter(Boolean)
+      .join(", ") || profile.address;
 
   const about =
-    profile.about_me ||
-    profile.about ||
-    profile.description ||
-    null;
-
-  // =========================================================
-  // VERIFIED
-  // =========================================================
+    profile.about_me || profile.about || profile.description;
 
   const isVerified =
-    String(
-      profile.status || ""
-    ).toLowerCase() ===
-    "approved";
+    String(profile.status || "").toLowerCase() === "approved";
+
+  const details = [
+    {
+      label: "Age",
+      value: age !== null ? `${age} Years` : null,
+      icon: FaBirthdayCake,
+    },
+    { label: "Height", value: profile.height, icon: FaRulerVertical },
+    {
+      label: "Education",
+      value: profile.education,
+      icon: FaGraduationCap,
+    },
+    {
+      label: "Profession",
+      value: profession,
+      icon: FaBriefcase,
+    },
+    {
+      label: "Annual Income",
+      value:
+        income !== null &&
+        income !== undefined &&
+        String(income).trim() !== ""
+          ? String(income).startsWith("₹")
+            ? String(income)
+            : `₹${income}`
+          : null,
+      icon: FaRupeeSign,
+    },
+    {
+      label: "Location",
+      value: location,
+      icon: FaMapMarkerAlt,
+    },
+  ].filter(
+    (item) =>
+      item.value !== null &&
+      item.value !== undefined &&
+      String(item.value).trim() !== ""
+  );
+
+  const personalDetails = [
+    { label: "Religion", value: profile.religion, icon: FaGlobe },
+    { label: "Caste", value: profile.caste, icon: FaUsers },
+    { label: "Gotram", value: profile.gotram, icon: FaPrayingHands },
+    {
+      label: "Mother Tongue",
+      value: profile.mother_tongue,
+      icon: FaGlobe,
+    },
+    {
+      label: "Marital Status",
+      value: profile.marital_status,
+      icon: FaHeart,
+    },
+    {
+      label: "Physical Status",
+      value: profile.physical_status,
+      icon: FaUser,
+    },
+    { label: "Gender", value: profile.gender, icon: FaUser },
+    { label: "Sangham", value: profile.sangham, icon: FaUsers },
+  ].filter(
+    (item) =>
+      item.value !== null &&
+      item.value !== undefined &&
+      String(item.value).trim() !== ""
+  );
 
   return (
-    <div>
+    <div className="overflow-hidden rounded-2xl border border-[#eadfd9] bg-white shadow-[0_8px_28px_rgba(80,0,24,0.07)]">
+      {/* COMPACT PROFILE HEADER */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#690015] via-[#800018] to-[#9b344b] px-5 py-5 text-white sm:px-6 sm:py-6">
+        <div className="absolute -right-10 -top-12 h-36 w-36 rounded-full border-[20px] border-white/[0.06]" />
 
-      {/* ================================================= */}
-      {/* PROFILE ID */}
-      {/* ================================================= */}
-
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-
-        <span className="rounded-full bg-rose-100 px-3 py-1 text-sm font-semibold text-rose-600">
-          ID : {memberId}
-        </span>
-
-        {isVerified && (
-          <span className="flex items-center gap-1 text-sm font-medium text-green-600">
-            <FaCheckCircle />
-            Verified Profile
+        <div className="relative flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold">
+            ID: {memberId}
           </span>
-        )}
 
-      </div>
+          {isVerified && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-green-700">
+              <FaCheckCircle />
+              Verified
+            </span>
+          )}
+        </div>
 
-      {/* ================================================= */}
-      {/* NAME */}
-      {/* ================================================= */}
-
-      <h1 className="text-4xl font-bold text-gray-800">
-        {name}
-      </h1>
-
-      {profession && (
-        <p className="mt-2 text-gray-500">
-          {profession}
+        <p className="relative mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f1d58e]">
+          Matrimony Profile
         </p>
-      )}
 
-      {/* ================================================= */}
-      {/* QUICK DETAILS */}
-      {/* ================================================= */}
-
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-        {/* AGE */}
-
-        {age !== null && (
-          <div className="rounded-xl bg-gray-50 p-4">
-
-            <FaBirthdayCake className="mb-2 text-xl text-rose-600" />
-
-            <p className="text-sm text-gray-500">
-              Age
-            </p>
-
-            <h3 className="font-semibold text-gray-800">
-              {age} Years
-            </h3>
-
-          </div>
-        )}
-
-        {/* HEIGHT */}
-
-        {profile.height && (
-          <div className="rounded-xl bg-gray-50 p-4">
-
-            <FaRulerVertical className="mb-2 text-xl text-rose-600" />
-
-            <p className="text-sm text-gray-500">
-              Height
-            </p>
-
-            <h3 className="font-semibold text-gray-800">
-              {profile.height}
-            </h3>
-
-          </div>
-        )}
-
-        {/* EDUCATION */}
-
-        {profile.education && (
-          <div className="rounded-xl bg-gray-50 p-4">
-
-            <FaGraduationCap className="mb-2 text-xl text-rose-600" />
-
-            <p className="text-sm text-gray-500">
-              Education
-            </p>
-
-            <h3 className="font-semibold text-gray-800">
-              {profile.education}
-            </h3>
-
-          </div>
-        )}
-
-        {/* PROFESSION */}
+        <h1 className="relative mt-1.5 break-words text-2xl font-bold leading-tight sm:text-3xl">
+          {name}
+        </h1>
 
         {profession && (
-          <div className="rounded-xl bg-gray-50 p-4">
-
-            <FaBriefcase className="mb-2 text-xl text-rose-600" />
-
-            <p className="text-sm text-gray-500">
-              Profession
-            </p>
-
-            <h3 className="font-semibold text-gray-800">
-              {profession}
-            </h3>
-
-          </div>
+          <p className="relative mt-2 flex items-center gap-2 text-sm text-white/85">
+            <FaBriefcase className="shrink-0 text-[#f1d58e]" />
+            {profession}
+          </p>
         )}
 
-        {/* INCOME */}
-
-        {income !== null &&
-          income !== undefined &&
-          String(income).trim() !== "" && (
-            <div className="rounded-xl bg-gray-50 p-4">
-
-              <FaRupeeSign className="mb-2 text-xl text-rose-600" />
-
-              <p className="text-sm text-gray-500">
-                Annual Income
-              </p>
-
-              <h3 className="font-semibold text-gray-800">
-                {String(income).startsWith("₹")
-                  ? String(income)
-                  : `₹${income}`}
-              </h3>
-
-            </div>
+        <div className="relative mt-3 flex flex-wrap gap-2 text-xs text-white/90">
+          {age !== null && (
+            <span className="rounded-lg bg-white/10 px-2.5 py-1.5">
+              {age} Years
+            </span>
           )}
-
-        {/* LOCATION */}
-
-        {location && (
-          <div className="rounded-xl bg-gray-50 p-4">
-
-            <FaMapMarkerAlt className="mb-2 text-xl text-rose-600" />
-
-            <p className="text-sm text-gray-500">
-              Location
-            </p>
-
-            <h3 className="font-semibold text-gray-800">
-              {location}
-            </h3>
-
-          </div>
-        )}
-
-      </div>
-
-      {/* ================================================= */}
-      {/* PERSONAL DETAILS */}
-      {/* ================================================= */}
-
-      <div className="mt-10">
-
-        <h2 className="mb-4 text-2xl font-bold text-gray-800">
-          Personal Details
-        </h2>
-
-        <div className="grid grid-cols-1 gap-y-4 text-gray-600 sm:grid-cols-2">
-
-          {profile.religion && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Religion :
-              </span>{" "}
-              {profile.religion}
-            </p>
+          {profile.height && (
+            <span className="rounded-lg bg-white/10 px-2.5 py-1.5">
+              {profile.height}
+            </span>
           )}
-
-          {profile.caste && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Caste :
-              </span>{" "}
-              {profile.caste}
-            </p>
+          {profile.education && (
+            <span className="rounded-lg bg-white/10 px-2.5 py-1.5">
+              {profile.education}
+            </span>
           )}
-
-          {profile.gotram && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Gotram :
-              </span>{" "}
-              {profile.gotram}
-            </p>
-          )}
-
-          {profile.mother_tongue && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Mother Tongue :
-              </span>{" "}
-              {profile.mother_tongue}
-            </p>
-          )}
-
-          {profile.marital_status && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Marital Status :
-              </span>{" "}
-              {profile.marital_status}
-            </p>
-          )}
-
-          {profile.physical_status && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Physical Status :
-              </span>{" "}
-              {profile.physical_status}
-            </p>
-          )}
-
-          {profile.gender && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Gender :
-              </span>{" "}
-              {profile.gender}
-            </p>
-          )}
-
-          {profile.sangham && (
-            <p>
-              <span className="font-semibold text-gray-800">
-                Sangham :
-              </span>{" "}
-              {profile.sangham}
-            </p>
-          )}
-
         </div>
-
       </div>
 
-      {/* ================================================= */}
-      {/* ABOUT ME */}
-      {/* ================================================= */}
-
-      {about && (
-        <div className="mt-10">
-
-          <div className="mb-4 flex items-center gap-3">
-
-            <FaPrayingHands className="text-xl text-rose-600" />
-
-            <h2 className="text-2xl font-bold text-gray-800">
-              About Me
-            </h2>
-
+      <div className="space-y-5 p-4 sm:p-5">
+        {/* PROFILE OVERVIEW */}
+        <section>
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="h-6 w-1 rounded-full bg-[#d9a928]" />
+            <div>
+              <h2 className="text-lg font-bold text-[#690015]">
+                Profile Overview
+              </h2>
+              <p className="text-[11px] text-gray-500">
+                Important profile information
+              </p>
+            </div>
           </div>
 
-          <p className="leading-8 text-gray-600">
-            {about}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {details.map(({ label, value, icon: Icon }) => (
+              <div
+                key={label}
+                className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-[#eee6e0] bg-[#fdfbf9] p-2.5 transition-colors duration-200 hover:border-[#d9a928] hover:bg-[#fffaf0]"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#800018]/[0.07] text-base text-[#800018] transition-colors group-hover:bg-[#800018] group-hover:text-white">
+                  <Icon />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium text-gray-500">
+                    {label}
+                  </p>
+                  <p className="mt-0.5 break-words text-sm font-semibold leading-5 text-gray-800">
+                    {String(value)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PERSONAL DETAILS */}
+        {personalDetails.length > 0 && (
+          <section>
+            <div className="mb-3 flex items-center gap-2.5">
+              <span className="h-6 w-1 rounded-full bg-[#d9a928]" />
+              <div>
+                <h2 className="text-lg font-bold text-[#690015]">
+                  Personal Details
+                </h2>
+                <p className="text-[11px] text-gray-500">
+                  Personal and family background
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-[#eee6e0]">
+              {personalDetails.map(
+                ({ label, value, icon: Icon }, index) => (
+                  <div
+                    key={label}
+                    className={`flex items-center justify-between gap-3 px-3 py-2.5 ${
+                      index % 2 === 0 ? "bg-[#fdfbf9]" : "bg-white"
+                    }`}
+                  >
+                    <span className="flex min-w-0 items-center gap-2 text-xs text-gray-500 sm:text-sm">
+                      <Icon className="shrink-0 text-[#a67816]" />
+                      {label}
+                    </span>
+
+                    <span className="max-w-[58%] break-words text-right text-xs font-semibold text-gray-800 sm:text-sm">
+                      {String(value)}
+                    </span>
+                  </div>
+                )
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ABOUT ME */}
+        {about && (
+          <section className="rounded-xl border border-[#ead7ad] bg-[#fffaf0] p-4">
+            <div className="mb-2 flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#800018] text-sm text-white">
+                <FaPrayingHands />
+              </div>
+              <h2 className="text-lg font-bold text-[#690015]">
+                About Me
+              </h2>
+            </div>
+
+            <p className="whitespace-pre-line text-sm leading-6 text-gray-600">
+              {about}
+            </p>
+          </section>
+        )}
+
+        {/* EXPRESS INTEREST */}
+        <section className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 text-center sm:p-5">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#800018]/[0.08] text-lg text-[#800018]">
+            <FaHeart />
+          </div>
+
+          <h2 className="mt-2 text-base font-bold text-[#690015]">
+            Interested in this Profile?
+          </h2>
+
+          <p className="mx-auto mt-1.5 max-w-sm text-xs leading-5 text-gray-600">
+            Take the first step towards finding your life partner.
           </p>
 
-        </div>
-      )}
+          <a
+            href="/contact"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#800018] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#610012] sm:w-auto"
+          >
+            <FaHeart />
+            Contact Us to Express Interest
+          </a>
 
+          <p className="mt-2 text-[11px] text-gray-500">
+            Please respect the privacy of registered members.
+          </p>
+        </section>
+      </div>
     </div>
   );
 }
