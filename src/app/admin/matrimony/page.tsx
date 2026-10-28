@@ -83,21 +83,168 @@ export default function AdminDashboard() {
       setError("");
 
       const token = getAdminToken();
+      const authHeaders = token
+        ? { Authorization: `Bearer ${token}` }
+        : undefined;
+
+      const getAllProfilesByMemberId = async (
+        memberIds: string[]
+      ): Promise<MatrimonialUser[]> => {
+        const profiles: MatrimonialUser[] = [];
+
+        for (let index = 0; index < memberIds.length; index += 8) {
+          const batch = memberIds.slice(index, index + 8);
+          const results = await Promise.all(
+            batch.map(async (memberId) => {
+              try {
+                const [profileResponse, memberResponse] = await Promise.all([
+                  fetch(
+                    `${BACKEND_URL}/matrimonial-users/${encodeURIComponent(memberId)}`,
+                    { cache: "no-store" }
+                  ),
+                  fetch(
+                    `${BACKEND_URL}/membership/member/${encodeURIComponent(memberId)}`,
+                    { cache: "no-store" }
+                  ),
+                ]);
+
+                if (!profileResponse.ok) return null;
+
+                const profile = await profileResponse.json();
+                const member = memberResponse.ok
+                  ? await memberResponse.json()
+                  : null;
+
+                if (!profile || typeof profile !== "object") return null;
+
+                const matrimonialProfile = profile as MatrimonialUser;
+                return {
+                  ...matrimonialProfile,
+                  email:
+                    matrimonialProfile.email ||
+                    (typeof member?.email === "string" ? member.email : null),
+                  mobile:
+                    matrimonialProfile.mobile ||
+                    (typeof member?.mobile === "string" ? member.mobile : null),
+                };
+              } catch {
+                return null;
+              }
+            })
+          );
+
+          profiles.push(
+            ...results.filter(
+              (profile): profile is MatrimonialUser => Boolean(profile)
+            )
+          );
+        }
+
+        return profiles;
+      };
+
       const response = await fetch(`${BACKEND_URL}/matrimonial-users`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...authHeaders,
         },
         cache: "no-store",
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch users: ${response.status}`);
+      let profiles: MatrimonialUser[] = [];
+
+      if (response.ok) {
+        const data = await response.json();
+        profiles = Array.isArray(data) ? data : [];
       }
 
-      const data = await response.json();
-      setUsers(Array.isArray(data) ? data : []);
+      // The listings API filters profiles by the signed-in user's gender.
+      // For admins, resolve all member profiles separately so both genders
+      // are available in the admin panel.
+      try {
+        const memberParams = new URLSearchParams();
+        const storedUser = JSON.parse(localStorage.getItem("user") || "null") as
+          | { role?: string; sangham?: string }
+          | null;
+
+        if (storedUser?.role) memberParams.set("role", storedUser.role);
+        if (storedUser?.sangham) memberParams.set("sangham", storedUser.sangham);
+
+        const membersResponse = await fetch(
+          `${BACKEND_URL}/membership-register${
+            memberParams.size ? `?${memberParams}` : ""
+          }`,
+          {
+            method: "GET",
+            headers: authHeaders,
+            cache: "no-store",
+          }
+        );
+
+        if (membersResponse.ok) {
+          const members = await membersResponse.json();
+          if (Array.isArray(members)) {
+            const memberDetailsById = new Map(
+              members.map(
+                (member: {
+                  member_id?: string;
+                  email?: string | null;
+                  mobile?: string | null;
+                }) => [
+                  member.member_id,
+                  {
+                    email: member.email || null,
+                    mobile: member.mobile || null,
+                  },
+                ]
+              )
+            );
+
+            profiles = profiles.map((profile) => {
+              const memberDetails = profile.member_id
+                ? memberDetailsById.get(profile.member_id)
+                : undefined;
+
+              return {
+                ...profile,
+                email: profile.email || memberDetails?.email || null,
+                mobile: profile.mobile || memberDetails?.mobile || null,
+              };
+            });
+
+            const listedIds = new Set(
+              profiles
+                .map((profile) => profile.member_id)
+                .filter((memberId): memberId is string => Boolean(memberId))
+            );
+            const missingMemberIds = members
+              .map((member: { member_id?: string }) => member.member_id)
+              .filter(
+                (memberId): memberId is string =>
+                  typeof memberId === "string" &&
+                  memberId.length > 0 &&
+                  !listedIds.has(memberId)
+              );
+
+            profiles = [
+              ...profiles,
+              ...(await getAllProfilesByMemberId(missingMemberIds)),
+            ];
+          }
+        }
+      } catch (profileLookupError) {
+        console.warn(
+          "Unable to load every profile for admin:",
+          profileLookupError
+        );
+      }
+
+      const profilesById = new Map(
+        profiles.map((profile) => [profile.member_id || profile.id, profile])
+      );
+
+      setUsers(Array.from(profilesById.values()));
       setCurrentPage(1);
     } catch (err) {
       console.error("Error fetching matrimonial users:", err);
@@ -388,12 +535,12 @@ export default function AdminDashboard() {
         <div className="w-full overflow-visible">
           <table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col className="w-[34%] sm:w-[24%]" />
-              <col className="w-[18%] sm:w-[14%]" />
-              <col className="hidden md:table-column md:w-[20%]" />
-              <col className="w-[18%] sm:w-[16%] md:w-[13%]" />
-              <col className="w-[18%] sm:w-[14%]" />
+              <col className="w-[30%] sm:w-[22%]" />
+              <col className="w-[14%] sm:w-[12%]" />
+              <col className="w-[22%] sm:w-[24%]" />
+              <col className="w-[16%] sm:w-[16%]" />
               <col className="w-[12%] sm:w-[12%]" />
+              <col className="w-[6%] sm:w-[14%]" />
             </colgroup>
 
             <thead>
@@ -404,7 +551,7 @@ export default function AdminDashboard() {
                 <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
                   Member ID
                 </th>
-                <th className="hidden px-2 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500 md:table-cell">
+                <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
                   Email
                 </th>
                 <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
@@ -469,15 +616,31 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* EMAIL */}
-                    <td className="hidden px-2 py-3 md:table-cell">
-                      <p className="break-all text-xs text-gray-600">
-                        {user.email || "-"}
-                      </p>
+                    <td className="px-1 py-3 sm:px-3">
+                      {user.email ? (
+                        <a
+                          href={`mailto:${user.email}`}
+                          className="block break-all text-[9px] leading-tight text-gray-600 hover:text-[#8B1E3F] sm:text-xs"
+                        >
+                          {user.email}
+                        </a>
+                      ) : (
+                        <span className="text-[9px] text-gray-400 sm:text-xs">-</span>
+                      )}
                     </td>
 
                     {/* PHONE */}
-                    <td className="break-words px-1 py-3 text-[10px] leading-tight text-gray-600 sm:px-3 sm:text-xs">
-                      {user.mobile || "-"}
+                    <td className="break-words px-1 py-3 sm:px-3">
+                      {user.mobile ? (
+                        <a
+                          href={`tel:${user.mobile}`}
+                          className="text-[9px] leading-tight text-gray-600 hover:text-[#8B1E3F] sm:text-xs"
+                        >
+                          {user.mobile}
+                        </a>
+                      ) : (
+                        <span className="text-[9px] text-gray-400 sm:text-xs">-</span>
+                      )}
                     </td>
 
                     {/* STATUS */}
