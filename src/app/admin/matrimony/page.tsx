@@ -153,6 +153,10 @@ export default function AdminDashboard() {
       });
 
       let profiles: MatrimonialUser[] = [];
+      const memberDetailsById = new Map<
+        string,
+        { email: string | null; mobile: string | null }
+      >();
 
       if (response.ok) {
         const data = await response.json();
@@ -185,20 +189,19 @@ export default function AdminDashboard() {
         if (membersResponse.ok) {
           const members = await membersResponse.json();
           if (Array.isArray(members)) {
-            const memberDetailsById = new Map(
-              members.map(
-                (member: {
-                  member_id?: string;
-                  email?: string | null;
-                  mobile?: string | null;
-                }) => [
-                  member.member_id,
-                  {
-                    email: member.email || null,
-                    mobile: member.mobile || null,
-                  },
-                ]
-              )
+            members.forEach(
+              (member: {
+                member_id?: string;
+                email?: string | null;
+                mobile?: string | null;
+              }) => {
+                if (!member.member_id) return;
+
+                memberDetailsById.set(member.member_id, {
+                  email: member.email || null,
+                  mobile: member.mobile || null,
+                });
+              }
             );
 
             profiles = profiles.map((profile) => {
@@ -239,6 +242,18 @@ export default function AdminDashboard() {
           profileLookupError
         );
       }
+
+      profiles = profiles.map((profile) => {
+        const memberDetails = profile.member_id
+          ? memberDetailsById.get(profile.member_id)
+          : undefined;
+
+        return {
+          ...profile,
+          email: profile.email || memberDetails?.email || null,
+          mobile: profile.mobile || memberDetails?.mobile || null,
+        };
+      });
 
       const profilesById = new Map(
         profiles.map((profile) => [profile.member_id || profile.id, profile])
