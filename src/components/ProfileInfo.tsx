@@ -330,7 +330,10 @@ export default function ProfileInfo({
         )}
 
         {/* EXPRESS INTEREST */}
-        <section className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 text-center sm:p-5">
+        <section
+          id="express-interest"
+          className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 text-center sm:p-5"
+        >
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#800018]/[0.08] text-lg text-[#800018]">
             <FaHeart />
           </div>

@@ -100,6 +100,15 @@ export default function MatchesPage() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
+
+  const toggleLike = (profileId: string) => {
+    setLikedProfiles((current) =>
+      current.includes(profileId)
+        ? current.filter((id) => id !== profileId)
+        : [...current, profileId]
+    );
+  };
 
   const BACKEND_URL =
     process.env.NEXT_PUBLIC_BACKEND_URL ||
@@ -440,15 +449,15 @@ export default function MatchesPage() {
             </p>
           </div>
 
-          {loggedInUser?.account_type === "matrimonial" &&
-            loggedInUser.matrimonial_id && (
-              <Link
-                href={`/profile/${loggedInUser.matrimonial_id}`}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#800018] px-5 text-sm font-semibold text-white transition hover:bg-[#600012]"
-              >
-                Edit My Profile
-              </Link>
-            )}
+                     {loggedInUser?.account_type === "matrimonial" &&
+              loggedInUser?.matrimonial_id && (
+                <Link
+                  href={`/profile/${loggedInUser.matrimonial_id}`}
+                  className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50"
+                >
+                  Edit My Profile
+                </Link>
+              )}
         </div>
 
         {/* SEARCH PANEL */}
@@ -588,81 +597,89 @@ export default function MatchesPage() {
             {paginatedMatches.map((member) => (
               <article
                 key={member.id}
-                className="group overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-rose-100/80 bg-white shadow-[0_8px_30px_-18px_rgba(128,0,24,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-22px_rgba(128,0,24,0.4)]"
               >
-                {/* IMAGE: FIXED HEIGHT, FULL PHOTO */}
-                <div className="relative h-66 w-full overflow-hidden bg-gray-50">
+                <div className="relative h-52 w-full overflow-hidden bg-rose-50 sm:h-60">
                   <img
                     src={member.image || DEFAULT_IMAGE}
                     alt={member.name}
                     loading="lazy"
-                    className="h-full w-full  object-center"
+                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
                     onError={(event) => {
                       event.currentTarget.onerror = null;
                       event.currentTarget.src = DEFAULT_IMAGE;
                     }}
                   />
-
-                  {/* FAVORITE DECORATION */}
-                  <div className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 shadow-sm">
-                    <FaHeart className="text-sm text-rose-600" />
-                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  <span                   className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/35 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white backdrop-blur-sm">
+                    ID: {member.memberId}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={
+                      likedProfiles.includes(member.id)
+                        ? `Remove ${member.name} from favourites`
+                        : `Add ${member.name} to favourites`
+                    }
+                    aria-pressed={likedProfiles.includes(member.id)}
+                    onClick={() => toggleLike(member.id)}
+                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/95 shadow-lg transition duration-200 hover:scale-110 hover:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
+                  >
+                    <FaHeart
+                      className={`text-base transition-colors ${
+                        likedProfiles.includes(member.id)
+                          ? "text-rose-600"
+                          : "text-gray-400"
+                      }`}
+                    />
+                  </button>
                 </div>
 
-                {/* PROFILE DETAILS */}
-                <div className="p-2">
-                  <h3 className="truncate text-lg font-bold text-gray-900">
-                    {member.name}
-                  </h3>
-
-                  {member.age !== null && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      {member.age} Years
-                    </p>
-                  )}
-
-                  <div className="mt-1">
-                    <span className="inline-block max-w-full truncate rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-[#800018]">
-                      ID: {member.memberId}
+                <div className="flex flex-1 flex-col p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate text-lg font-bold text-gray-900">
+                        {member.name}
+                      </h3>
+                      {member.age !== null && (
+                        <p className="mt-0.5 text-xs font-medium text-rose-700">
+                          {member.age} years
+                        </p>
+                      )}
+                    </div>
+                    <span className="shrink-0 rounded-full bg-rose-50 px-2 py-1 text-[10px] font-semibold text-[#800018]">
+                      Match
                     </span>
                   </div>
 
-                  {/* CITY */}
-                  <div className="mt-2 space-y-1">
-                    <div className="flex min-w-0 items-center gap-3 text-sm text-gray-600">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-50">
-                        <FaMapMarkerAlt className="text-[#800018]" />
+                  <div className="mt-3 space-y-2">
+                    <div className="flex min-w-0 items-center gap-2.5 text-xs text-gray-600">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xs text-[#800018]">
+                        <FaMapMarkerAlt />
                       </span>
                       <span className="truncate">{member.city}</span>
                     </div>
-
-                    {/* EDUCATION */}
-                    <div className="flex min-w-0 items-center gap-3 text-sm text-gray-600">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-50">
-                        <FaGraduationCap className="text-[#800018]" />
+                    <div className="flex min-w-0 items-center gap-2.5 text-xs text-gray-600">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xs text-[#800018]">
+                        <FaGraduationCap />
                       </span>
                       <span className="truncate">{member.education}</span>
                     </div>
-
-                    {/* PROFESSION */}
-                    <div className="flex min-w-0 items-center gap-3 text-sm text-gray-600">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-50">
-                        <FaBriefcase className="text-[#800018]" />
+                    <div className="flex min-w-0 items-center gap-2.5 text-xs text-gray-600">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xs text-[#800018]">
+                        <FaBriefcase />
                       </span>
                       <span className="truncate">{member.profession}</span>
                     </div>
                   </div>
 
-                  {/* VIEW PROFILE */}
-                  <div className="mt-3 border-t border-gray-100 pt-2">
-                    <Link
-                      href={`/profile/${member.id}`}
-                      className="flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#800018] px-4 text-sm font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2"
-                    >
-                      View Profile
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                  </div>
+                  <Link
+                    href={`/profile/${member.id}#express-interest`}
+                    className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-xl bg-[#800018] px-3 text-xs font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2"
+                  >
+                    Send Request
+                    <span aria-hidden="true">→</span>
+                  </Link>
                 </div>
               </article>
             ))}
