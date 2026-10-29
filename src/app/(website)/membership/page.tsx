@@ -384,6 +384,8 @@ export default function MembershipPage() {
 
   const [loading, setLoading] =
     useState(false);
+  const [showFemalePhonePopup, setShowFemalePhonePopup] =
+    useState(false);
 
   /* PHOTO */
   const [photo, setPhoto] =
@@ -1847,6 +1849,43 @@ setMobileNational("");
         </div>
       )}
 
+      {showFemalePhonePopup && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowFemalePhonePopup(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="female-phone-notice-title"
+            className="w-full max-w-md rounded-2xl border border-red-100 bg-white p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
+              !
+            </div>
+            <h2
+              id="female-phone-notice-title"
+              className="mt-4 text-center text-lg font-bold text-gray-900"
+            >
+              Important phone number notice
+            </h2>
+            <p className="mt-2 text-center text-sm leading-6 text-red-600">
+              Female candidates must enter a parent&apos;s phone number only.
+              Their own phone number is not allowed.
+            </p>
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setShowFemalePhonePopup(false)}
+              className="mt-5 w-full rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2"
+            >
+              I Understand
+            </button>
+          </section>
+        </div>
+      )}
+
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
 
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
@@ -2042,29 +2081,16 @@ setMobileNational("");
     Calling code: +{getCountryCallingCode(selectedCountry)}
   </p>
 
+  {formData.gender === "Female" && (
+    <p className="mt-2 text-sm font-semibold text-red-600">
+      Female candidates must enter a parent&apos;s phone number only. Their own
+      phone number is not allowed.
+    </p>
+  )}
+
   <ErrorMessage field="mobile" />
-</div>
+</div>     
 
-                  {/* EMAIL */}
-                  <div>
-                    <label className={labelClass}>
-                      Email Address *
-                    </label>
-
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter Email Address"
-                      maxLength={150}
-                      className={getInputClass(
-                        "email"
-                      )}
-                    />
-
-                    <ErrorMessage field="email" />
-                  </div>
 
 
                   {/* GENDER */}
@@ -2076,7 +2102,12 @@ setMobileNational("");
                     <select
                       name="gender"
                       value={formData.gender}
-                      onChange={handleChange}
+                      onChange={(event) => {
+                        handleChange(event);
+                        if (event.target.value === "Female") {
+                          setShowFemalePhonePopup(true);
+                        }
+                      }}
                       className={getInputClass(
                         "gender"
                       )}
@@ -2100,6 +2131,29 @@ setMobileNational("");
 
                     <ErrorMessage field="gender" />
                   </div>
+
+                  {/* EMAIL */}
+                  <div>
+                    <label className={labelClass}>
+                      Email Address *
+                    </label>
+
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter Email Address"
+                      maxLength={150}
+                      className={getInputClass(
+                        "email"
+                      )}
+                    />
+
+                    <ErrorMessage field="email" />
+                  </div>
+
+
 
 
                   {/* =================================================
