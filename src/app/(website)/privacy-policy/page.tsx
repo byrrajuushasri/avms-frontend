@@ -1,4 +1,3 @@
-
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
@@ -37,7 +36,7 @@ const policies = [
     number: "05",
     title: "Matrimony ID – ముఖ్య సూచనలు",
     subtitle: "Important Matrimony Guidelines",
-    text: "మీ Matrimony ID మరియు ప్రొఫైల్ వివరాలను భద్రంగా ఉంచుకోండి. వివరాల్లో ఏవైనా మార్పులు ఉంటే మహాసభకు తెలియజేయండి. అందిన వివాహ ప్రొఫైల్‌కు ఆసక్తి ఉన్నా లేకపోయినా మర్యాదపూర్వకంగా తిరుగు సమాచారం అందించండి.",
+    text: "మీ Matrimony ID మరియు ప్రొఫైల్ వివరాలను భద్రంగా ఉంచుకోండి. వివరాల్లో ఏవైనా మార్పులు ఉంటే మహాసభకు తెలియజేయండి. అందిన వివాహ ప్రొఫైల్‌పై ఆసక్తి ఉన్నా లేకపోయినా మర్యాదపూర్వకంగా స్పందించండి.",
   },
   {
     number: "06",
@@ -55,88 +54,89 @@ const policies = [
     number: "08",
     title: "Cookies & విధాన మార్పులు",
     subtitle: "Cookies & Policy Updates",
-    text: "వెబ్‌సైట్‌లో అమల్లో ఉన్నట్లయితే, పనితీరు మరియు భద్రత కోసం అవసరమైన cookies లేదా సాంకేతిక సమాచారాన్ని ఉపయోగించవచ్చు. ఈ గోప్యతా విధానంలో మార్పులు చేసినప్పుడు, తాజా వివరాలను ఈ పేజీలో ప్రచురించవచ్చు.",
+    text: "వెబ్‌సైట్‌లో అమల్లో ఉన్నట్లయితే, పనితీరు మరియు భద్రత కోసం అవసరమైన cookies లేదా సాంకేతిక సమాచారాన్ని ఉపయోగించవచ్చు. ఈ గోప్యతా విధానంలో మార్పులు చేసినప్పుడు తాజా వివరాలను ఈ పేజీలో ప్రచురించవచ్చు.",
   },
 ];
 
 export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen bg-[#faf8f5] text-gray-800">
-      {/* Premium Page Header */}
-      <section className="relative overflow-hidden  ">
-        
+      {/* Compact Page Header */}
+      <header className="border-b border-[#eadfce] bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+          <p className="mb-1 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#a67816]">
+            Telangana State Arya Vysya Mahasabha
+          </p>
 
-        <div className="relative mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-5">
-          <div className="mx-auto max-w-3xl text-center">
-            
+          <h1 className="text-center text-2xl font-bold text-[#800018] sm:text-3xl">
+            గోప్యతా విధానం
+          </h1>
 
-            <h1 className="text-3xl font-bold leading-tight text-[#800018] sm:text-1xl">
-              గోప్యతా విధానం
-            </h1>
- 
+          <p className="mx-auto mt-2 max-w-xl text-center text-sm leading-6 text-gray-500">
+            Privacy Policy & Matrimonial Member Guidelines
+          </p>
 
-            <div className="mx-auto mt-6 h-1 w-20 rounded-full bg-[#800018]" />
-
-           
-          </div>
+          <div className="mx-auto mt-3 h-1 w-14 rounded-full bg-[#a67816]" />
         </div>
+      </header>
 
-        
-      </section>
-
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py- 4">
-        {/* Intro Card */}
-        <section className="mb-8 rounded-2xl border border-[#eadfce] bg-white p-6 shadow-sm sm:p-8">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#800018]/[0.07] text-2xl text-[#800018]">
+      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-7">
+        {/* Introduction */}
+        <section className="mb-5 rounded-xl border border-[#eadfce] bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#800018]/[0.07] text-xl text-[#800018]">
               ♧
             </div>
+
             <div>
-              <h2 className="text-lg font-bold text-[#800018] sm:text-xl">
+              <h2 className="text-base font-bold text-[#800018] sm:text-lg">
                 మా గోప్యతా విధానానికి స్వాగతం
               </h2>
-              <p className="mt-3 text-sm leading-8 text-gray-600 sm:text-base">
-                సభ్యుల వ్యక్తిగత సమాచారాన్ని గౌరవించడం మరియు
-                బాధ్యతాయుతంగా నిర్వహించడం మా లక్ష్యం. ఈ విధానంలో
-                సమాచారం సేకరణ, వినియోగం, భద్రత మరియు Matrimony
-                సభ్యులు పాటించవలసిన ముఖ్య సూచనలు వివరించబడ్డాయి.
+              <p className="mt-1.5 text-sm leading-7 text-gray-600">
+                సభ్యుల వ్యక్తిగత సమాచారాన్ని గౌరవించడం మరియు బాధ్యతాయుతంగా
+                నిర్వహించడం మా లక్ష్యం. ఈ విధానంలో సమాచారం సేకరణ, వినియోగం,
+                భద్రత మరియు Matrimony సభ్యులు పాటించవలసిన ముఖ్య సూచనలు
+                వివరించబడ్డాయి.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Policy Sections */}
-        <div className="mb-5">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a67816]">
-            OUR PRIVACY COMMITMENT
+        {/* Section Heading */}
+        <div className="mb-4">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#a67816]">
+            Our Privacy Commitment
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-[#800018] sm:text-xl">
+          <h2 className="mt-1 text-xl font-bold text-[#800018] sm:text-2xl">
             గోప్యత & సభ్యుల మార్గదర్శకాలు
           </h2>
-          <p className="mt-2 text-sm leading-7 text-gray-500">
+          <p className="mt-1 text-sm text-gray-500">
             మా సేవలను ఉపయోగించే ముందు ఈ సూచనలను జాగ్రత్తగా చదవండి.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        {/* Policy Cards */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {policies.map((policy) => (
             <article
               key={policy.number}
-              className="group rounded-2xl border border-[#eee4d5] bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#c9a45c] hover:shadow-md sm:p-6"
+              className="rounded-xl border border-[#eee4d5] bg-white p-4 shadow-sm transition duration-200 hover:border-[#c9a45c] hover:shadow-md sm:p-5"
             >
-              <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#ead9b7] bg-[#fffaf0] text-sm font-bold text-[#800018] transition group-hover:bg-[#800018] group-hover:text-white">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#ead9b7] bg-[#fffaf0] text-xs font-bold text-[#800018]">
                   {policy.number}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-bold leading-7 text-[#800018] sm:text-lg">
+                  <h3 className="text-base font-bold leading-6 text-[#800018]">
                     {policy.title}
                   </h3>
-                  <p className="mt-0.5 text-xs font-medium tracking-wide text-[#a67816]">
+
+                  <p className="mt-0.5 text-xs font-medium text-[#a67816]">
                     {policy.subtitle}
                   </p>
-                  <p className="mt-3 text-sm leading-8 text-gray-600 sm:text-[15px]">
+
+                  <p className="mt-2 text-sm leading-7 text-gray-600">
                     {policy.text}
                   </p>
                 </div>
@@ -145,33 +145,35 @@ export default function PrivacyPolicyPage() {
           ))}
         </div>
 
-        {/* Contact Card */}
-        <section className="mt-8 overflow-hidden rounded-2xl border border-[#ead9b7] bg-white shadow-sm">
-          <div className="h-1.5 bg-gradient-to-r from-[#690015] via-[#d9b76e] to-[#690015]" />
+        {/* Contact Section */}
+        <section className="mt-5 overflow-hidden rounded-xl border border-[#ead9b7] bg-white shadow-sm">
+          <div className="h-1 bg-gradient-to-r from-[#690015] via-[#d9b76e] to-[#690015]" />
 
-          <div className="grid gap-6 p-6 sm:p-8 md:grid-cols-[1fr_auto] md:items-center">
+          <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a67816]">
-                WE ARE HERE TO HELP
+              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#a67816]">
+                We Are Here to Help
               </p>
-              <h2 className="mt-2 text-xl font-bold text-[#800018] sm:text-2xl">
+
+              <h2 className="mt-1 text-lg font-bold text-[#800018] sm:text-xl">
                 మరింత సమాచారం కోసం సంప్రదించండి
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600">
-                మీ Matrimony ID, ప్రొఫైల్ వివరాలు లేదా గోప్యతకు
-                సంబంధించిన సందేహాల కోసం మహాసభను సంప్రదించండి.
+
+              <p className="mt-1 text-sm leading-6 text-gray-600">
+                మీ Matrimony ID, ప్రొఫైల్ వివరాలు లేదా గోప్యతకు సంబంధించిన
+                సందేహాల కోసం మహాసభను సంప్రదించండి.
               </p>
             </div>
 
             <a
               href="mailto:noreply@aryavysyamahasabha.com"
-              className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#800018] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-[#800018] focus:ring-offset-2"
+              className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-[#800018] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-[#800018] focus:ring-offset-2"
             >
               Email Us <span className="ml-2" aria-hidden="true">↗</span>
             </a>
           </div>
 
-          <div className="border-t border-[#eee4d5] bg-[#fffaf3] px-6 py-4 sm:px-8">
+          <div className="border-t border-[#eee4d5] bg-[#fffaf3] px-4 py-3 sm:px-5">
             <p className="break-all text-sm text-gray-700">
               <span className="font-semibold text-[#800018]">Email: </span>
               noreply@aryavysyamahasabha.com
@@ -179,20 +181,21 @@ export default function PrivacyPolicyPage() {
           </div>
         </section>
 
-        {/* Blessing */}
-        <footer className="mt-8 rounded-2xl border border-[#ead9b7] bg-gradient-to-br from-[#fffaf0] to-[#f7edda] px-5 py-8 text-center sm:px-8">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#a67816]">
-            WITH DIVINE BLESSINGS
+        {/* Closing Blessing */}
+        <footer className="mt-5 rounded-xl border border-[#ead9b7] bg-gradient-to-r from-[#fffaf0] to-[#f7edda] px-4 py-5 text-center">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#a67816]">
+            With Divine Blessings
           </p>
-          <div className="mx-auto my-4 h-px max-w-24 bg-[#d9b76e]" />
-          <p className="text-base font-bold leading-8 text-[#800018] sm:text-xl">
-            మా కులదైవం శ్రీ వాసవి కన్యకా పరమేశ్వరి
-            <br className="sm:hidden" /> అమ్మవారి ఆశీస్సులతో
+
+          <p className="mt-2 text-base font-bold leading-7 text-[#800018] sm:text-lg">
+            మా కులదైవం శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి ఆశీస్సులతో
           </p>
-          <p className="mt-3 text-2xl" aria-label="Prayer">
+
+          <p className="mt-1 text-lg" aria-label="Prayer">
             🙏
           </p>
-          <p className="mt-2 text-xs text-gray-500">
+
+          <p className="mt-1 text-xs text-gray-500">
             Telangana State Arya Vysya Mahasabha
           </p>
         </footer>

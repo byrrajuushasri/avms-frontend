@@ -14,6 +14,7 @@ import {
   FaChevronRight,
   FaUser,
   FaEllipsisV,
+  FaEye,
   FaEdit,
   FaTrash,
   FaCheck,
@@ -720,6 +721,21 @@ export default function MembershipPage() {
                                 role="menu"
                                 className="absolute right-0 top-full z-[100] mt-1 w-40 rounded-lg border border-gray-200 bg-white py-1 text-left shadow-xl"
                               >
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setOpenActionId(null);
+                                    router.push(
+                                      `/admin/membership/view/${member.id}`,
+                                    );
+                                  }}
+                                  className="flex w-full items-center gap-2 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50"
+                                >
+                                  <FaEye className="text-gray-400" />
+                                  View
+                                </button>
+
                                 <button
                                   type="button"
                                   role="menuitem"

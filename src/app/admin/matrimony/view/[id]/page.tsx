@@ -28,10 +28,10 @@ import { getStorageImageUrl } from "@/lib/storage-image-url";
    BACKEND URL
 ========================================================= */
 
-const API_URL = (
+const BACKEND_URL = (
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  "http://localhost:5000"
-).replace(/\/$/, "");
+  "https://avms-backend-production.up.railway.app"
+).replace(/\/+$/, "");
 
 /* =========================================================
    MEMBER INTERFACE
@@ -187,7 +187,7 @@ export default function ViewProfilePage() {
         setError("");
 
         const response = await fetch(
-          `${API_URL}/matrimonial-users/${id}`,
+          `${BACKEND_URL}/matrimonial-users/${id}`,
           {
             method: "GET",
             cache: "no-store",
@@ -218,10 +218,102 @@ export default function ViewProfilePage() {
          * {...}
          */
 
-        const memberData =
-          result?.data ?? result;
+        const memberData = result?.data ?? result;
+        let contactData: { email?: string | null; mobile?: string | null } = {};
+        const profileEmail =
+          typeof memberData?.email === "string" ? memberData.email.trim() : "";
+        const profileMobile =
+          typeof memberData?.mobile === "string" ? memberData.mobile.trim() : "";
 
-        setMember(memberData);
+        if (
+          memberData?.member_id &&
+          (!profileEmail || !profileMobile)
+        ) {
+          const token =
+            localStorage.getItem("adminToken") ||
+            localStorage.getItem("token") ||
+            localStorage.getItem("access_token");
+          try {
+            let storedUser: { role?: string; sangham?: string } | null = null;
+            try {
+              storedUser = JSON.parse(
+                localStorage.getItem("user") || "null"
+              ) as { role?: string; sangham?: string } | null;
+            } catch (userParseError) {
+              console.warn("Unable to read the logged-in user details:", userParseError);
+            }
+
+            const memberParams = new URLSearchParams();
+            if (storedUser?.role) {
+              memberParams.set("role", storedUser.role);
+            }
+            if (storedUser?.sangham) {
+              memberParams.set("sangham", storedUser.sangham);
+            }
+
+            const memberResponse = await fetch(
+              `${BACKEND_URL}/membership-register${
+                memberParams.size ? `?${memberParams.toString()}` : ""
+              }`,
+              {
+                method: "GET",
+                headers: token
+                  ? { Authorization: `Bearer ${token}` }
+                  : {},
+                cache: "no-store",
+              }
+            );
+
+            if (!memberResponse.ok) {
+              throw new Error(
+                `Membership lookup failed (${memberResponse.status}).`
+              );
+            }
+
+            const memberResult = await memberResponse.json();
+            const members = Array.isArray(memberResult)
+              ? memberResult
+              : Array.isArray(memberResult?.data)
+                ? memberResult.data
+                : Array.isArray(memberResult?.members)
+                  ? memberResult.members
+                  : [];
+            const linkedMember = members.find(
+              (candidate: { member_id?: string | number | null }) =>
+                String(candidate.member_id ?? "") ===
+                String(memberData.member_id)
+            );
+
+            if (linkedMember) {
+              contactData = {
+                email:
+                  typeof linkedMember.email === "string"
+                    ? linkedMember.email.trim() || null
+                    : null,
+                mobile:
+                  typeof linkedMember.mobile === "string"
+                    ? linkedMember.mobile.trim() || null
+                    : null,
+              };
+            } else {
+              console.warn(
+                "No membership record matched the matrimonial member ID:",
+                memberData.member_id
+              );
+            }
+          } catch (contactError) {
+            console.warn(
+              "Failed to load contact details from membership records:",
+              contactError
+            );
+          }
+        }
+
+        setMember({
+          ...memberData,
+          email: profileEmail || contactData.email || null,
+          mobile: profileMobile || contactData.mobile || null,
+        });
       } catch (err) {
         console.error(
           "Fetch matrimonial member error:",
@@ -380,7 +472,7 @@ export default function ViewProfilePage() {
   const getPhotoUrl = (
     photo: string | null | undefined
   ) => {
-    return getStorageImageUrl(photo, API_URL);
+    return getStorageImageUrl(photo, BACKEND_URL);
   };
 
   const photoUrl = getPhotoUrl(member.photo);
@@ -666,16 +758,6 @@ export default function ViewProfilePage() {
             <Info
               label="Height"
               value={member.height}
-            />
-
-            <Info
-              label="Mobile Number"
-              value={member.mobile}
-            />
-
-            <Info
-              label="Email Address"
-              value={member.email}
             />
 
           </InfoGrid>
@@ -1171,16 +1253,6 @@ export default function ViewProfilePage() {
             />
 
            
-
-            <Info
-              label="Mobile"
-              value={member.mobile}
-            />
-
-            <Info
-              label="Email"
-              value={member.email}
-            />
 
             <Info
               label="Created At"

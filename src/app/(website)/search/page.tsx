@@ -463,9 +463,7 @@ export default function MatchesPage() {
                 <h2 className="text-lg font-bold text-gray-800">
                   Search Profiles
                 </h2>
-                <p className="text-xs text-gray-500 sm:text-sm">
-                  Find your preferred life partner
-                </p>
+                 
               </div>
             </div>
 
