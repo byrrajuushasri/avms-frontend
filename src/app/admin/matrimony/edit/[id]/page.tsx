@@ -292,6 +292,11 @@ type Sibling = {
   occupation: string;
 };
 
+type SiblingSummary = {
+  total: number;
+  married: number;
+};
+
 /* =========================================================
    PROFILE TYPE
 ========================================================= */
@@ -300,6 +305,13 @@ type Profile = {
   member_id: string;
 
   profile_category: string;
+  password: string;
+  marital_status: string;
+  number_of_children: string;
+  previous_marriage_conditions: string;
+  physical_status: string;
+  family_status: string;
+  additional_details: string;
 
   father_name: string;
   mother_name: string;
@@ -345,6 +357,13 @@ const emptyProfile: Profile = {
   member_id: "",
 
   profile_category: "Professional",
+  password: "",
+  marital_status: "",
+  number_of_children: "0",
+  previous_marriage_conditions: "",
+  physical_status: "Normal",
+  family_status: "",
+  additional_details: "",
 
   father_name: "",
   mother_name: "",
@@ -395,6 +414,68 @@ const textareaClass =
 const labelClass =
   "text-sm font-medium text-gray-700";
 
+function SiblingSummaryFields({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: SiblingSummary;
+  onChange: (value: SiblingSummary) => void;
+}) {
+  return (
+    <div className="mt-4 rounded-xl border border-pink-200 bg-white p-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>Number of {label}s</label>
+          <select
+            value={value.total}
+            onChange={(event) => {
+              const total = Number(event.target.value);
+              onChange({
+                total,
+                married: Math.min(value.married, total),
+              });
+            }}
+            className={inputClass}
+          >
+            {Array.from({ length: 6 }, (_, count) => (
+              <option key={count} value={count}>
+                {count === 0 ? `No ${label}s` : count}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {value.total > 0 && (
+          <div>
+            <label className={labelClass}>Married {label}s</label>
+            <select
+              value={value.married}
+              onChange={(event) =>
+                onChange({
+                  ...value,
+                  married: Number(event.target.value),
+                })
+              }
+              className={inputClass}
+            >
+              {Array.from({ length: value.total + 1 }, (_, count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-xs text-gray-500">
+              Unmarried {label}s: {value.total - value.married}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* =========================================================
    PAGE
 ========================================================= */
@@ -413,6 +494,12 @@ export default function EditMatrimonialMemberPage() {
 
   const [sisters, setSisters] =
     useState<Sibling[]>([]);
+
+  const [brotherSummary, setBrotherSummary] =
+    useState<SiblingSummary | null>(null);
+
+  const [sisterSummary, setSisterSummary] =
+    useState<SiblingSummary | null>(null);
 
   const [loading, setLoading] =
     useState(true);
@@ -478,6 +565,47 @@ export default function EditMatrimonialMemberPage() {
     marital_status: "",
     occupation: "",
   });
+
+  const parseSiblingSummary = (
+    text: string,
+    type: "Brother" | "Sister"
+  ): SiblingSummary | null => {
+    const trimmed = text.trim();
+
+    if (trimmed.toLowerCase() === `no ${type.toLowerCase()}s`) {
+      return { total: 0, married: 0 };
+    }
+
+    const match = trimmed.match(
+      new RegExp(
+        `^(\\d+)\\s+${type}s?\\s*-\\s*Married:\\s*(\\d+),\\s*Unmarried:\\s*(\\d+)$`,
+        "i"
+      )
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    const total = Number(match[1]);
+    const married = Number(match[2]);
+    const unmarried = Number(match[3]);
+
+    if (
+      !Number.isInteger(total) ||
+      !Number.isInteger(married) ||
+      !Number.isInteger(unmarried) ||
+      total < 0 ||
+      total > 5 ||
+      married < 0 ||
+      unmarried < 0 ||
+      married + unmarried !== total
+    ) {
+      return null;
+    }
+
+    return { total, married };
+  };
 
   /* =======================================================
      PARSE SIBLINGS
@@ -604,6 +732,96 @@ export default function EditMatrimonialMemberPage() {
           );
         }
 
+        let registeredMobile =
+          typeof member.mobile === "string"
+            ? member.mobile.trim()
+            : "";
+        let registeredEmail =
+          typeof member.email === "string"
+            ? member.email.trim()
+            : "";
+
+        if (
+          member.member_id &&
+          (!registeredMobile || !registeredEmail)
+        ) {
+          try {
+            const token =
+              localStorage.getItem("adminToken") ||
+              localStorage.getItem("token") ||
+              localStorage.getItem("access_token");
+
+            let storedUser: { role?: string; sangham?: string } | null = null;
+            try {
+              storedUser = JSON.parse(
+                localStorage.getItem("user") || "null"
+              ) as { role?: string; sangham?: string } | null;
+            } catch (userParseError) {
+              console.warn(
+                "Unable to read the logged-in user details:",
+                userParseError
+              );
+            }
+
+            const memberParams = new URLSearchParams();
+            if (storedUser?.role) {
+              memberParams.set("role", storedUser.role);
+            }
+            if (storedUser?.sangham) {
+              memberParams.set("sangham", storedUser.sangham);
+            }
+
+            const memberResponse = await fetch(
+              `${BACKEND_URL}/membership-register${
+                memberParams.size ? `?${memberParams.toString()}` : ""
+              }`,
+              {
+                method: "GET",
+                headers: token
+                  ? { Authorization: `Bearer ${token}` }
+                  : {},
+                cache: "no-store",
+              }
+            );
+
+            if (!memberResponse.ok) {
+              throw new Error(
+                `Membership lookup failed (${memberResponse.status}).`
+              );
+            }
+
+            const memberResult = await memberResponse.json();
+            const members = Array.isArray(memberResult)
+              ? memberResult
+              : Array.isArray(memberResult?.data)
+                ? memberResult.data
+                : Array.isArray(memberResult?.members)
+                  ? memberResult.members
+                  : [];
+            const linkedMember = members.find(
+              (candidate: { member_id?: string | number | null }) =>
+                String(candidate.member_id ?? "") ===
+                String(member.member_id)
+            );
+
+            registeredMobile =
+              registeredMobile ||
+              (typeof linkedMember?.mobile === "string"
+                ? linkedMember.mobile.trim()
+                : "");
+            registeredEmail =
+              registeredEmail ||
+              (typeof linkedMember?.email === "string"
+                ? linkedMember.email.trim()
+                : "");
+          } catch (contactError) {
+            console.warn(
+              "Failed to load registered contact details:",
+              contactError
+            );
+          }
+        }
+
         /* =========================================
            DEBUG
         ========================================= */
@@ -629,24 +847,31 @@ export default function EditMatrimonialMemberPage() {
            SIBLINGS
         ========================================= */
 
-        const parsedBrothers =
-          parseSiblings(
-            member.brother_details ??
-              member.brotherDetails ??
-              "",
-            "Brother"
-          );
+        const brotherDetails =
+          member.brother_details ??
+          member.brotherDetails ??
+          "";
+        const sisterDetails =
+          member.sister_details ??
+          member.sisterDetails ??
+          "";
+        const parsedBrotherSummary =
+          parseSiblingSummary(brotherDetails, "Brother");
+        const parsedSisterSummary =
+          parseSiblingSummary(sisterDetails, "Sister");
 
-        const parsedSisters =
-          parseSiblings(
-            member.sister_details ??
-              member.sisterDetails ??
-              "",
-            "Sister"
-          );
-
-        setBrothers(parsedBrothers);
-        setSisters(parsedSisters);
+        setBrotherSummary(parsedBrotherSummary);
+        setSisterSummary(parsedSisterSummary);
+        setBrothers(
+          parsedBrotherSummary
+            ? []
+            : parseSiblings(brotherDetails, "Brother")
+        );
+        setSisters(
+          parsedSisterSummary
+            ? []
+            : parseSiblings(sisterDetails, "Sister")
+        );
 
         /* =========================================
            PHOTO
@@ -671,6 +896,40 @@ export default function EditMatrimonialMemberPage() {
             member.profile_category ??
             member.profileCategory ??
             "Professional",
+
+          password: "",
+
+          marital_status:
+            member.marital_status ??
+            member.maritalStatus ??
+            "",
+
+          number_of_children:
+            member.number_of_children != null
+              ? String(member.number_of_children)
+              : member.numberOfChildren != null
+                ? String(member.numberOfChildren)
+                : "0",
+
+          previous_marriage_conditions:
+            member.previous_marriage_conditions ??
+            member.previousMarriageConditions ??
+            "",
+
+          physical_status:
+            member.physical_status ??
+            member.physicalStatus ??
+            "Normal",
+
+          family_status:
+            member.family_status ??
+            member.familyStatus ??
+            "",
+
+          additional_details:
+            member.additional_details ??
+            member.additionalDetails ??
+            "",
 
           father_name:
             member.father_name ??
@@ -775,11 +1034,9 @@ export default function EditMatrimonialMemberPage() {
              CONTACT
           ===================================== */
 
-          mobile:
-            member.mobile ?? "",
+          mobile: registeredMobile,
 
-          email:
-            member.email ?? "",
+          email: registeredEmail,
 
           /* =====================================
              CONSENT
@@ -1009,6 +1266,91 @@ export default function EditMatrimonialMemberPage() {
   const handleSave = async () => {
     if (saving) return;
 
+    if (profile.password.trim() && profile.password.trim().length < 6) {
+      setDialog({
+        title: "Invalid password",
+        message: "A new password must contain at least 6 characters.",
+        tone: "error",
+      });
+      return;
+    }
+
+    if (
+      !["Never Married", "Divorced", "Awaiting Divorce"].includes(
+        profile.marital_status
+      )
+    ) {
+      setDialog({
+        title: "Required information",
+        message: "Please select a valid Marital Status.",
+        tone: "error",
+      });
+      return;
+    }
+
+    if (
+      !["Normal", "Physically Handicapped", "Other"].includes(
+        profile.physical_status
+      )
+    ) {
+      setDialog({
+        title: "Required information",
+        message: "Please select a valid Physical Status.",
+        tone: "error",
+      });
+      return;
+    }
+
+    if (
+      !["Middle Class", "Upper Middle Class", "Rich", "Other"].includes(
+        profile.family_status
+      )
+    ) {
+      setDialog({
+        title: "Required information",
+        message: "Please select a valid Family Status.",
+        tone: "error",
+      });
+      return;
+    }
+
+    if (!profile.additional_details.trim()) {
+      setDialog({
+        title: "Required information",
+        message: "Please enter Additional Details.",
+        tone: "error",
+      });
+      return;
+    }
+
+    if (
+      profile.marital_status === "Divorced" ||
+      profile.marital_status === "Awaiting Divorce"
+    ) {
+      if (
+        profile.number_of_children === "" ||
+        !Number.isInteger(Number(profile.number_of_children)) ||
+        Number(profile.number_of_children) < 0
+      ) {
+        setDialog({
+          title: "Required information",
+          message: "Please enter a valid Number of Children.",
+          tone: "error",
+        });
+        return;
+      }
+
+      if (!profile.previous_marriage_conditions.trim()) {
+        setDialog({
+          title: "Required information",
+          message:
+            "Please enter Previous Marriage Conditions / Other Details.",
+          tone: "error",
+        });
+        return;
+      }
+    }
+
     /* =========================================
        VALIDATION
     ========================================= */
@@ -1017,15 +1359,6 @@ export default function EditMatrimonialMemberPage() {
       setDialog({
         title: "Required information",
         message: "Please select Profile Category.",
-        tone: "error",
-      });
-      return;
-    }
-
-    if (!profile.father_name.trim()) {
-      setDialog({
-        title: "Required information",
-        message: "Please enter Father's Name.",
         tone: "error",
       });
       return;
@@ -1144,6 +1477,10 @@ export default function EditMatrimonialMemberPage() {
         profile.email.trim()
       );
 
+      if (profile.password.trim()) {
+        formData.append("password", profile.password.trim());
+      }
+
       /* =========================================
          PERSONAL
       ========================================= */
@@ -1152,6 +1489,24 @@ export default function EditMatrimonialMemberPage() {
         "profile_category",
         profile.profile_category
       );
+
+      formData.append("marital_status", profile.marital_status);
+      formData.append(
+        "number_of_children",
+        profile.marital_status === "Never Married"
+          ? "0"
+          : profile.number_of_children
+      );
+      formData.append(
+        "previous_marriage_conditions",
+        profile.marital_status === "Divorced" ||
+          profile.marital_status === "Awaiting Divorce"
+          ? profile.previous_marriage_conditions
+          : ""
+      );
+      formData.append("physical_status", profile.physical_status);
+      formData.append("family_status", profile.family_status);
+      formData.append("additional_details", profile.additional_details);
 
       formData.append(
         "father_name",
@@ -1240,20 +1595,30 @@ export default function EditMatrimonialMemberPage() {
         profile.mother_occupation
       );
 
+      const formatSiblingSummary = (
+        summary: SiblingSummary,
+        type: "Brother" | "Sister"
+      ) =>
+        summary.total === 0
+          ? `No ${type}s`
+          : `${summary.total} ${type}${
+              summary.total === 1 ? "" : "s"
+            } - Married: ${summary.married}, Unmarried: ${
+              summary.total - summary.married
+            }`;
+
       formData.append(
         "brother_details",
-        formatSiblings(
-          brothers,
-          "Brother"
-        )
+        brotherSummary
+          ? formatSiblingSummary(brotherSummary, "Brother")
+          : formatSiblings(brothers, "Brother")
       );
 
       formData.append(
         "sister_details",
-        formatSiblings(
-          sisters,
-          "Sister"
-        )
+        sisterSummary
+          ? formatSiblingSummary(sisterSummary, "Sister")
+          : formatSiblings(sisters, "Sister")
       );
 
       formData.append(
@@ -1631,14 +1996,6 @@ export default function EditMatrimonialMemberPage() {
             />
 
             <FormInput
-              label="Father's Name"
-              name="father_name"
-              value={profile.father_name}
-              onChange={handleChange}
-              required
-            />
-
-            <FormInput
               label="Mother's Name"
               name="mother_name"
               value={profile.mother_name}
@@ -1734,6 +2091,115 @@ export default function EditMatrimonialMemberPage() {
               placeholder="Example: 5.6"
             />
 
+          </div>
+
+          <SectionTitle
+            title="Marital & Family Status"
+            description="Update marital, physical and family details from the registration form."
+          />
+
+          <div className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">
+            <FormSelect
+              label="Marital Status"
+              name="marital_status"
+              value={profile.marital_status}
+              onChange={(event) => {
+                const maritalStatus = event.target.value;
+                setProfile((current) => ({
+                  ...current,
+                  marital_status: maritalStatus,
+                  ...(maritalStatus === "Never Married"
+                    ? {
+                        number_of_children: "0",
+                        previous_marriage_conditions: "",
+                      }
+                    : {}),
+                }));
+              }}
+              options={[
+                { value: "Never Married", label: "Never Married" },
+                { value: "Divorced", label: "Divorced" },
+                { value: "Awaiting Divorce", label: "Awaiting Divorce" },
+              ]}
+            />
+
+            <FormSelect
+              label="Physical Status"
+              name="physical_status"
+              value={profile.physical_status}
+              onChange={handleChange}
+              options={[
+                { value: "Normal", label: "Normal" },
+                {
+                  value: "Physically Handicapped",
+                  label: "Physically Handicapped",
+                },
+                { value: "Other", label: "Other" },
+              ]}
+            />
+
+            <FormSelect
+              label="Family Status"
+              name="family_status"
+              value={profile.family_status}
+              onChange={handleChange}
+              options={[
+                { value: "Middle Class", label: "Middle Class" },
+                {
+                  value: "Upper Middle Class",
+                  label: "Upper Middle Class",
+                },
+                { value: "Rich", label: "Rich" },
+                { value: "Other", label: "Other" },
+              ]}
+            />
+
+            {(profile.marital_status === "Divorced" ||
+              profile.marital_status === "Awaiting Divorce") && (
+              <>
+                <FormSelect
+                  label="Number of Children"
+                  name="number_of_children"
+                  value={profile.number_of_children}
+                  onChange={handleChange}
+                  options={[
+                    { value: "0", label: "0 - No Children" },
+                    { value: "1", label: "1 Child" },
+                    { value: "2", label: "2 Children" },
+                    { value: "3", label: "3 Children" },
+                    { value: "4", label: "4 Children" },
+                    { value: "5", label: "5 or More Children" },
+                  ]}
+                />
+                <div className="md:col-span-2 lg:col-span-3">
+                  <FormTextarea
+                    label="Previous Marriage Conditions / Other Details"
+                    name="previous_marriage_conditions"
+                    value={profile.previous_marriage_conditions}
+                    onChange={handleChange}
+                    rows={4}
+                    maxLength={1000}
+                  />
+                  <p className="mt-1 text-right text-xs text-gray-500">
+                    {profile.previous_marriage_conditions.length}/1000 characters
+                  </p>
+                </div>
+              </>
+            )}
+
+            <div className="md:col-span-2 lg:col-span-3">
+              <FormTextarea
+                label="Additional Details"
+                name="additional_details"
+                value={profile.additional_details}
+                onChange={handleChange}
+                rows={4}
+                maxLength={2000}
+              />
+              <p className="mt-1 text-right text-xs text-gray-500">
+                {profile.additional_details.length}/2000 characters
+              </p>
+            </div>
           </div>
 
           {/* =================================================
@@ -1858,6 +2324,14 @@ export default function EditMatrimonialMemberPage() {
 
               </div>
 
+              {brotherSummary ? (
+                <SiblingSummaryFields
+                  label="Brother"
+                  value={brotherSummary}
+                  onChange={setBrotherSummary}
+                />
+              ) : (
+                <>
               <div className="mt-4 max-w-xs">
 
                 <label className={labelClass}>
@@ -1989,6 +2463,8 @@ export default function EditMatrimonialMemberPage() {
                   </div>
                 )
               )}
+                </>
+              )}
 
             </div>
 
@@ -2012,6 +2488,14 @@ export default function EditMatrimonialMemberPage() {
 
               </div>
 
+              {sisterSummary ? (
+                <SiblingSummaryFields
+                  label="Sister"
+                  value={sisterSummary}
+                  onChange={setSisterSummary}
+                />
+              ) : (
+                <>
               <div className="mt-4 max-w-xs">
 
                 <label className={labelClass}>
@@ -2143,6 +2627,8 @@ export default function EditMatrimonialMemberPage() {
                   </div>
                 )
               )}
+                </>
+              )}
 
             </div>
 
@@ -2257,6 +2743,27 @@ export default function EditMatrimonialMemberPage() {
               onChange={handleChange}
             />
 
+          </div>
+
+          <SectionTitle
+            title="Account Access"
+            description="Set a new sign-in password for this profile. Leave blank to keep the current password."
+          />
+
+          <div className="p-6">
+            <FormInput
+              label="New Password"
+              name="password"
+              value={profile.password}
+              onChange={handleChange}
+              type="password"
+              placeholder="Leave blank to keep the current password"
+            />
+            {profile.password && profile.password.length < 6 && (
+              <p className="mt-1 text-xs font-medium text-red-600">
+                Password must contain at least 6 characters.
+              </p>
+            )}
           </div>
 
           {/* =================================================
@@ -2654,6 +3161,7 @@ function FormTextarea({
   value,
   onChange,
   rows = 4,
+  maxLength,
 }: {
   label: string;
   name: string;
@@ -2662,6 +3170,7 @@ function FormTextarea({
     e: React.ChangeEvent<HTMLTextAreaElement>
   ) => void;
   rows?: number;
+  maxLength?: number;
 }) {
   return (
     <div>
@@ -2675,6 +3184,7 @@ function FormTextarea({
         value={value}
         onChange={onChange}
         rows={rows}
+        maxLength={maxLength}
         className={textareaClass}
       />
 

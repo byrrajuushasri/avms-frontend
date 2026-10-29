@@ -20,6 +20,7 @@ interface Member {
   member_id: string;
 
   full_name: string;
+  father_name: string;
   mobile: string;
   email: string;
   occupation: string;
@@ -61,6 +62,7 @@ export default function EditMemberPage() {
     member_id: "",
 
     full_name: "",
+    father_name: "",
     mobile: "",
     email: "",
     occupation: "",
@@ -216,6 +218,9 @@ export default function EditMemberPage() {
 
           full_name:
             data?.full_name || "",
+
+          father_name:
+            data?.father_name || "",
 
           mobile:
             data?.mobile || "",
@@ -425,6 +430,11 @@ export default function EditMemberPage() {
       formData.append(
         "full_name",
         member.full_name.trim()
+      );
+
+      formData.append(
+        "father_name",
+        member.father_name.trim()
       );
 
       formData.append(
@@ -836,6 +846,21 @@ export default function EditMemberPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Father&apos;s Name *
+                </label>
+
+                <input
+                  type="text"
+                  name="father_name"
+                  value={member.father_name}
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
+                />
+              </div>
+
               {/* =================================================
                   MOBILE
               ================================================= */}
@@ -1222,6 +1247,10 @@ export default function EditMemberPage() {
 
                   <option value="Member">
                     Member
+                  </option>
+
+                  <option value="Member with Matrimony">
+                    Member with Matrimony
                   </option>
 
                   <option value="General Secretary">

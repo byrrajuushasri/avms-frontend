@@ -1006,28 +1006,28 @@ export default function ViewProfilePage() {
         </Section>
 
         {/* =================================================
-            AREA VOLUNTEER
+            AREA REFERENCE
         ================================================= */}
 
         <Section
-          title="Area Volunteer Information"
+          title="Area Reference Information"
           icon={<FaUsers />}
         >
 
           <InfoGrid>
 
             <Info
-              label="Volunteer Name"
+              label="Reference Name"
               value={volunteerName}
             />
 
             <Info
-              label="Volunteer Contact"
+              label="Reference Contact"
               value={volunteerContact}
             />
 
             <Info
-              label="Volunteer Position / Area"
+              label="Reference Position / Area"
               value={volunteerPosition}
             />
 
