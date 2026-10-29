@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import Cropper, { type Area } from "react-easy-crop";
 
 import {
   getCountries,
@@ -48,6 +49,55 @@ type FormData = {
 };
 
 type ErrorState = Record<string, string>;
+
+const PHOTO_MAX_SIZE = 5 * 1024 * 1024;
+const CROPPED_PHOTO_SIZE = 512;
+
+async function createCroppedPhoto(
+  imageSource: string,
+  cropArea: Area
+): Promise<Blob> {
+  const image = new Image();
+  image.src = imageSource;
+  await image.decode();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = CROPPED_PHOTO_SIZE;
+  canvas.height = CROPPED_PHOTO_SIZE;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Your browser could not prepare the cropped photo.");
+  }
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(
+    image,
+    cropArea.x,
+    cropArea.y,
+    cropArea.width,
+    cropArea.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Your browser could not create the cropped photo."));
+        }
+      },
+      "image/jpeg",
+      0.9
+    );
+  });
+}
 
 
 
@@ -342,6 +392,13 @@ export default function MembershipPage() {
   const [photoPreview, setPhotoPreview] =
     useState<string>("");
 
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] =
+    useState<Area | null>(null);
+  const [savingCrop, setSavingCrop] = useState(false);
+
   /* LOCATION */
   const [districts, setDistricts] =
     useState<LocationItem[]>([]);
@@ -363,6 +420,16 @@ export default function MembershipPage() {
 
 const [mobileNational, setMobileNational] =
   useState("");
+
+useEffect(() => {
+  if (!cropImage) return;
+  return () => URL.revokeObjectURL(cropImage);
+}, [cropImage]);
+
+useEffect(() => {
+  if (!photoPreview) return;
+  return () => URL.revokeObjectURL(photoPreview);
+}, [photoPreview]);
 
   /* =========================================================
      API URL
@@ -561,10 +628,11 @@ const [mobileNational, setMobileNational] =
      PHOTO CHANGE
   ========================================================= */
 
-  const handlePhotoChange = (
+  const handlePhotoChange = async (
     e: ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
 
     if (!file) return;
 
@@ -578,7 +646,7 @@ const [mobileNational, setMobileNational] =
     if (!allowedTypes.includes(file.type)) {
       setPhoto(null);
       setPhotoPreview("");
-      e.target.value = "";
+      setCropImage(null);
 
       setFieldError(
         "photo",
@@ -592,13 +660,10 @@ const [mobileNational, setMobileNational] =
       return;
     }
 
-    const maxSize =
-      5 * 1024 * 1024;
-
-    if (file.size > maxSize) {
+    if (file.size > PHOTO_MAX_SIZE) {
       setPhoto(null);
       setPhotoPreview("");
-      e.target.value = "";
+      setCropImage(null);
 
       setFieldError(
         "photo",
@@ -612,13 +677,61 @@ const [mobileNational, setMobileNational] =
       return;
     }
 
-    setPhoto(file);
+    const imageUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = imageUrl;
 
-    setPhotoPreview(
-      URL.createObjectURL(file)
-    );
+    try {
+      await image.decode();
+      if (image.naturalWidth < 256 || image.naturalHeight < 256) {
+        URL.revokeObjectURL(imageUrl);
+        setFieldError("photo", "Photo must be at least 256 × 256 pixels.");
+        toast.error("Choose a higher-resolution photo.");
+        return;
+      }
 
-    clearFieldError("photo");
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+      setCropImage(imageUrl);
+    } catch (error) {
+      URL.revokeObjectURL(imageUrl);
+      console.error("Unable to read selected membership photo:", error);
+      setFieldError("photo", "This photo could not be opened. Choose another image.");
+      toast.error("Unable to open this photo.");
+    }
+  };
+
+  const handleCropComplete = async () => {
+    if (!cropImage || !croppedAreaPixels || savingCrop) return;
+
+    setSavingCrop(true);
+    try {
+      const croppedBlob = await createCroppedPhoto(
+        cropImage,
+        croppedAreaPixels
+      );
+      const croppedFile = new File([croppedBlob], "member-photo.jpg", {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+
+      setPhoto(croppedFile);
+      setPhotoPreview(URL.createObjectURL(croppedFile));
+      setCropImage(null);
+      clearFieldError("photo");
+    } catch (error) {
+      console.error("Unable to crop membership photo:", error);
+      setFieldError(
+        "photo",
+        error instanceof Error
+          ? error.message
+          : "Unable to crop this photo. Please try another image."
+      );
+      toast.error("Unable to crop this photo.");
+    } finally {
+      setSavingCrop(false);
+    }
   };
 
   /* =========================================================
@@ -1631,6 +1744,109 @@ setMobileNational("");
         }}
       />
 
+      {cropImage && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-3 sm:p-6">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="membership-photo-crop-title"
+            className="w-full max-w-xl rounded-2xl bg-white p-4 shadow-2xl sm:p-6"
+          >
+            <h2
+              id="membership-photo-crop-title"
+              className="text-lg font-bold text-gray-900"
+            >
+              Crop your member photo
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Drag and zoom to frame your photo. It will be saved as a square
+              512 × 512 image.
+            </p>
+
+            <div className="relative mt-4 h-[min(60vh,24rem)] overflow-hidden rounded-xl bg-gray-900">
+              <Cropper
+                image={cropImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                minZoom={1}
+                maxZoom={3}
+                cropShape="rect"
+                showGrid
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(_, areaPixels) =>
+                  setCroppedAreaPixels(areaPixels)
+                }
+              />
+            </div>
+
+            <div className="mt-4 flex items-center gap-3 text-sm text-gray-700">
+              <span className="shrink-0 font-medium">Zoom</span>
+              <button
+                type="button"
+                aria-label="Zoom out"
+                title="Zoom out"
+                disabled={savingCrop || zoom <= 1}
+                onClick={() =>
+                  setZoom((current) =>
+                    Math.max(1, Number((current - 0.1).toFixed(2)))
+                  )
+                }
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-lg font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                -
+              </button>
+              <input
+                type="range"
+                min={1}
+                max={3}
+                step={0.05}
+                value={zoom}
+                onChange={(event) => setZoom(Number(event.target.value))}
+                className="w-full accent-rose-600"
+              />
+              <span className="w-12 shrink-0 text-center text-xs text-gray-500">
+                {zoom.toFixed(1)}x
+              </span>
+              <button
+                type="button"
+                aria-label="Zoom in"
+                title="Zoom in"
+                disabled={savingCrop || zoom >= 3}
+                onClick={() =>
+                  setZoom((current) =>
+                    Math.min(3, Number((current + 0.1).toFixed(2)))
+                  )
+                }
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-lg font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={savingCrop}
+                onClick={() => setCropImage(null)}
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={savingCrop || !croppedAreaPixels}
+                onClick={() => void handleCropComplete()}
+                className="rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {savingCrop ? "Cropping..." : "Use This Photo"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
 
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
@@ -2031,12 +2247,17 @@ setMobileNational("");
 
                     </label>
 
+                    <p className="mt-2 text-xs text-gray-500">
+                      JPG, PNG or WebP; up to 5 MB and at least 256 × 256
+                      pixels. Your final photo is cropped to 512 × 512.
+                    </p>
+
                     {photoPreview && (
                       <div className="mt-4">
                         <img
                           src={photoPreview}
-                          alt="Selected member"
-                          className="h-60 w-32 rounded-2xl border border-rose-200 object-cover shadow-sm"
+                          alt="Cropped member photo preview"
+                          className="h-40 w-40 rounded-2xl border border-rose-200 object-cover shadow-sm"
                         />
                       </div>
                     )}
@@ -2428,4 +2649,3 @@ setMobileNational("");
     </>
   );
 }
-

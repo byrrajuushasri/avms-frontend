@@ -599,17 +599,19 @@ export default function MatchesPage() {
                 key={member.id}
                 className="group flex h-full flex-col overflow-hidden rounded-3xl border border-rose-100/80 bg-white shadow-[0_8px_30px_-18px_rgba(128,0,24,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-22px_rgba(128,0,24,0.4)]"
               >
-                <div className="relative h-52 w-full overflow-hidden bg-rose-50 sm:h-60">
-                  <img
-                    src={member.image || DEFAULT_IMAGE}
-                    alt={member.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = DEFAULT_IMAGE;
-                    }}
-                  />
+                <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-t-2xl bg-gradient-to-b from-rose-50 via-white to-gray-50 sm:h-56">
+                      <img
+                        src={member.image}
+                        alt={`${member.name} profile`}
+                        loading="lazy"
+                        className="h-full w-full object-contain object-center p-1 sm:p-2"
+                        onError={(event) => {
+                          const img = event.currentTarget;
+                          if (img.src !== new URL(DEFAULT_IMAGE, window.location.origin).href) {
+                            img.src = DEFAULT_IMAGE;
+                          }
+                        }}
+                      />
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                   <span                   className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/35 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white backdrop-blur-sm">
                     ID: {member.memberId}
