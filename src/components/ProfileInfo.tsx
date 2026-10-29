@@ -14,6 +14,8 @@ import {
   FaUser,
   FaUsers,
   FaGlobe,
+  FaEnvelope,
+  FaPhone,
 } from "react-icons/fa";
 
 interface Profile {
@@ -21,6 +23,8 @@ interface Profile {
   member_id?: string | null;
   name?: string | null;
   full_name?: string | null;
+  email?: string | null;
+  mobile?: string | null;
   date_of_birth?: string | null;
   dob?: string | null;
   height?: string | null;
@@ -108,6 +112,8 @@ export default function ProfileInfo({
 
   const about =
     profile.about_me || profile.about || profile.description;
+  const email = profile.email?.trim();
+  const mobile = profile.mobile?.trim();
 
   const isVerified =
     String(profile.status || "").toLowerCase() === "approved";
@@ -329,34 +335,46 @@ export default function ProfileInfo({
           </section>
         )}
 
-        {/* EXPRESS INTEREST */}
-        <section
-          id="express-interest"
-          className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 text-center sm:p-5"
-        >
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#800018]/[0.08] text-lg text-[#800018]">
-            <FaHeart />
+        {/* CONTACT DETAILS */}
+        <section className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 sm:p-5">
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="h-6 w-1 rounded-full bg-[#d9a928]" />
+            <div>
+              <h2 className="text-lg font-bold text-[#690015]">
+                Contact Details
+              </h2>
+              <p className="text-[11px] text-gray-500">
+                Available to the profile owner and accepted connections
+              </p>
+            </div>
           </div>
 
-          <h2 className="mt-2 text-base font-bold text-[#690015]">
-            Interested in this Profile?
-          </h2>
-
-          <p className="mx-auto mt-1.5 max-w-sm text-xs leading-5 text-gray-600">
-            Take the first step towards finding your life partner.
-          </p>
-
-          <a
-            href="/contact"
-            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#800018] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#610012] sm:w-auto"
-          >
-            <FaHeart />
-            Contact Us to Express Interest
-          </a>
-
-          <p className="mt-2 text-[11px] text-gray-500">
-            Please respect the privacy of registered members.
-          </p>
+          {email || mobile ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {email && (
+                <a
+                  href={`mailto:${email}`}
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee6e0] bg-white p-3 text-sm font-semibold text-[#800018] hover:bg-[#fffaf0]"
+                >
+                  <FaEnvelope className="shrink-0" aria-hidden="true" />
+                  <span className="break-all">{email}</span>
+                </a>
+              )}
+              {mobile && (
+                <a
+                  href={`tel:${mobile}`}
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee6e0] bg-white p-3 text-sm font-semibold text-[#800018] hover:bg-[#fffaf0]"
+                >
+                  <FaPhone className="shrink-0" aria-hidden="true" />
+                  <span>{mobile}</span>
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="rounded-lg bg-white/80 px-3 py-3 text-sm text-gray-600">
+              Contact details are shown after a request is accepted.
+            </p>
+          )}
         </section>
       </div>
     </div>

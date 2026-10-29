@@ -19,6 +19,8 @@ interface Profile {
 
   name?: string | null;
   full_name?: string | null;
+  email?: string | null;
+  mobile?: string | null;
 
   photo?: string | null;
   profile_photo?: string | null;
@@ -373,14 +375,6 @@ export default function ProfilePage() {
         const apiUrl =
           `${API_BASE_URL}/matrimonial-users/${profileId}`;
 
-        console.log(
-          "================================="
-        );
-        console.log("PROFILE API:", apiUrl);
-        console.log(
-          "================================="
-        );
-
        const accessToken = localStorage.getItem("access_token");
 
 const response = await fetch(apiUrl, {
@@ -393,18 +387,8 @@ const response = await fetch(apiUrl, {
       : {}),
   },
 });
-        console.log(
-          "Profile API status:",
-          response.status
-        );
-
         const responseText =
           await response.text();
-
-        console.log(
-          "Profile API response:",
-          responseText
-        );
 
         if (!response.ok) {
           throw new Error(
@@ -421,11 +405,6 @@ const response = await fetch(apiUrl, {
             "Backend returned invalid JSON."
           );
         }
-
-        console.log(
-          "Parsed profile:",
-          result
-        );
 
         // =====================================================
         // FIND PROFILE OBJECT
@@ -496,16 +475,6 @@ const response = await fetch(apiUrl, {
             "Profile data not found."
           );
         }
-
-        console.log(
-          "FINAL PROFILE DATA:",
-          profileData
-        );
-
-        console.log(
-          "PROFILE PHOTO:",
-          getProfilePhoto(profileData)
-        );
 
         setProfile(profileData);
       } catch (err) {
@@ -626,11 +595,6 @@ const response = await fetch(apiUrl, {
   const photo = getProfilePhoto(profile);
 
   const imageUrl = getImageUrl(photo);
-
-  console.log(
-    "FINAL IMAGE URL:",
-    imageUrl
-  );
 
   // =========================================================
   // PAGE

@@ -42,15 +42,14 @@ const organizers = [
     email: "vooremadhusudan@gmail.com",
   },
   {
-    name: "ఊరే రవీందర్ గుప్త ",
-    role: "సహాయ నిర్వహకులు మరియు చైర్మన్ ",
-    additionalRole: "ఆర్యవైశ్య మహాసభ సరూర్ నగర్ మండల వివాహ కమిటీ",
-    image: "/about/vooreravinder.jpg",
-    phone: "+91 9441090964",
-    tel: "+919441090964",
-    email: "vooreravinder@gmail.com",
-  },
-   
+  name: "ఊరె రవీందర్ జెటిఆర్ గుప్త",
+  role: "గౌరవ అధ్యక్షులు",
+  additionalRole: "చంపాపేట్ ఆర్యవైశ్య సంఘం చైర్మన్ మరియు ఆర్యవైశ్య మహాసభ సరూర్ నగర్ మండల వివాహ కమిటీ చైర్మన్",
+  image: "/about/vooreravinder.jpg",
+  phone: "+91 9441090964",
+  tel: "+919441090964",
+  email: "vooreravinder@gmail.com",
+},
   
   {
     name: "చిత్తనూరి నరేష్ గుప్త",
