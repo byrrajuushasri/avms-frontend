@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useEffect,
   useMemo,
@@ -18,6 +19,8 @@ import {
   FaBirthdayCake,
   FaTimes,
   FaSlidersH,
+  FaCheck,
+  FaSignOutAlt,
 } from "react-icons/fa";
 
 interface Profile {
@@ -65,8 +68,28 @@ interface MatrimonialSessionUser {
   matrimonial_id?: number | string | null;
 }
 
+interface InterestRequest {
+  id: number;
+  status: InterestRequestStatus;
+  profile: Profile | null;
+  created_at?: string;
+}
+
+type InterestRequestStatus = "Pending" | "Accepted" | "Rejected";
+
+interface InterestRequestCounts {
+  likes: number;
+  requests: number;
+  accepted: number;
+}
+
 const DEFAULT_IMAGE = "/images/default-profile.jpg";
 const PROFILES_PER_PAGE = 8;
+const EMPTY_REQUEST_COUNTS: InterestRequestCounts = {
+  likes: 0,
+  requests: 0,
+  accepted: 0,
+};
 
 const subscribeToStorage = (callback: () => void) => {
   window.addEventListener("storage", callback);
@@ -76,6 +99,7 @@ const subscribeToStorage = (callback: () => void) => {
 const getStoredUser = () => localStorage.getItem("user");
 
 export default function MatchesPage() {
+  const router = useRouter();
   const storedUser = useSyncExternalStore(
     subscribeToStorage,
     getStoredUser,
@@ -100,14 +124,47 @@ export default function MatchesPage() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [likedProfiles, setLikedProfiles] = useState<string[]>([]);
+  const [sentRequestStatuses, setSentRequestStatuses] = useState<
+    Record<string, InterestRequestStatus>
+  >({});
+  const [incomingRequests, setIncomingRequests] = useState<InterestRequest[]>(
+    []
+  );
+  const [requestCounts, setRequestCounts] =
+    useState<InterestRequestCounts>(EMPTY_REQUEST_COUNTS);
+  const [showIncomingRequests, setShowIncomingRequests] = useState(false);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [requestingProfileId, setRequestingProfileId] = useState<string | null>(
+    null
+  );
+  const [acceptingRequestId, setAcceptingRequestId] = useState<number | null>(
+    null
+  );
+  const [requestError, setRequestError] = useState("");
+  const [requestMessage, setRequestMessage] = useState("");
 
-  const toggleLike = (profileId: string) => {
-    setLikedProfiles((current) =>
-      current.includes(profileId)
-        ? current.filter((id) => id !== profileId)
-        : [...current, profileId]
-    );
+  const acceptedProfileIds = useMemo(() => {
+    const profileIds = new Set<string>();
+
+    Object.entries(sentRequestStatuses).forEach(([profileId, status]) => {
+      if (status === "Accepted") {
+        profileIds.add(profileId);
+      }
+    });
+
+    incomingRequests.forEach((request) => {
+      if (request.status === "Accepted" && request.profile?.id != null) {
+        profileIds.add(String(request.profile.id));
+      }
+    });
+
+    return profileIds;
+  }, [incomingRequests, sentRequestStatuses]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    router.replace("/login");
   };
 
   const BACKEND_URL =
@@ -166,6 +223,11 @@ export default function MatchesPage() {
       try {
         setLoading(true);
         setError("");
+        setIncomingRequests([]);
+        setSentRequestStatuses({});
+        setRequestCounts(EMPTY_REQUEST_COUNTS);
+        setRequestError("");
+        setRequestMessage("");
 
         const token = localStorage.getItem("access_token");
 
@@ -239,6 +301,81 @@ export default function MatchesPage() {
         if (!cancelled) {
           setProfiles(profileList);
         }
+
+        try {
+          if (!cancelled) {
+            setRequestsLoading(true);
+            setRequestError("");
+          }
+
+          const [receivedResponse, sentResponse] = await Promise.all([
+            fetch(`${API_BASE_URL}/matrimonial-users/requests/received`, {
+              cache: "no-store",
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch(`${API_BASE_URL}/matrimonial-users/requests/sent`, {
+              cache: "no-store",
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
+
+          const [receivedData, sentData] = await Promise.all([
+            receivedResponse.json(),
+            sentResponse.json(),
+          ]);
+
+          if (!receivedResponse.ok || !sentResponse.ok) {
+            const failedData = !receivedResponse.ok
+              ? receivedData
+              : sentData;
+            const message = Array.isArray(failedData?.message)
+              ? failedData.message.join(", ")
+              : failedData?.message;
+            throw new Error(
+              message || "Could not load your interest requests."
+            );
+          }
+
+          if (!cancelled) {
+            const receivedList = Array.isArray(receivedData?.requests)
+              ? (receivedData.requests as InterestRequest[])
+              : [];
+            const sentList = Array.isArray(sentData)
+              ? (sentData as InterestRequest[])
+              : [];
+            const counts = receivedData?.counts;
+
+            setIncomingRequests(receivedList);
+            setRequestCounts({
+              likes: Number(counts?.likes) || receivedList.length,
+              requests: Number(counts?.requests) || 0,
+              accepted: Number(counts?.accepted) || 0,
+            });
+            setSentRequestStatuses(
+              Object.fromEntries(
+                sentList
+                  .filter((request) => request.profile?.id != null)
+                  .map((request) => [
+                    String(request.profile?.id),
+                    request.status,
+                  ])
+              )
+            );
+          }
+        } catch (requestLoadError) {
+          console.error("Failed to fetch matrimonial requests:", requestLoadError);
+          if (!cancelled) {
+            setRequestError(
+              requestLoadError instanceof Error
+                ? requestLoadError.message
+                : "Could not load your interest requests."
+            );
+          }
+        } finally {
+          if (!cancelled) {
+            setRequestsLoading(false);
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch matrimonial profiles:", err);
 
@@ -262,7 +399,112 @@ export default function MatchesPage() {
     return () => {
       cancelled = true;
     };
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, loggedInUser]);
+
+  const sendInterestRequest = async (profileId: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setRequestError("Please log in to send an interest request.");
+      return;
+    }
+
+    setRequestingProfileId(profileId);
+    setRequestError("");
+    setRequestMessage("");
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/matrimonial-users/${encodeURIComponent(profileId)}/request`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        const message = Array.isArray(result?.message)
+          ? result.message.join(", ")
+          : result?.message;
+        throw new Error(message || "Could not send your interest request.");
+      }
+
+      const status = result?.request?.status || "Pending";
+      setSentRequestStatuses((current) => ({
+        ...current,
+        [profileId]: status,
+      }));
+      setRequestMessage(
+        result?.message || "Interest request sent successfully."
+      );
+    } catch (sendError) {
+      setRequestError(
+        sendError instanceof Error
+          ? sendError.message
+          : "Could not send your interest request."
+      );
+    } finally {
+      setRequestingProfileId(null);
+    }
+  };
+
+  const acceptInterestRequest = async (requestId: number) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setRequestError("Please log in to accept an interest request.");
+      return;
+    }
+
+    setAcceptingRequestId(requestId);
+    setRequestError("");
+    setRequestMessage("");
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/matrimonial-users/requests/${requestId}/accept`,
+        {
+          method: "PUT",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const result = await response.json();
+
+      if (!response.ok) {
+        const message = Array.isArray(result?.message)
+          ? result.message.join(", ")
+          : result?.message;
+        throw new Error(message || "Could not accept this request.");
+      }
+
+      setIncomingRequests((current) =>
+        current.map((request) =>
+          request.id === requestId
+            ? { ...request, status: "Accepted" }
+            : request
+        )
+      );
+      setRequestCounts((current) => ({
+        ...current,
+        requests: Math.max(0, current.requests - 1),
+        accepted: current.accepted + 1,
+      }));
+      setRequestMessage("Request accepted. You can now view the profile.");
+    } catch (acceptError) {
+      setRequestError(
+        acceptError instanceof Error
+          ? acceptError.message
+          : "Could not accept this request."
+      );
+    } finally {
+      setAcceptingRequestId(null);
+    }
+  };
 
   // CONVERT API DATA FOR DISPLAY
   const displayProfiles = useMemo<MatchProfile[]>(() => {
@@ -415,13 +657,23 @@ export default function MatchesPage() {
             {error}
           </p>
 
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="mt-6 rounded-lg bg-[#800018] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012]"
-          >
-            Try Again
-          </button>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {!loggedInUser && (
+              <Link
+                href="/login"
+                className="rounded-lg bg-[#800018] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012]"
+              >
+                Log In
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-lg border border-rose-200 bg-white px-6 py-2.5 text-sm font-semibold text-[#800018] transition hover:bg-rose-50"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -449,14 +701,24 @@ export default function MatchesPage() {
             </p>
           </div>
 
-                     {loggedInUser?.account_type === "matrimonial" &&
+            {loggedInUser?.account_type === "matrimonial" &&
               loggedInUser?.matrimonial_id && (
-                <Link
-                  href={`/profile/${loggedInUser.matrimonial_id}`}
-                  className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50"
-                >
-                  Edit My Profile
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={`/profile/${loggedInUser.matrimonial_id}`}
+                    className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-5 py-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50"
+                  >
+                    Edit My Profile
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#800018] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#600012]"
+                  >
+                    <FaSignOutAlt aria-hidden="true" />
+                    Logout
+                  </button>
+                </div>
               )}
         </div>
 
@@ -574,6 +836,140 @@ export default function MatchesPage() {
           </div>
         </section>
 
+        {loggedInUser && (
+          <section className="mb-8 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Your Interest Activity
+                </h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Check who is interested and manage your requests.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowIncomingRequests((current) => !current)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#800018] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012]"
+              >
+                {showIncomingRequests ? "Back to Search" : "View Requests"}
+                <span className="rounded-full bg-white/20 px-2 py-0.5">
+                  {requestCounts.likes}
+                </span>
+              </button>
+            </div>
+
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {[
+                { label: "Likes received", value: requestCounts.likes },
+                { label: "Pending requests", value: requestCounts.requests },
+                { label: "Accepted", value: requestCounts.accepted },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3"
+                >
+                  <p className="text-xs font-medium text-gray-600">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-[#800018]">
+                    {item.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {(requestError || requestMessage) && (
+              <p
+                role={requestError ? "alert" : "status"}
+                className={`mt-4 rounded-lg px-3 py-2 text-sm ${
+                  requestError
+                    ? "bg-red-50 text-red-700"
+                    : "bg-green-50 text-green-700"
+                }`}
+              >
+                {requestError || requestMessage}
+              </p>
+            )}
+
+            {showIncomingRequests && (
+              <div className="mt-5 border-t border-rose-100 pt-5">
+                <h3 className="text-base font-bold text-gray-900">
+                  Requests Received
+                </h3>
+                {requestsLoading ? (
+                  <p className="mt-4 text-sm text-gray-500">
+                    Loading your requests...
+                  </p>
+                ) : incomingRequests.length > 0 ? (
+                  <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {incomingRequests.map((request) => {
+                      const profileId = request.profile?.id;
+                      const profileName =
+                        request.profile?.full_name ||
+                        request.profile?.name ||
+                        "Matrimonial profile";
+
+                      return (
+                        <article
+                          key={request.id}
+                          className="flex flex-col gap-4 rounded-xl border border-rose-100 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {profileName}
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500">
+                              Request status: {request.status}
+                            </p>
+                            {request.status === "Pending" && (
+                              <p className="mt-1 text-xs text-gray-500">
+                                Accept this request to unlock the profile.
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {request.status === "Pending" && (
+                              <button
+                                type="button"
+                                disabled={acceptingRequestId === request.id}
+                                onClick={() =>
+                                  acceptInterestRequest(request.id)
+                                }
+                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#800018] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#600012] disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                <FaCheck aria-hidden="true" />
+                                {acceptingRequestId === request.id
+                                  ? "Accepting..."
+                                  : "Accept"}
+                              </button>
+                            )}
+                            {profileId != null &&
+                              request.status === "Accepted" && (
+                                <Link
+                                  href={`/profile/${profileId}`}
+                                  className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-4 py-2 text-sm font-semibold text-[#800018] transition hover:bg-rose-50"
+                                >
+                                  View Profile
+                                </Link>
+                              )}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="mt-4 rounded-xl bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+                    You have not received any interest requests yet.
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+
+        {showIncomingRequests ? null : (
+          <>
         {/* RESULTS HEADER */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -618,22 +1014,32 @@ export default function MatchesPage() {
                   </span>
                   <button
                     type="button"
-                    aria-label={
-                      likedProfiles.includes(member.id)
-                        ? `Remove ${member.name} from favourites`
-                        : `Add ${member.name} to favourites`
+                    aria-label={`Send interest request to ${member.name}`}
+                    title={
+                      sentRequestStatuses[member.id]
+                        ? `Request ${sentRequestStatuses[member.id].toLowerCase()}`
+                        : "Send interest request"
                     }
-                    aria-pressed={likedProfiles.includes(member.id)}
-                    onClick={() => toggleLike(member.id)}
-                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/95 shadow-lg transition duration-200 hover:scale-110 hover:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2"
+                    disabled={
+                      Boolean(sentRequestStatuses[member.id]) ||
+                      requestingProfileId === member.id ||
+                      Number(loggedInUser?.matrimonial_id) === Number(member.id)
+                    }
+                    onClick={() => sendInterestRequest(member.id)}
+                    className="absolute right-3 top-3 flex h-9 min-w-9 items-center justify-center gap-1 rounded-full border border-white/70 bg-white/95 px-2 shadow-lg transition duration-200 hover:scale-105 hover:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     <FaHeart
                       className={`text-base transition-colors ${
-                        likedProfiles.includes(member.id)
+                        sentRequestStatuses[member.id]
                           ? "text-rose-600"
                           : "text-gray-400"
                       }`}
                     />
+                    {sentRequestStatuses[member.id] && (
+                      <span className="text-[10px] font-semibold text-[#800018]">
+                        {sentRequestStatuses[member.id]}
+                      </span>
+                    )}
                   </button>
                 </div>
 
@@ -675,13 +1081,40 @@ export default function MatchesPage() {
                     </div>
                   </div>
 
-                  <Link
-                    href={`/profile/${member.id}#express-interest`}
-                    className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-xl bg-[#800018] px-3 text-xs font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2"
-                  >
-                    Send Request
-                    <span aria-hidden="true">→</span>
-                  </Link>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      disabled={
+                        Boolean(sentRequestStatuses[member.id]) ||
+                        requestingProfileId === member.id ||
+                        Number(loggedInUser?.matrimonial_id) ===
+                          Number(member.id)
+                      }
+                      onClick={() => sendInterestRequest(member.id)}
+                      className="flex h-9 items-center justify-center gap-1 rounded-xl bg-[#800018] px-2 text-xs font-semibold text-white transition hover:bg-[#600012] disabled:cursor-not-allowed disabled:bg-gray-300"
+                    >
+                      {requestingProfileId === member.id
+                        ? "Sending..."
+                        : sentRequestStatuses[member.id]
+                          ? `Request ${sentRequestStatuses[member.id]}`
+                          : "Send Request"}
+                    </button>
+                    {acceptedProfileIds.has(member.id) ? (
+                      <Link
+                        href={`/profile/${member.id}`}
+                        className="flex h-9 items-center justify-center rounded-xl border border-rose-200 bg-white px-2 text-xs font-semibold text-[#800018] transition hover:bg-rose-50"
+                      >
+                        View Profile
+                      </Link>
+                    ) : (
+                      <span
+                        aria-label="Full profile available after a request is accepted"
+                        className="flex h-9 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-2 text-center text-[11px] font-medium text-gray-500"
+                      >
+                        Available after acceptance
+                      </span>
+                    )}
+                  </div>
                 </div>
               </article>
             ))}
@@ -711,9 +1144,11 @@ export default function MatchesPage() {
             </button>
           </div>
         )}
+          </>
+        )}
 
         {/* PAGINATION */}
-        {totalPages > 1 && (
+        {totalPages > 1 && !showIncomingRequests && (
           <nav
             aria-label="Profile pages"
             className="mt-8 flex flex-wrap items-center justify-center gap-2"

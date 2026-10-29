@@ -1880,7 +1880,7 @@ setMobileNational("");
               onClick={() => setShowFemalePhonePopup(false)}
               className="mt-5 w-full rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2"
             >
-              I Understand
+              Confirm
             </button>
           </section>
         </div>
