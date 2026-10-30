@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -8,7 +7,9 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+
 import { getStorageImageUrl } from "@/lib/storage-image-url";
+
 import {
   FaMapMarkerAlt,
   FaGraduationCap,
@@ -19,6 +20,7 @@ import {
   FaTimes,
   FaSlidersH,
   FaCheck,
+  FaUser,
 } from "react-icons/fa";
 
 interface Profile {
@@ -26,27 +28,41 @@ interface Profile {
   member_id?: string | null;
   name?: string | null;
   full_name?: string | null;
+
   photo?: string | null;
   profile_photo?: string | null;
   photo_url?: string | null;
   image?: string | null;
   profile_image?: string | null;
+
   date_of_birth?: string | null;
   dob?: string | null;
   dateOfBirth?: string | null;
+
   height?: string | null;
   education?: string | null;
   occupation?: string | null;
   profession?: string | null;
+
   annual_income?: string | number | null;
   income?: string | number | null;
+
   address?: string | null;
   city?: string | null;
   district?: string | null;
   mandal?: string | null;
   sangham?: string | null;
+  state?: string | null;
+
   gender?: string | null;
   status?: string | null;
+
+  mother_tongue?: string | null;
+  language?: string | null;
+  nakshatra?: string | null;
+  community?: string | null;
+  caste?: string | null;
+
   [key: string]: unknown;
 }
 
@@ -55,7 +71,12 @@ interface MatchProfile {
   memberId: string;
   name: string;
   age: number | null;
+  height: string;
+  language: string;
+  community: string;
+  nakshatra: string;
   city: string;
+  state: string;
   education: string;
   profession: string;
   image: string;
@@ -66,14 +87,14 @@ interface MatrimonialSessionUser {
   matrimonial_id?: number | string | null;
 }
 
+type InterestRequestStatus = "Pending" | "Accepted" | "Rejected";
+
 interface InterestRequest {
   id: number;
   status: InterestRequestStatus;
   profile: Profile | null;
   created_at?: string;
 }
-
-type InterestRequestStatus = "Pending" | "Accepted" | "Rejected";
 
 interface InterestRequestCounts {
   likes: number;
@@ -84,6 +105,7 @@ interface InterestRequestCounts {
 
 const DEFAULT_IMAGE = "/images/default-profile.jpg";
 const PROFILES_PER_PAGE = 8;
+
 const EMPTY_REQUEST_COUNTS: InterestRequestCounts = {
   likes: 0,
   requests: 0,
@@ -91,14 +113,27 @@ const EMPTY_REQUEST_COUNTS: InterestRequestCounts = {
   sent: 0,
 };
 
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://avms-backend-production.up.railway.app";
+
+const API_BASE_URL = BACKEND_URL.replace(/\/+$/, "");
+
 const subscribeToStorage = (callback: () => void) => {
   window.addEventListener("storage", callback);
-  return () => window.removeEventListener("storage", callback);
+
+  return () => {
+    window.removeEventListener("storage", callback);
+  };
 };
 
-const getStoredUser = () => localStorage.getItem("user");
+const getStoredUser = () => {
+  return localStorage.getItem("user");
+};
 
 export default function MatchesPage() {
+  // USER SESSION
   const storedUser = useSyncExternalStore(
     subscribeToStorage,
     getStoredUser,
@@ -115,6 +150,7 @@ export default function MatchesPage() {
     }
   }, [storedUser]);
 
+  // STATES
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -123,25 +159,34 @@ export default function MatchesPage() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
   const [sentRequestStatuses, setSentRequestStatuses] = useState<
     Record<string, InterestRequestStatus>
   >({});
-  const [incomingRequests, setIncomingRequests] = useState<InterestRequest[]>(
-    []
-  );
+
+  const [incomingRequests, setIncomingRequests] = useState<
+    InterestRequest[]
+  >([]);
+
   const [requestCounts, setRequestCounts] =
     useState<InterestRequestCounts>(EMPTY_REQUEST_COUNTS);
+
   const [showIncomingRequests, setShowIncomingRequests] = useState(false);
+
   const [requestsLoading, setRequestsLoading] = useState(false);
-  const [requestingProfileId, setRequestingProfileId] = useState<string | null>(
-    null
-  );
+
+  const [requestingProfileId, setRequestingProfileId] = useState<
+    string | null
+  >(null);
+
   const [acceptingRequestId, setAcceptingRequestId] = useState<number | null>(
     null
   );
+
   const [requestError, setRequestError] = useState("");
   const [requestMessage, setRequestMessage] = useState("");
 
+  // ACCEPTED PROFILES
   const acceptedProfileIds = useMemo(() => {
     const profileIds = new Set<string>();
 
@@ -159,13 +204,6 @@ export default function MatchesPage() {
 
     return profileIds;
   }, [incomingRequests, sentRequestStatuses]);
-
-  const BACKEND_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "https://avms-backend-production.up.railway.app";
-
-  const API_BASE_URL = BACKEND_URL.replace(/\/+$/, "");
 
   // IMAGE URL
   const getImageUrl = (photo?: string | null): string => {
@@ -191,9 +229,11 @@ export default function MatchesPage() {
     if (!dob) return null;
 
     const birthDate = new Date(dob);
+
     if (Number.isNaN(birthDate.getTime())) return null;
 
     const today = new Date();
+
     let result = today.getFullYear() - birthDate.getFullYear();
 
     const monthDifference = today.getMonth() - birthDate.getMonth();
@@ -208,7 +248,7 @@ export default function MatchesPage() {
     return result >= 0 && result <= 100 ? result : null;
   };
 
-  // FETCH PROFILES
+  // FETCH PROFILES AND REQUESTS
   useEffect(() => {
     let cancelled = false;
 
@@ -216,9 +256,11 @@ export default function MatchesPage() {
       try {
         setLoading(true);
         setError("");
+
         setIncomingRequests([]);
         setSentRequestStatuses({});
         setRequestCounts(EMPTY_REQUEST_COUNTS);
+
         setRequestError("");
         setRequestMessage("");
 
@@ -247,13 +289,14 @@ export default function MatchesPage() {
 
           try {
             const parsedError = JSON.parse(responseText);
+
             message = parsedError.message
               ? Array.isArray(parsedError.message)
                 ? parsedError.message.join(", ")
                 : parsedError.message
               : responseText;
           } catch {
-            // Keep the original response text.
+            // Keep original response.
           }
 
           if (response.status === 401) {
@@ -295,6 +338,7 @@ export default function MatchesPage() {
           setProfiles(profileList);
         }
 
+        // FETCH INTEREST REQUESTS
         try {
           if (!cancelled) {
             setRequestsLoading(true);
@@ -302,13 +346,21 @@ export default function MatchesPage() {
           }
 
           const [receivedResponse, sentResponse] = await Promise.all([
-            fetch(`${API_BASE_URL}/matrimonial-users/requests/received`, {
-              cache: "no-store",
-              headers: { Authorization: `Bearer ${token}` },
-            }),
+            fetch(
+              `${API_BASE_URL}/matrimonial-users/requests/received`,
+              {
+                cache: "no-store",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            ),
+
             fetch(`${API_BASE_URL}/matrimonial-users/requests/sent`, {
               cache: "no-store",
-              headers: { Authorization: `Bearer ${token}` },
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             }),
           ]);
 
@@ -321,9 +373,11 @@ export default function MatchesPage() {
             const failedData = !receivedResponse.ok
               ? receivedData
               : sentData;
+
             const message = Array.isArray(failedData?.message)
               ? failedData.message.join(", ")
               : failedData?.message;
+
             throw new Error(
               message || "Could not load your interest requests."
             );
@@ -333,18 +387,22 @@ export default function MatchesPage() {
             const receivedList = Array.isArray(receivedData?.requests)
               ? (receivedData.requests as InterestRequest[])
               : [];
+
             const sentList = Array.isArray(sentData)
               ? (sentData as InterestRequest[])
               : [];
+
             const counts = receivedData?.counts;
 
             setIncomingRequests(receivedList);
+
             setRequestCounts({
               likes: Number(counts?.likes) || receivedList.length,
               requests: Number(counts?.requests) || 0,
               accepted: Number(counts?.accepted) || 0,
               sent: sentList.length,
             });
+
             setSentRequestStatuses(
               Object.fromEntries(
                 sentList
@@ -357,7 +415,11 @@ export default function MatchesPage() {
             );
           }
         } catch (requestLoadError) {
-          console.error("Failed to fetch matrimonial requests:", requestLoadError);
+          console.error(
+            "Failed to fetch matrimonial requests:",
+            requestLoadError
+          );
+
           if (!cancelled) {
             setRequestError(
               requestLoadError instanceof Error
@@ -375,10 +437,9 @@ export default function MatchesPage() {
 
         if (!cancelled) {
           setError(
-            err instanceof Error
-              ? err.message
-              : "Failed to load profiles."
+            err instanceof Error ? err.message : "Failed to load profiles."
           );
+
           setProfiles([]);
         }
       } finally {
@@ -393,10 +454,12 @@ export default function MatchesPage() {
     return () => {
       cancelled = true;
     };
-  }, [API_BASE_URL, loggedInUser]);
+  }, [loggedInUser]);
 
+  // SEND INTEREST REQUEST
   const sendInterestRequest = async (profileId: string) => {
     const token = localStorage.getItem("access_token");
+
     if (!token) {
       setRequestError("Please log in to send an interest request.");
       return;
@@ -408,7 +471,9 @@ export default function MatchesPage() {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/matrimonial-users/${encodeURIComponent(profileId)}/request`,
+        `${API_BASE_URL}/matrimonial-users/${encodeURIComponent(
+          profileId
+        )}/request`,
         {
           method: "POST",
           headers: {
@@ -417,20 +482,25 @@ export default function MatchesPage() {
           },
         }
       );
+
       const result = await response.json();
 
       if (!response.ok) {
         const message = Array.isArray(result?.message)
           ? result.message.join(", ")
           : result?.message;
+
         throw new Error(message || "Could not send your interest request.");
       }
 
-      const status = result?.request?.status || "Pending";
+      const status: InterestRequestStatus =
+        result?.request?.status || "Pending";
+
       setSentRequestStatuses((current) => ({
         ...current,
         [profileId]: status,
       }));
+
       setRequestMessage(
         result?.message || "Interest request sent successfully."
       );
@@ -445,8 +515,10 @@ export default function MatchesPage() {
     }
   };
 
+  // ACCEPT INTEREST REQUEST
   const acceptInterestRequest = async (requestId: number) => {
     const token = localStorage.getItem("access_token");
+
     if (!token) {
       setRequestError("Please log in to accept an interest request.");
       return;
@@ -467,12 +539,14 @@ export default function MatchesPage() {
           },
         }
       );
+
       const result = await response.json();
 
       if (!response.ok) {
         const message = Array.isArray(result?.message)
           ? result.message.join(", ")
           : result?.message;
+
         throw new Error(message || "Could not accept this request.");
       }
 
@@ -483,11 +557,13 @@ export default function MatchesPage() {
             : request
         )
       );
+
       setRequestCounts((current) => ({
         ...current,
         requests: Math.max(0, current.requests - 1),
         accepted: current.accepted + 1,
       }));
+
       setRequestMessage("Request accepted. You can now view the profile.");
     } catch (acceptError) {
       setRequestError(
@@ -503,7 +579,9 @@ export default function MatchesPage() {
   // CONVERT API DATA FOR DISPLAY
   const displayProfiles = useMemo<MatchProfile[]>(() => {
     return profiles
-      .filter((profile) => profile.id !== undefined && profile.id !== null)
+      .filter(
+        (profile) => profile.id !== undefined && profile.id !== null
+      )
       .map((profile) => {
         const databaseId = String(profile.id);
 
@@ -531,17 +609,37 @@ export default function MatchesPage() {
           memberId: String(memberId),
           name: String(name),
           age: calculatedAge,
+
+          height: String(profile.height || "Height not available"),
+
+          language: String(
+            profile.mother_tongue || profile.language || "Telugu"
+          ),
+
+          community: String(
+            profile.community || profile.caste || "Arya Vysya"
+          ),
+
+          nakshatra: String(profile.nakshatra || ""),
+
           city: String(profileCity),
-          education: String(profile.education || "Education not available"),
+
+          state: String(profile.state || "Telangana"),
+
+          education: String(
+            profile.education || "Education not available"
+          ),
+
           profession: String(
             profile.occupation ||
               profile.profession ||
               "Profession not available"
           ),
+
           image: getImageUrl(photo),
         };
       });
-  }, [profiles, API_BASE_URL]);
+  }, [profiles]);
 
   // FILTER PROFILES
   const filteredMatches = useMemo(() => {
@@ -596,6 +694,7 @@ export default function MatchesPage() {
     currentPage * PROFILES_PER_PAGE
   );
 
+  // CLEAR FILTERS
   const clearFilters = () => {
     setSearch("");
     setAge("");
@@ -606,29 +705,25 @@ export default function MatchesPage() {
   // LOADING
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="mb-6 animate-pulse">
-            <div className="mx-auto h-8 w-56 rounded bg-gray-200 sm:mx-0" />
-            <div className="mt-4 h-5 w-72 rounded bg-gray-100" />
-          </div>
+      <main className="min-h-screen bg-[#fffafa] px-4 py-10">
+        <div className="mx-auto max-w-6xl animate-pulse space-y-5">
+          <div className="mx-auto h-8 w-64 rounded bg-gray-200" />
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {Array.from({ length: 8 }, (_, index) => (
-              <div
-                key={index}
-                className="overflow-hidden rounded-2xl border border-gray-100 bg-white"
-              >
-                <div className="h-36 animate-pulse bg-gray-200" />
-                <div className="space-y-4 p-4">
-                  <div className="h-5 w-32 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
-                  <div className="h-4 w-full animate-pulse rounded bg-gray-100" />
-                  <div className="h-10 animate-pulse rounded-lg bg-gray-100" />
-                </div>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              key={index}
+              className="flex flex-col gap-5 rounded-xl bg-white p-5 shadow-sm sm:flex-row"
+            >
+              <div className="h-40 w-40 rounded-xl bg-gray-200" />
+
+              <div className="flex-1 space-y-4">
+                <div className="h-5 w-40 rounded bg-gray-200" />
+                <div className="h-4 w-3/4 rounded bg-gray-100" />
+                <div className="h-4 w-1/2 rounded bg-gray-100" />
+                <div className="h-12 w-full rounded bg-gray-100" />
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </main>
     );
@@ -637,7 +732,7 @@ export default function MatchesPage() {
   // ERROR
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-white to-pink-50 px-4 py-12">
+      <main className="flex min-h-screen items-center justify-center bg-[#fffafa] px-4 py-12">
         <div className="w-full max-w-xl rounded-2xl border border-red-100 bg-white p-8 text-center shadow-lg">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
             <FaTimes className="text-xl text-red-500" />
@@ -660,6 +755,7 @@ export default function MatchesPage() {
                 Log In
               </Link>
             )}
+
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -673,12 +769,12 @@ export default function MatchesPage() {
     );
   }
 
-  // PAGE
+  // MAIN PAGE
   return (
-    <main className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 py-10 md:py-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        {/* HEADER */}
-        <div className="mb-4 flex flex-col items-center gap-2 text-center">
+    <main className="min-h-screen bg-[#fffafa] py-8 sm:py-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+
+         <div className="mb-4 flex flex-col items-center gap-2 text-center">
           <div className="flex flex-col items-center">
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1.5 text-xs font-semibold text-[#800018]">
               <FaHeart />
@@ -691,30 +787,38 @@ export default function MatchesPage() {
             </h2>
           </div>
         </div>
-
-        <div className={loggedInUser ? "mb-6 grid grid-cols-1 items-start gap-6 md:grid-cols-2" : "mb-6"}>
-          {loggedInUser && (
-          <section className="rounded-2xl border border-rose-100 bg-white p-3 shadow-sm sm:p-4">
+        {/* USER INTEREST ACTIVITY */}
+        {loggedInUser && (
+          <section className="mb-4 rounded-2xl border border-rose-100 bg-white p-3 shadow-sm sm:p-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-base font-bold text-gray-900">
                   Your Interest Activity
                 </h2>
+
                 <p className="mt-1 text-xs text-gray-500">
                   Check who is interested and manage your requests.
                 </p>
               </div>
+
               <div className="flex flex-wrap items-center gap-2">
-                <div className="rounded-xl border border-rose-100 bg-rose-50/60 px-2.5 py-1.5">
-                  <p className="text-xs font-medium text-gray-600">Requests sent</p>
-                  <p className="text-lg font-bold leading-tight text-[#800018]">{requestCounts.sent}</p>
+                <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-2">
+                  <p className="text-xs text-gray-600">Requests sent</p>
+
+                  <p className="text-xl font-bold text-[#800018]">
+                    {requestCounts.sent}
+                  </p>
                 </div>
+
                 <button
                   type="button"
-                  onClick={() => setShowIncomingRequests((current) => !current)}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#800018] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#600012]"
+                  onClick={() =>
+                    setShowIncomingRequests((current) => !current)
+                  }
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#800018] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#600012]"
                 >
                   {showIncomingRequests ? "Back to Search" : "View Requests"}
+
                   <span className="rounded-full bg-white/20 px-2 py-0.5">
                     {requestCounts.likes}
                   </span>
@@ -722,20 +826,30 @@ export default function MatchesPage() {
               </div>
             </div>
 
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="mt-3 grid grid-cols-3 gap-2">
               {[
-                { label: "Likes received", value: requestCounts.likes },
-                { label: "Pending requests", value: requestCounts.requests },
-                { label: "Accepted", value: requestCounts.accepted },
+                {
+                  label: "Likes received",
+                  value: requestCounts.likes,
+                },
+                {
+                  label: "Pending requests",
+                  value: requestCounts.requests,
+                },
+                {
+                  label: "Accepted",
+                  value: requestCounts.accepted,
+                },
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-xl border border-rose-100 bg-rose-50/60 px-3 py-2"
+                  className="rounded-xl border border-rose-100 bg-rose-50/60 px-2.5 py-2"
                 >
-                  <p className="text-xs font-medium text-gray-600">
+                  <p className="text-[10px] font-medium text-gray-600">
                     {item.label}
                   </p>
-                  <p className="mt-0.5 text-xl font-bold text-[#800018]">
+
+                  <p className="mt-0.5 text-lg font-bold text-[#800018]">
                     {item.value}
                   </p>
                 </div>
@@ -755,11 +869,13 @@ export default function MatchesPage() {
               </p>
             )}
 
+            {/* RECEIVED REQUESTS */}
             {showIncomingRequests && (
               <div className="mt-5 border-t border-rose-100 pt-5">
                 <h3 className="text-base font-bold text-gray-900">
                   Requests Received
                 </h3>
+
                 {requestsLoading ? (
                   <p className="mt-4 text-sm text-gray-500">
                     Loading your requests...
@@ -768,6 +884,7 @@ export default function MatchesPage() {
                   <div className="mt-4 grid grid-cols-1 gap-3">
                     {incomingRequests.map((request) => {
                       const profileId = request.profile?.id;
+
                       const profileName =
                         request.profile?.full_name ||
                         request.profile?.name ||
@@ -782,31 +899,38 @@ export default function MatchesPage() {
                             <p className="font-semibold text-gray-900">
                               {profileName}
                             </p>
+
                             <p className="mt-1 text-xs text-gray-500">
                               Request status: {request.status}
                             </p>
+
                             {request.status === "Pending" && (
                               <p className="mt-1 text-xs text-gray-500">
                                 Accept this request to unlock the profile.
                               </p>
                             )}
                           </div>
+
                           <div className="flex flex-wrap gap-2">
                             {request.status === "Pending" && (
                               <button
                                 type="button"
-                                disabled={acceptingRequestId === request.id}
+                                disabled={
+                                  acceptingRequestId === request.id
+                                }
                                 onClick={() =>
                                   acceptInterestRequest(request.id)
                                 }
                                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#800018] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#600012] disabled:cursor-not-allowed disabled:opacity-60"
                               >
-                                <FaCheck aria-hidden="true" />
+                                <FaCheck />
+
                                 {acceptingRequestId === request.id
                                   ? "Accepting..."
                                   : "Accept"}
                               </button>
                             )}
+
                             {profileId != null &&
                               request.status === "Accepted" && (
                                 <Link
@@ -832,15 +956,15 @@ export default function MatchesPage() {
         )}
 
         {/* SEARCH PANEL */}
-        <section className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm sm:p-6">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mb-4 rounded-2xl border border-rose-100 bg-white p-3 shadow-sm sm:p-4">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50 text-[#800018]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#800018]">
                 <FaSlidersH />
               </div>
 
               <div>
-               <h2 className="text-base font-bold text-gray-900">
+                <h2 className="text-base font-bold text-gray-900">
                   Search Profiles
                 </h2>
               </div>
@@ -850,23 +974,25 @@ export default function MatchesPage() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="flex items-center gap-1.5 text-sm font-medium text-[#800018] hover:text-rose-900"
+                className="flex items-center gap-2 text-sm font-semibold text-[#800018] hover:text-rose-900"
               >
-                <FaTimes size={12} />
+                <FaTimes />
                 Clear Filters
               </button>
             )}
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {/* NAME / MEMBER ID */}
+
+            {/* NAME */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-gray-700 sm:text-sm">
+              <label className="mb-1 block text-xs font-semibold text-gray-700">
                 Name / Member ID
               </label>
 
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
+
                 <input
                   type="text"
                   value={search}
@@ -875,26 +1001,27 @@ export default function MatchesPage() {
                     setCurrentPage(1);
                   }}
                   placeholder="Enter name or ID"
-                  className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
+                  className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
                 />
               </div>
             </div>
 
             {/* AGE */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-gray-700 sm:text-sm">
+              <label className="mb-1 block text-xs font-semibold text-gray-700">
                 Age
               </label>
 
               <div className="relative">
-                <FaBirthdayCake className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#800018]" />
+                <FaBirthdayCake className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#800018]" />
+
                 <select
                   value={age}
                   onChange={(event) => {
                     setAge(event.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-10 w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
+                  className="h-10 w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
                 >
                   <option value="">Any Age</option>
                   <option value="21-25">21 - 25</option>
@@ -906,21 +1033,23 @@ export default function MatchesPage() {
 
             {/* CITY */}
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-gray-700 sm:text-sm">
+              <label className="mb-1 block text-xs font-semibold text-gray-700">
                 City
               </label>
 
               <div className="relative">
-                <FaMapMarkerAlt className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#800018]" />
+                <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#800018]" />
+
                 <select
                   value={city}
                   onChange={(event) => {
                     setCity(event.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-10 w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-700 outline-none focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
+                  className="h-10 w-full cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-9 pr-3 text-sm text-gray-700 outline-none transition focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-100"
                 >
                   <option value="">All Cities</option>
+
                   {cities.map((item) => (
                     <option key={item} value={item}>
                       {item}
@@ -929,158 +1058,178 @@ export default function MatchesPage() {
                 </select>
               </div>
             </div>
-
           </div>
         </section>
-        </div>
 
-        {showIncomingRequests ? null : (
+        {/* PROFILE RESULTS */}
+        {!showIncomingRequests && (
           <>
-        {/* RESULTS HEADER */}
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-           <h2 className="text-base font-bold text-gray-900">
-              Matching Profiles
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Profiles matching your preferences
-            </p>
-          </div>
+            <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Matching Profiles
+                </h2>
 
-          <div className="w-fit rounded-full border border-rose-100 bg-white px-4 py-2 text-sm font-semibold text-[#800018] shadow-sm">
-            {filteredMatches.length}{" "}
-            {filteredMatches.length === 1 ? "Profile" : "Profiles"}
-          </div>
-        </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Profiles matching your preferences
+                </p>
+              </div>
 
-        {/* PROFILE CARDS */}
-        {filteredMatches.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:auto-rows-fr md:grid-cols-2 xl:grid-cols-3">
-            {paginatedMatches.map((member) => (
-              <article
-                key={member.id}
-                className="group flex h-full w-full flex-col overflow-hidden rounded-2xl xl:flex-row border border-rose-100/80 bg-white shadow-[0_8px_30px_-18px_rgba(128,0,24,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-22px_rgba(128,0,24,0.4)]"
-              >
-                <div className="relative h-56 w-full shrink-0 overflow-hidden bg-white xl:h-auto xl:w-[38%]">
-                  <img
-                    src={member.image}
-                    alt={member.name + " profile"}
-                    loading="lazy"
-                    className="block h-full w-full object-contain object-center"
-                    onError={(event) => {
-                      const img = event.currentTarget;
-                      if (img.src !== new URL(DEFAULT_IMAGE, window.location.origin).href) {
-                        img.src = DEFAULT_IMAGE;
-                      }
-                    }}
-                  />
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-                  <span                   className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/35 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white backdrop-blur-sm">
-                    ID: {member.memberId}
-                  </span>
-                </div>
-
-                <div className="flex flex-1 flex-col p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-base font-bold text-gray-900">
-                        {member.name}
-                      </h3>
-                      {member.age !== null && (
-                        <p className="mt-0.5 text-xs font-medium text-rose-700">
-                          {member.age} years
-                        </p>
-                      )}
-                    </div>
-                    <span className="shrink-0 rounded-full bg-rose-50 px-2 py-1 text-[10px] font-semibold text-[#800018]">
-                      Match
-                    </span>
-                  </div>
-
-                  <div className="mt-2 space-y-1.5">
-                    <div className="flex min-w-0 items-center gap-2.5 text-xs text-gray-600">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-[11px] text-[#800018]">
-                        <FaMapMarkerAlt />
-                      </span>
-                      <span className="truncate">{member.city}</span>
-                    </div>
-                    <div className="flex min-w-0 items-center gap-2.5 text-xs text-gray-600">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xs text-[#800018]">
-                        <FaGraduationCap />
-                      </span>
-                      <span className="truncate">{member.education}</span>
-                    </div>
-                    <div className="flex min-w-0 items-center gap-2.5 text-xs text-gray-600">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-xs text-[#800018]">
-                        <FaBriefcase />
-                      </span>
-                      <span className="truncate">{member.profession}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      disabled={
-                        Boolean(sentRequestStatuses[member.id]) ||
-                        requestingProfileId === member.id ||
-                        Number(loggedInUser?.matrimonial_id) ===
-                          Number(member.id)
-                      }
-                      onClick={() => sendInterestRequest(member.id)}
-                      className="flex h-8 items-center justify-center gap-1 rounded-xl bg-[#800018] px-2 text-xs font-semibold text-white transition hover:bg-[#600012] disabled:cursor-not-allowed disabled:bg-gray-300"
-                    >
-                      {requestingProfileId === member.id
-                        ? "Sending..."
-                        : sentRequestStatuses[member.id]
-                          ? `Request ${sentRequestStatuses[member.id]}`
-                          : "Send Request"}
-                    </button>
-                    {acceptedProfileIds.has(member.id) ? (
-                      <Link
-                        href={`/profile/${member.id}`}
-                        className="flex h-8 items-center justify-center rounded-xl border border-rose-200 bg-white px-2 text-xs font-semibold text-[#800018] transition hover:bg-rose-50"
-                      >
-                        View Profile
-                      </Link>
-                    ) : (
-                      <span
-                        aria-label="Full profile available after a request is accepted"
-                        className="flex h-8 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-2 text-center text-[11px] font-medium text-gray-500"
-                      >
-                        Available after acceptance
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          /* NO RESULTS */
-          <div className="rounded-2xl border border-gray-100 bg-white px-5 py-12 text-center shadow-sm">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50">
-              <FaSearch className="text-xl text-[#800018]" />
+              <div className="w-fit rounded-full border border-rose-100 bg-white px-4 py-2 text-sm font-semibold text-[#800018] shadow-sm">
+                {filteredMatches.length}{" "}
+                {filteredMatches.length === 1 ? "Profile" : "Profiles"}
+              </div>
             </div>
 
-            <h3 className="mt-4 text-lg font-bold text-gray-800">
-              No Matching Profiles
-            </h3>
+            {/* HORIZONTAL PROFILE CARDS */}
+            {filteredMatches.length > 0 ? (
+              <div className="flex flex-col gap-4">
+                {paginatedMatches.map((member) => (
+                  <article
+                    key={member.id}
+                    className="flex w-full flex-col gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-[0_4px_18px_rgba(0,0,0,0.08)] transition hover:shadow-lg sm:flex-row sm:gap-4 sm:p-4"
+                  >
+                    {/* LEFT PROFILE IMAGE */}
+                    <div className="flex shrink-0 flex-col items-center sm:w-[150px]">
+                      <div className="relative h-[130px] w-[130px] overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+                        <img
+                          src={member.image}
+                          alt={`${member.name} profile`}
+                          width={130}
+                          height={130}
+                          loading="lazy"
+                          className="h-full w-full object-cover object-center"
+                          onError={(event) => {
+                            const img = event.currentTarget;
 
-            <p className="mt-2 text-sm text-gray-500">
-              We could not find profiles matching your selected filters.
-              Try changing your search criteria.
-            </p>
+                            img.onerror = null;
+                            img.src = DEFAULT_IMAGE;
+                          }}
+                        />
 
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="mt-5 rounded-lg bg-[#800018] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012]"
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
+
+                      </div>
+
+                      {/* STATUS */}
+                      <div className="mt-3 flex items-center gap-2 text-xs font-medium text-green-600">
+                        <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+                        Profile Available
+                      </div>
+                    </div>
+
+                    {/* RIGHT PROFILE DETAILS */}
+                    <div className="flex min-w-0 flex-1 flex-col justify-between">
+                      <div>
+                        {/* MEMBER ID */}
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-[#800018]">
+                            ID: {member.memberId}
+                          </span>
+
+                          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                            Matrimonial Profile
+                          </span>
+                        </div>
+
+                        {/* NAME */}
+                        <h3 className="mt-2 text-lg font-bold text-gray-900">
+                          {member.name}
+                        </h3>
+
+                        {/* DETAILS */}
+                        <div className="mt-1.5 space-y-1 text-sm leading-5 text-gray-700">
+                          <p>
+                            {member.age !== null
+                              ? `${member.age} yrs`
+                              : "Age not available"}
+                            {member.height !== "Height not available"
+                              ? `, ${member.height}`
+                              : ""}
+                            , {member.language},
+                          </p>
+
+                          <p>{member.community},</p>
+
+                          {member.nakshatra && (
+                            <p>{member.nakshatra},</p>
+                          )}
+
+                          <p>
+                            {member.education}, {member.profession},{" "}
+                            {member.city}, {member.state}
+                          </p>
+                        </div>
+
+                      </div>
+
+                      {/* BOTTOM ACTION AREA */}
+                      
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {acceptedProfileIds.has(member.id) ? (
+                            <Link
+                              href={`/profile/${member.id}`}
+                              className="flex h-9 items-center justify-center rounded-lg bg-orange-500 px-5 text-sm font-bold text-white transition hover:bg-orange-600"
+                            >
+                              VIEW PROFILE
+                            </Link>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                disabled={
+                                  Boolean(
+                                    sentRequestStatuses[member.id]
+                                  ) ||
+                                  requestingProfileId === member.id ||
+                                  Number(
+                                    loggedInUser?.matrimonial_id
+                                  ) === Number(member.id)
+                                }
+                                onClick={() =>
+                                  sendInterestRequest(member.id)
+                                }
+                                className="flex h-9 items-center justify-center rounded-lg border border-[#800018] px-4 text-xs font-semibold text-[#800018] transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {requestingProfileId === member.id
+                                  ? "Sending..."
+                                  : sentRequestStatuses[member.id]
+                                    ? `Request ${sentRequestStatuses[member.id]}`
+                                    : "SEND INTEREST"}
+                              </button>
+
+                            </>
+                          )}
+                        </div>
+                      
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              /* NO RESULTS */
+              <div className="rounded-2xl border border-gray-100 bg-white px-5 py-12 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-50">
+                  <FaSearch className="text-xl text-[#800018]" />
+                </div>
+
+                <h3 className="mt-4 text-lg font-bold text-gray-800">
+                  No Matching Profiles
+                </h3>
+
+                <p className="mt-2 text-sm text-gray-500">
+                  We could not find profiles matching your selected filters.
+                  Try changing your search criteria.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-5 rounded-lg bg-[#800018] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012]"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
           </>
         )}
 
@@ -1101,28 +1250,33 @@ export default function MatchesPage() {
               Previous
             </button>
 
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-              (page) => (
-                <button
-                  key={page}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                  aria-current={currentPage === page ? "page" : undefined}
-                  className={`h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition ${
-                    currentPage === page
-                      ? "border-[#800018] bg-[#800018] text-white"
-                      : "border-rose-200 bg-white text-[#800018] hover:bg-rose-50"
-                  }`}
-                >
-                  {page}
-                </button>
-              )
-            )}
+            {Array.from(
+              { length: totalPages },
+              (_, index) => index + 1
+            ).map((page) => (
+              <button
+                key={page}
+                type="button"
+                onClick={() => setCurrentPage(page)}
+                aria-current={
+                  currentPage === page ? "page" : undefined
+                }
+                className={`h-10 min-w-10 rounded-lg border px-3 text-sm font-semibold transition ${
+                  currentPage === page
+                    ? "border-[#800018] bg-[#800018] text-white"
+                    : "border-rose-200 bg-white text-[#800018] hover:bg-rose-50"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
 
             <button
               type="button"
               onClick={() =>
-                setCurrentPage((page) => Math.min(totalPages, page + 1))
+                setCurrentPage((page) =>
+                  Math.min(totalPages, page + 1)
+                )
               }
               disabled={currentPage === totalPages}
               className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-[#800018] transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
