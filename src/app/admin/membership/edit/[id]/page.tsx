@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Cropper, { type Area } from "react-easy-crop";
 
 import {
   FaArrowLeft,
@@ -51,6 +52,54 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "http://localhost:5000";
 
+const CROPPED_PHOTO_SIZE = 512;
+
+async function createCroppedPhoto(
+  imageSource: string,
+  cropArea: Area,
+): Promise<Blob> {
+  const image = new Image();
+  image.src = imageSource;
+  await image.decode();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = CROPPED_PHOTO_SIZE;
+  canvas.height = CROPPED_PHOTO_SIZE;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Your browser could not prepare the cropped photo.");
+  }
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(
+    image,
+    cropArea.x,
+    cropArea.y,
+    cropArea.width,
+    cropArea.height,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Your browser could not create the cropped photo."));
+        }
+      },
+      "image/jpeg",
+      0.9,
+    );
+  });
+}
+
 export default function EditMemberPage() {
   const params = useParams();
   const router = useRouter();
@@ -95,6 +144,13 @@ export default function EditMemberPage() {
   const [photoPreview, setPhotoPreview] =
     useState("");
 
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] =
+    useState<Area | null>(null);
+  const [savingCrop, setSavingCrop] = useState(false);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -105,6 +161,18 @@ export default function EditMemberPage() {
     useState("");
   const [dialog, setDialog] =
     useState<AdminDialogOptions | null>(null);
+  const [showFemalePhonePopup, setShowFemalePhonePopup] =
+    useState(false);
+
+  useEffect(() => {
+    if (!cropImage) return;
+    return () => URL.revokeObjectURL(cropImage);
+  }, [cropImage]);
+
+  useEffect(() => {
+    if (!photoPreview.startsWith("blob:")) return;
+    return () => URL.revokeObjectURL(photoPreview);
+  }, [photoPreview]);
 
   // =========================================================
   // PHOTO URL
@@ -334,6 +402,7 @@ export default function EditMemberPage() {
   ) => {
     const file =
       e.target.files?.[0];
+    e.target.value = "";
 
     if (!file) {
       return;
@@ -371,14 +440,51 @@ export default function EditMemberPage() {
       return;
     }
 
-    setError("");
+    const imageUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.src = imageUrl;
 
-    setPhotoFile(file);
+    void image.decode().then(
+      () => {
+        if (image.naturalWidth < 256 || image.naturalHeight < 256) {
+          URL.revokeObjectURL(imageUrl);
+          setError("Photo must be at least 256 × 256 pixels.");
+          return;
+        }
+        setError("");
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setCroppedAreaPixels(null);
+        setCropImage(imageUrl);
+      },
+      (decodeError: unknown) => {
+        URL.revokeObjectURL(imageUrl);
+        console.error("Unable to read selected member photo:", decodeError);
+        setError("This photo could not be opened. Choose another image.");
+      },
+    );
+  };
 
-    const previewUrl =
-      URL.createObjectURL(file);
-
-    setPhotoPreview(previewUrl);
+  const handleCropComplete = async () => {
+    if (!cropImage || !croppedAreaPixels || savingCrop) return;
+    setSavingCrop(true);
+    try {
+      const croppedBlob = await createCroppedPhoto(cropImage, croppedAreaPixels);
+      const croppedFile = new File([croppedBlob], "member-photo.jpg", {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      });
+      setPhotoFile(croppedFile);
+      setPhotoPreview(URL.createObjectURL(croppedFile));
+      setCropImage(null);
+      setCroppedAreaPixels(null);
+      setError("");
+    } catch (cropError) {
+      console.error("Unable to crop member photo:", cropError);
+      setError(cropError instanceof Error ? cropError.message : "Unable to crop this photo. Please try another image.");
+    } finally {
+      setSavingCrop(false);
+    }
   };
 
   // =========================================================
@@ -584,6 +690,7 @@ export default function EditMemberPage() {
             value
           );
         }
+
       }
 
       // =====================================================
@@ -708,6 +815,61 @@ export default function EditMemberPage() {
 
   return (
     <div className="min-h-screen bg-gray-50/80">
+      {cropImage && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4">
+          <section role="dialog" aria-modal="true" aria-labelledby="member-photo-crop-title" className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+            <h2 id="member-photo-crop-title" className="text-lg font-bold text-gray-900">Crop your member photo</h2>
+            <p className="mt-1 text-sm text-gray-500">Drag and zoom to frame your photo. It will be saved as a square 512 × 512 image.</p>
+            <div className="relative mt-5 h-72 overflow-hidden rounded-xl bg-gray-950 sm:h-80">
+              <Cropper image={cropImage} crop={crop} zoom={zoom} aspect={1} cropShape="rect" showGrid onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)} />
+            </div>
+            <label className="mt-5 block text-sm font-medium text-gray-700" htmlFor="member-photo-zoom">Zoom</label>
+            <input id="member-photo-zoom" type="range" min={1} max={3} step={0.01} value={zoom} onChange={(event) => setZoom(Number(event.target.value))} className="mt-2 w-full accent-[#8B1E3F]" />
+            <div className="mt-5 flex justify-end gap-3">
+              <button type="button" disabled={savingCrop} onClick={() => setCropImage(null)} className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50">Cancel</button>
+              <button type="button" disabled={savingCrop || !croppedAreaPixels} onClick={() => void handleCropComplete()} className="rounded-xl bg-[#8B1E3F] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#741832] disabled:opacity-50">{savingCrop ? "Cropping..." : "Use This Photo"}</button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showFemalePhonePopup && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowFemalePhonePopup(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="female-phone-notice-title"
+            className="w-full max-w-md rounded-2xl border border-red-100 bg-white p-6 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
+              !
+            </div>
+            <h2
+              id="female-phone-notice-title"
+              className="mt-4 text-center text-lg font-bold text-gray-900"
+            >
+              Important phone number notice
+            </h2>
+            <p className="mt-2 text-center text-sm leading-6 text-red-600">
+              Female candidates must enter a parent&apos;s phone number only.
+              Their own phone number is not allowed.
+            </p>
+            <button
+              type="button"
+              autoFocus
+              onClick={() => setShowFemalePhonePopup(false)}
+              className="mt-5 w-full rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:ring-offset-2"
+            >
+              Confirm
+            </button>
+          </section>
+        </div>
+      )}
+
       {dialog && (
         <AdminDialog
           {...dialog}
@@ -878,6 +1040,11 @@ export default function EditMemberPage() {
                   required
                   className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
                 />
+                {member.gender === "Female" && (
+                  <p className="mt-2 text-sm font-semibold text-red-600">
+                    Female candidates must enter a parent&apos;s phone number only. Their own phone number is not allowed.
+                  </p>
+                )}
               </div>
 
               {/* =================================================
@@ -930,7 +1097,12 @@ export default function EditMemberPage() {
                 <select
                   name="gender"
                   value={member.gender}
-                  onChange={handleChange}
+                  onChange={(event) => {
+                    handleChange(event);
+                    if (event.target.value === "Female") {
+                      setShowFemalePhonePopup(true);
+                    }
+                  }}
                   required
                   className="w-full h-11 px-4 rounded-xl border border-gray-200 bg-white text-sm outline-none focus:border-[#8B1E3F]"
                 >
@@ -980,10 +1152,10 @@ export default function EditMemberPage() {
 
                   <div className="w-20 h-20 rounded-xl border border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center">
 
-                    {photoPreview ? (
+                    {photoPreview || member.photo ? (
                       <img
-                        src={photoPreview}
-                        alt="Member"
+                        src={photoPreview || getPhotoUrl(member.photo)}
+                        alt="Member photo"
                         className="w-full h-full object-cover"
                       />
                     ) : (
