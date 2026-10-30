@@ -43,7 +43,7 @@ export default function AboutPage() {
          
 
         {/* MAIN CONTENT */}
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
+        <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12 lg:gap-8">
           {/* ORGANIZER PROFILE */}
           <section className="overflow-hidden rounded-3xl border border-[#eadfe0] bg-white shadow-sm lg:col-span-7">
             <div className="h-2 bg-gradient-to-r from-[#800018] via-[#a64b5a] to-[#d5ad53]" />
@@ -74,7 +74,7 @@ export default function AboutPage() {
                   <div className="mt-6 space-y-4 text-left text-sm">
                     <a
                       href="tel:+919246119408"
-                      className="flex items-start gap-3 rounded-xl bg-[#faf8f6] p-3 transition hover:bg-[#f7eded]"
+                      className="flex items-start gap-2 rounded-xl bg-[#faf8f6] p-2 transition hover:bg-[#f7eded]"
                     >
                       <FaPhoneAlt className="mt-1 shrink-0 text-[#800018]" />
                       <span>
@@ -89,7 +89,7 @@ export default function AboutPage() {
 
                     <a
                       href="mailto:beldaguru@gmail.com"
-                      className="flex items-start gap-3 rounded-xl bg-[#faf8f6] p-3 transition hover:bg-[#f7eded]"
+                      className="flex items-start gap-2 rounded-xl bg-[#faf8f6] p-2 transition hover:bg-[#f7eded]"
                     >
                       <FaEnvelope className="mt-1 shrink-0 text-[#800018]" />
                       <span className="min-w-0">
@@ -102,7 +102,7 @@ export default function AboutPage() {
                       </span>
                     </a>
 
-                    <div className="flex items-start gap-3 rounded-xl bg-[#faf8f6] p-3">
+                    <div className="flex items-start gap-2 rounded-xl bg-[#faf8f6] p-2">
                       <FaMapMarkerAlt className="mt-1 shrink-0 text-[#800018]" />
                       <span>
                         <span className="block text-xs text-gray-500">
@@ -125,12 +125,12 @@ export default function AboutPage() {
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#800018]/10">
                     <FaHeart className="text-[#800018]" />
                   </div>
-                  <h3 className="text-xl font-extrabold text-[#800018] sm:text-2xl">
+                  <h3 className="text-xl font-extrabold text-[#800018] sm:text-xl">
                     మా సేవా లక్ష్యం
                   </h3>
                 </div>
 
-                <div className="space-y-4 text-sm leading-8 text-gray-600 sm:text-base">
+                <div className="space-y-2 text-sm leading-8 text-gray-600 sm:text-base">
                   <p>
                     ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక ప్రప్రథమంగా
                     తేదీ 30-11-2014 నుండి ప్రారంభించబడినది. 90 శాతం
@@ -150,9 +150,9 @@ export default function AboutPage() {
               </div>
 
               {/* SIGNATURE */}
-              <div className="mt-7 rounded-2xl border border-[#eadbdc] bg-[#fcf8f7] p-5 text-center">
-                <FaQuoteLeft className="mx-auto text-lg text-[#c5a45a]" />
-                <p className="mt-3 text-sm font-medium text-gray-600">
+              <div className="mt-5 rounded-2xl border border-[#eadbdc] bg-[#fcf8f7] p-5 text-center">
+               
+                <p className="mt-2 text-sm font-medium text-gray-600">
                   సదా మీ సేవలో
                 </p>
                 <p className="mt-2 text-xl font-extrabold text-[#800018]">
@@ -170,22 +170,22 @@ export default function AboutPage() {
 
           {/* SUCCESS & PRAYER */}
           <div className="space-y-6 lg:col-span-5">
-            <section className="rounded-3xl border border-[#eadfe0] bg-white p-5 shadow-sm sm:p-7">
+            <section className="rounded-3xl border border-[#eadfe0] bg-white p-4 shadow-sm sm:p-5">
               <p className="text-center text-xs font-bold uppercase tracking-[0.18em] text-[#b28a35]">
                 మా సేవా విజయాలు
               </p>
 
-              <h3 className="mt-2 text-center text-xl font-extrabold text-[#800018] sem:text-xl">
+              <h3 className="mt-1 text-center text-lg font-extrabold text-[#800018] sem:text-xl">
                 ఆనందకరమైన కుటుంబ బంధాలు
               </h3>
 
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-[#eadbdc] bg-[#fcf8f7] p-4 text-center">
-                  <p className="text-3xl font-extrabold text-[#800018] sm:text-xl">
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="rounded-2xl border border-[#eadbdc] bg-[#fcf8f7] p-3 text-center">
+                  <p className="text-2xl font-extrabold text-[#800018]">
                     90%
                   </p>
-                  <div className="mx-auto my-3 h-1 w-10 rounded-full bg-[#d5ad53]" />
-                  <p className="text-sm font-semibold leading-6 text-gray-700">
+                  <div className="mx-auto my-2 h-1 w-8 rounded-full bg-[#d5ad53]" />
+                  <p className="text-xs font-semibold leading-5 text-gray-700">
                     వధువుల వివాహాలు
                   </p>
                 </div>
@@ -201,13 +201,13 @@ export default function AboutPage() {
                 </div>
               </div>
 
-              <div className="mt-5 flex items-center gap-3 rounded-xl bg-[#800018] p-4 text-white">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/15">
-                  <FaUsers className="text-xl text-[#f0d58f]" />
+              <div className="mt-3 flex items-center gap-3 rounded-xl bg-[#800018] p-3 text-white">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+                  <FaUsers className="text-lg text-[#f0d58f]" />
                 </div>
                 <div>
-                  <p className="font-bold">143వ పరిచయ వేదిక</p>
-                  <p className="mt-1 text-sm text-white/80">
+                  <p className="text-sm font-bold">143వ పరిచయ వేదిక</p>
+                  <p className="mt-0.5 text-xs text-white/80">
                     04 అక్టోబర్ 2026
                   </p>
                 </div>
@@ -215,25 +215,25 @@ export default function AboutPage() {
             </section>
 
             {/* PRAYER */}
-            <section className="relative overflow-hidden rounded-3xl border border-[#eadbdc] bg-white p-5 shadow-sm sm:p-7">
+            <section className="relative overflow-hidden rounded-3xl border border-[#eadbdc] bg-white p-4 shadow-sm sm:p-5">
               <div className="absolute right-0 top-0 h-28 w-28 rounded-bl-full bg-[#f7eeee]" />
 
               <div className="relative">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-[#e7d4a5] bg-[#fffaf0]">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[#e7d4a5] bg-[#fffaf0]">
                   <img
                     src="/images/kalasam.png"
                     alt="పూర్ణకలశం"
-                    className="h-11 w-11 object-contain"
+                    className="h-9 w-9 object-contain"
                   />
                 </div>
 
-                <h3 className="mt-4 text-center text-lg font-extrabold leading-8 text-[#800018] sm:text-xl">
+                <h3 className="mt-3 text-center text-base font-extrabold leading-6 text-[#800018] sm:text-lg">
                   శ్రీ వాసవి కన్యకా పరమేశ్వరి అమ్మవారి ప్రార్థన
                 </h3>
 
-                <div className="mx-auto my-4 h-1 w-16 rounded-full bg-[#d5ad53]" />
+                <div className="mx-auto my-3 h-1 w-12 rounded-full bg-[#d5ad53]" />
 
-                <div className="space-y-2 text-center text-sm leading-7 text-gray-700 sm:text-base">
+                <div className="grid grid-cols-1 gap-y-4 text-center text-xs leading-5 text-gray-700 sm:text-sm">
                   <p>విశ్వజనని వాసవి మా హృదయ గీతి అందుకో</p>
                   <p>నిత్య పూజ సత్య సింధు</p>
                   <p>ఆత్మ హారతి అందుకో</p>
@@ -247,7 +247,7 @@ export default function AboutPage() {
                   <p>విశ్వ శాంతికి నిలుతూము</p>
                 </div>
 
-                <p className="mt-5 rounded-xl bg-[#faf6f2] p-4 text-center text-sm leading-7 text-gray-600">
+                <p className="mt-3 rounded-xl bg-[#faf6f2] p-3 text-center text-xs leading-5 text-gray-600">
                   ఈ వేదికను భావి తరాలకు అందించాలని, శ్రీ వాసవి
                   కన్యకా పరమేశ్వరి అమ్మవారి అనుగ్రహం ఎల్లప్పుడూ
                   ఉండాలని కోరుకుంటున్నాము.

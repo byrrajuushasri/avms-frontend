@@ -2,7 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import type { IconType } from "react-icons";
 
 import {
@@ -45,6 +46,40 @@ const menuItems: MenuItem[] = [
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const router = useRouter();
+  const pathname = usePathname();
+  const [profileHref, setProfileHref] = useState<string | null>(null);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const syncAccount = () => {
+      const token = localStorage.getItem("access_token");
+      const storedUser = localStorage.getItem("user");
+      try {
+        const user = storedUser ? JSON.parse(storedUser) : null;
+        const profileId = user?.matrimonial_id ?? user?.id;
+        setProfileHref(
+          token && user?.account_type === "matrimonial" && profileId != null
+            ? "/profile/" + encodeURIComponent(String(profileId))
+            : null,
+        );
+      } catch {
+        setProfileHref(null);
+      }
+    };
+    syncAccount();
+    window.addEventListener("storage", syncAccount);
+    return () => window.removeEventListener("storage", syncAccount);
+  }, [pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    setProfileHref(null);
+    setAccountMenuOpen(false);
+    setMobileOpen(false);
+    router.replace("/login");
+  };
 
   const toggle = (key: string) => {
     setExpanded((prev) => {
@@ -367,14 +402,26 @@ export default function Header() {
             );
           })}
 
-          {/* DESKTOP LOGIN BUTTON */}
-          <Link
-            href="/login"
-            className="my-1 ml-3 flex items-center justify-center gap-2 rounded-md border border-[#e7c875] bg-[#d9b76e] px-5 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c] focus:outline-none focus:ring-2 focus:ring-white"
-          >
-            <FaSignInAlt />
-            Login
-          </Link>
+          {/* DESKTOP ACCOUNT MENU */}
+          {profileHref ? (
+            <div className="relative my-1 ml-3">
+              <button type="button" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)} className="flex min-h-[38px] items-center justify-center gap-2 rounded-md border border-[#e7c875] bg-[#d9b76e] px-5 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c] focus:outline-none focus:ring-2 focus:ring-white">
+                My Account
+                <FaChevronDown className={accountMenuOpen ? "text-[10px] rotate-180" : "text-[10px]"} />
+              </button>
+              {accountMenuOpen && (
+                <div role="menu" className="absolute right-0 top-full z-[120] mt-1 min-w-44 overflow-hidden rounded-lg border border-[#eadbb9] bg-white py-1 shadow-xl">
+                  <Link href={profileHref} role="menuitem" onClick={() => setAccountMenuOpen(false)} className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-[#fff7e8] hover:text-[#800018]">Edit Profile</Link>
+                  <button type="button" role="menuitem" onClick={handleLogout} className="w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-[#fff7e8] hover:text-[#800018]">Logout</button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href="/login" className="my-1 ml-3 flex items-center justify-center gap-2 rounded-md border border-[#e7c875] bg-[#d9b76e] px-5 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c] focus:outline-none focus:ring-2 focus:ring-white">
+              <FaSignInAlt />
+              Login
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -429,16 +476,27 @@ export default function Header() {
               );
             })}
 
-            {/* MOBILE LOGIN BUTTON */}
+            {/* MOBILE ACCOUNT MENU */}
             <div className="border-b border-[#f0e8dc] p-3">
-              <Link
-                href="/login"
-                onClick={closeMobile}
-                className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[#e7c875] bg-[#d9b76e] px-5 py-3 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c]"
-              >
-                <FaSignInAlt />
-                Login
-              </Link>
+              {profileHref ? (
+                <>
+                  <button type="button" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-[#e7c875] bg-[#d9b76e] px-5 py-3 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c]">
+                    My Account
+                    <FaChevronDown className={accountMenuOpen ? "text-[10px] rotate-180" : "text-[10px]"} />
+                  </button>
+                  {accountMenuOpen && (
+                    <div className="mt-2 overflow-hidden rounded-lg border border-[#eadbb9] bg-white">
+                      <Link href={profileHref} onClick={closeMobile} className="block px-4 py-3 text-center text-sm font-medium text-[#800018] hover:bg-[#fff7e8]">Edit Profile</Link>
+                      <button type="button" onClick={handleLogout} className="w-full border-t border-[#f0e8dc] px-4 py-3 text-sm font-medium text-[#800018] hover:bg-[#fff7e8]">Logout</button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link href="/login" onClick={closeMobile} className="flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[#e7c875] bg-[#d9b76e] px-5 py-3 text-sm font-bold text-[#650014] shadow-sm transition hover:bg-[#f0d99c]">
+                  <FaSignInAlt />
+                  Login
+                </Link>
+              )}
             </div>
           </div>
         </div>

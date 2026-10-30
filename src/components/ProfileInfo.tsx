@@ -190,40 +190,40 @@ export default function ProfileInfo({
   return (
     <div className="overflow-hidden rounded-2xl border border-[#eadfd9] bg-white shadow-[0_8px_28px_rgba(80,0,24,0.07)]">
       {/* COMPACT PROFILE HEADER */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#690015] via-[#800018] to-[#9b344b] px-5 py-5 text-white sm:px-6 sm:py-6">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#690015] via-[#800018] to-[#9b344b] px-4 py-4 text-white sm:px-5 sm:py-5">
         <div className="absolute -right-10 -top-12 h-36 w-36 rounded-full border-[20px] border-white/[0.06]" />
 
         <div className="relative flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-semibold">
+          <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-xs font-semibold">
             ID: {memberId}
           </span>
 
           {isVerified && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-green-700">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-green-700">
               <FaCheckCircle />
               Verified
             </span>
           )}
         </div>
 
-        <p className="relative mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f1d58e]">
+        <p className="relative mt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f1d58e]">
           Matrimony Profile
         </p>
 
-        <h1 className="relative mt-1.5 break-words text-2xl font-bold leading-tight sm:text-3xl">
+        <h1 className="relative mt-1 break-words text-2xl font-bold leading-tight sm:text-3xl">
           {name}
         </h1>
 
         {profession && (
-          <p className="relative mt-2 flex items-center gap-2 text-sm text-white/85">
+          <p className="relative mt-1.5 flex items-center gap-2 text-sm text-white/85">
             <FaBriefcase className="shrink-0 text-[#f1d58e]" />
             {profession}
           </p>
         )}
 
-        <div className="relative mt-3 flex flex-wrap gap-2 text-xs text-white/90">
+        <div className="relative mt-2 flex flex-wrap gap-2 text-xs text-white/90">
           {age !== null && (
-            <span className="rounded-lg bg-white/10 px-2.5 py-1.5">
+            <span className="rounded-lg bg-white/10 px-2.5 py-1">
               {age} Years
             </span>
           )}
@@ -240,10 +240,10 @@ export default function ProfileInfo({
         </div>
       </div>
 
-      <div className="space-y-5 p-4 sm:p-5">
+      <div className="space-y-3 p-3 sm:p-4">
         {/* PROFILE OVERVIEW */}
         <section>
-          <div className="mb-3 flex items-center gap-2.5">
+          <div className="mb-2 flex items-center gap-2">
             <span className="h-6 w-1 rounded-full bg-[#d9a928]" />
             <div>
               <h2 className="text-lg font-bold text-[#690015]">
@@ -259,9 +259,9 @@ export default function ProfileInfo({
             {details.map(({ label, value, icon: Icon }) => (
               <div
                 key={label}
-                className="group flex min-w-0 items-center gap-2.5 rounded-xl border border-[#eee6e0] bg-[#fdfbf9] p-2.5 transition-colors duration-200 hover:border-[#d9a928] hover:bg-[#fffaf0]"
+                className="group flex min-w-0 items-center gap-2 rounded-xl border border-[#eee6e0] bg-[#fdfbf9] p-2 transition-colors duration-200 hover:border-[#d9a928] hover:bg-[#fffaf0]"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#800018]/[0.07] text-base text-[#800018] transition-colors group-hover:bg-[#800018] group-hover:text-white">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#800018]/[0.07] text-sm text-[#800018] transition-colors group-hover:bg-[#800018] group-hover:text-white">
                   <Icon />
                 </div>
 
@@ -298,7 +298,7 @@ export default function ProfileInfo({
                 ({ label, value, icon: Icon }, index) => (
                   <div
                     key={label}
-                    className={`flex items-center justify-between gap-3 px-3 py-2.5 ${
+                    className={`flex items-center justify-between gap-3 px-3 py-1.5 ${
                       index % 2 === 0 ? "bg-[#fdfbf9]" : "bg-white"
                     }`}
                   >
