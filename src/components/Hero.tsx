@@ -1,6 +1,3 @@
-
-"use client";
-
 import Image from "next/image";
 
 import {
@@ -171,49 +168,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <style jsx>{`
-        .marquee-track {
-          display: flex;
-          width: max-content;
-          animation: smooth-marquee 35s linear infinite;
-          will-change: transform;
-        }
-
-        .marquee-content {
-          display: flex;
-          flex-shrink: 0;
-          align-items: center;
-          white-space: nowrap;
-          color: #800018;
-          font-size: 14px;
-          font-weight: 600;
-        }
-
-        .marquee-content > span {
-          flex-shrink: 0;
-        }
-
-        @keyframes smooth-marquee {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(-50%);
-          }
-        }
-
-        @media (min-width: 640px) {
-          .marquee-content {
-            font-size: 16px;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .marquee-track {
-            animation: none;
-          }
-        }
-      `}</style>
+    
 
       {/* Hero Heading */}
       <section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-3 pb-5 pt-5 sm:px-5 sm:pb-7 sm:pt-6">
