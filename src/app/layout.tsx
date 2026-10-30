@@ -1,3 +1,4 @@
+
 import "./globals.css";
 import { getSiteUrl, SITE_KEYWORDS } from "@/lib/seo";
 
@@ -55,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="te">
       <body>{children}</body>
     </html>
   );

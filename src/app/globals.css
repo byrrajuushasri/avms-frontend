@@ -1,47 +1,6 @@
 @import "tailwindcss";
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee-scroll 45s linear infinite;
-}
 
-.marquee-content {
-  display: flex;
-  width: max-content;
-  flex-shrink: 0;
-  white-space: nowrap;
-  align-items: center;
-  color: #800018;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.marquee-content span {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-
-@keyframes marquee-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-  }
-}
-
-
+/* AVMS Homepage Marquee */
 .marquee-track {
   display: flex;
   width: max-content;
@@ -61,12 +20,18 @@
 
 .marquee-content > span {
   flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
 }
 
 @keyframes smooth-marquee {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
