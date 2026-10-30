@@ -100,21 +100,24 @@ function OrganizerCard({
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#eadcb8] bg-white shadow-[0_4px_18px_rgba(105,0,21,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[#c5a04a] hover:shadow-[0_12px_28px_rgba(105,0,21,0.12)] sm:flex-row">
       
 {/* Organizer Profile Image */}
-{person.image ? (
-  <div className="flex shrink-0 items-center justify-center p-3 sm:p-4">
-    <Image
-  src={person.image}
-  alt={`${person.name} - AVMS organizer`}
-  width={208}
-  height={240}
-  quality={75}
-  sizes="(max-width: 639px) 176px, (max-width: 1023px) 192px, 208px"
-  loading="lazy"
-  className="h-48 w-44 rounded-xl border-2 border-[#eadcb8] object-cover shadow-md transition-transform duration-300 group-hover:scale-[1.03] sm:h-56 sm:w-48 lg:h-60 lg:w-52"
-/>
-  </div>
-) : null}
 
+{organizers.map((person, index) => (
+  <div key={person.name}>
+    {person.image && (
+      <Image
+        src={person.image}
+        alt={`${person.name} - AVMS organizer`}
+        width={208}
+        height={240}
+        quality={75}
+        sizes="(max-width: 639px) 176px, (max-width: 1023px) 192px, 208px"
+        loading={index === 0 ? "eager" : "lazy"}
+        fetchPriority={index === 0 ? "high" : "auto"}
+        className="h-48 w-44 rounded-xl border-2 border-[#eadcb8] object-cover shadow-md sm:h-56 sm:w-48 lg:h-60 lg:w-52"
+      />
+    )}
+  </div>
+))}
 
       {/* Organizer information */}
       <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-5">
