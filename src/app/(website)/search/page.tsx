@@ -955,7 +955,7 @@ export default function MatchesPage() {
 
         {/* PROFILE CARDS */}
         {filteredMatches.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:auto-rows-fr md:grid-cols-2 xl:grid-cols-3">
             {paginatedMatches.map((member) => (
               <article
                 key={member.id}
@@ -978,35 +978,6 @@ export default function MatchesPage() {
                   <span                   className="absolute bottom-3 left-3 rounded-full border border-white/30 bg-black/35 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white backdrop-blur-sm">
                     ID: {member.memberId}
                   </span>
-                  <button
-                    type="button"
-                    aria-label={`Send interest request to ${member.name}`}
-                    title={
-                      sentRequestStatuses[member.id]
-                        ? `Request ${sentRequestStatuses[member.id].toLowerCase()}`
-                        : "Send interest request"
-                    }
-                    disabled={
-                      Boolean(sentRequestStatuses[member.id]) ||
-                      requestingProfileId === member.id ||
-                      Number(loggedInUser?.matrimonial_id) === Number(member.id)
-                    }
-                    onClick={() => sendInterestRequest(member.id)}
-                    className="absolute right-3 top-3 flex h-9 min-w-9 items-center justify-center gap-1 rounded-full border border-white/70 bg-white/95 px-2 shadow-lg transition duration-200 hover:scale-105 hover:bg-white focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    <FaHeart
-                      className={`text-base transition-colors ${
-                        sentRequestStatuses[member.id]
-                          ? "text-rose-600"
-                          : "text-gray-400"
-                      }`}
-                    />
-                    {sentRequestStatuses[member.id] && (
-                      <span className="text-[10px] font-semibold text-[#800018]">
-                        {sentRequestStatuses[member.id]}
-                      </span>
-                    )}
-                  </button>
                 </div>
 
                 <div className="flex flex-1 flex-col p-3">
