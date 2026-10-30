@@ -2,23 +2,28 @@
 import Link from "next/link";
 
 import Hero from "@/components/Hero";
-import FeaturedProfiles from "@/components/FeaturedProfiles";
-import MatrimonySection from "@/components/MatrimonySection";
-import SuccessStories from "@/components/SuccessStories";
-import FAQ from "@/components/FAQ";
+ 
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Free Arya Vysya Matrimony & Membership in Telangana",
+  title:
+    "Telangana Arya Vysya Matrimony | Free Matrimony – Arya Vysya Mahasabha",
+
   description:
-    "Join Telangana State Arya Vysya Mahasabha for free Arya Vysya matrimonial registration, membership and community services in Hyderabad.",
+    "Telangana State Arya Vysya Mahasabha offers a free Arya Vysya matrimony platform for brides and grooms. Explore matrimonial profiles, register for free and access community membership services in Hyderabad and Telangana.",
+
   path: "/",
+
   keywords: [
-    "Telangana Arya Vysya Mahasabha matrimonial services",
-    "free Arya Vysya bride and groom profiles",
+    "Telangana Arya Vysya Matrimony",
+    "Arya Vysya Free Matrimony",
+    "Telangana State Arya Vysya Mahasabha",
+    "Arya Vysya Marriage Bureau Hyderabad",
+    "Arya Vysya Matrimonial Registration",
+    "Arya Vysya Brides and Grooms",
+    "Arya Vysya Community Telangana",
   ],
 });
-
 export default function Home() {
   return (
     <>

@@ -1,11 +1,25 @@
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
-  title: "Free Arya Vysya Marriage & Matrimony Service",
+  title:
+    "Telangana Arya Vysya Matrimony | Free Arya Vysya Marriage Bureau Hyderabad",
+
   description:
-    "Explore the Arya Vysya marriage and matrimony service from Telangana State Arya Vysya Mahasabha. Register your matrimonial profile for free.",
+    "Telangana State Arya Vysya Mahasabha provides a free Arya Vysya matrimony service for brides and grooms. Explore marriage profiles and register your Arya Vysya matrimonial profile online in Hyderabad and Telangana.",
+
   path: "/matrimony",
-  keywords: ["Arya Vysya marriage profiles", "Arya Vysya matrimony Telangana"],
+
+  keywords: [
+    "Telangana Arya Vysya Matrimony",
+    "Arya Vysya Free Matrimony",
+    "Arya Vysya Marriage Bureau Hyderabad",
+    "Arya Vysya matrimonial profiles",
+    "Arya Vysya marriage profiles",
+    "Arya Vysya matrimony Telangana",
+    "Arya Vysya Matrimonial Registration",
+    "Free Arya Vysya Marriage Service",
+    "Telangana State Arya Vysya Mahasabha",
+  ],
 });
 
 export default function MatrimonyLayout({

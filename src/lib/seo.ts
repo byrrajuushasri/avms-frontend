@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
 
 export const SITE_KEYWORDS = [
-  "Arya Vysya Matrimony free",
-  "Telangana Arya Vysya free Mahasabha",
-  "Arya Vysya marriage free",
-  "Arya Vysya matrimonial registration free",
-  "Arya Vysya membership free",
-  "Arya Vysya community Hyderabad",
+  "Arya Vysya Matrimony",
+  "Free Arya Vysya Matrimony",
+  "Telangana Arya Vysya Mahasabha",
+  "Arya Vysya Marriage Bureau",
+  "Arya Vysya Brides and Grooms",
+  "Arya Vysya Matrimonial Registration",
+  "Free Matrimony Registration",
+  "Arya Vysya Community Hyderabad",
+  "Telangana Arya Vysya Community",
+  "Arya Vysya Membership Registration",
+  "Arya Vysya Marriage Services",
+  "Arya Vysya Free Matrimony Website",
 ];
 
 export const getSiteUrl = () =>
   new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+    process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://www.aaryavysyamahasabha.com"
   );
 
 export function createPageMetadata({
@@ -27,26 +34,41 @@ export function createPageMetadata({
   keywords?: string[];
   noIndex?: boolean;
 }): Metadata {
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = new URL(path, siteUrl).toString();
+
   return {
     title,
     description,
     keywords: [...SITE_KEYWORDS, ...keywords],
+
     alternates: {
-      canonical: path,
+      canonical: canonicalUrl,
     },
+
     openGraph: {
       type: "website",
       title,
       description,
-      url: path,
+      url: canonicalUrl,
       siteName: "Telangana State Arya Vysya Mahasabha",
       locale: "en_IN",
     },
-    ...(noIndex && {
-      robots: {
-        index: false,
-        follow: false,
-      },
-    }),
+
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+
+    robots: noIndex
+      ? {
+          index: false,
+          follow: false,
+        }
+      : {
+          index: true,
+          follow: true,
+        },
   };
 }
