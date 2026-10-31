@@ -54,6 +54,7 @@ interface Member {
   ======================================================= */
 
   profile_category?: string | null;
+  marital_status?: string | null;
 
   
   mother_name?: string | null;
@@ -749,6 +750,11 @@ export default function ViewProfilePage() {
             <Info
               label="Profile Category"
               value={member.profile_category}
+            />
+
+            <Info
+              label="Marital Status"
+              value={member.marital_status}
             />
 
              
