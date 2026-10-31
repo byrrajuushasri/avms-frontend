@@ -408,9 +408,25 @@ const response = await fetch(apiUrl, {
           await response.text();
 
         if (!response.ok) {
-          throw new Error(
-            `API Error ${response.status}`
-          );
+          let message = `Could not load profile (${response.status}).`;
+          try {
+            const errorResult = JSON.parse(responseText);
+            const apiMessage = Array.isArray(errorResult?.message)
+              ? errorResult.message.join(", ")
+              : errorResult?.message;
+            if (typeof apiMessage === "string" && apiMessage.trim()) {
+              message = apiMessage;
+            }
+          } catch {
+            // Keep the status-based message if the response is not JSON.
+          }
+
+          if (response.status === 403) {
+            message =
+              "You can view this profile after the owner accepts your interest request.";
+          }
+
+          throw new Error(message);
         }
 
         let result: unknown;

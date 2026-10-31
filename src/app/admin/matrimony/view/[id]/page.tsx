@@ -186,11 +186,19 @@ export default function ViewProfilePage() {
         setLoading(true);
         setError("");
 
+        const profileToken =
+          localStorage.getItem("adminToken") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("access_token");
+
         const response = await fetch(
           `${BACKEND_URL}/matrimonial-users/${id}`,
           {
             method: "GET",
             cache: "no-store",
+            headers: profileToken
+              ? { Authorization: `Bearer ${profileToken}` }
+              : {},
           }
         );
 

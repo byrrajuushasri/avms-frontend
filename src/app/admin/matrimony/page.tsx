@@ -100,7 +100,7 @@ export default function AdminDashboard() {
                 const [profileResponse, memberResponse] = await Promise.all([
                   fetch(
                     `${BACKEND_URL}/matrimonial-users/${encodeURIComponent(memberId)}`,
-                    { cache: "no-store" }
+                    { cache: "no-store", headers: authHeaders }
                   ),
                   fetch(
                     `${BACKEND_URL}/membership/member/${encodeURIComponent(memberId)}`,
