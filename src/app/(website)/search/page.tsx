@@ -1198,21 +1198,18 @@ export default function MatchesPage() {
                             <FaBriefcase className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.profession}</span>
                           </div>
-                          <div className="flex min-w-0 items-center gap-2" title={member.address}>
-                            <FaMapMarkerAlt className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.address}</span>
-                          </div>
-                          <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
+                              <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
                             <FaStar className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.nakshatra || "Nakshatra not available"}</span>
                           </div>
-                          <div className="flex min-w-0 items-center gap-2" title={`Father Gotram: ${member.fatherGotram}`}>
-                            <FaStar className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate"><span className="font-semibold text-gray-700">Father Gotram:</span> {member.fatherGotram}</span>
+                          <div className="flex min-w-0 items-center gap-2" title={member.address}>
+                            <FaMapMarkerAlt className="mt-0.5 shrink-0 text-[#a33a50]" />
+                            <span className="line-clamp-2 whitespace-normal">{member.address}</span>
                           </div>
-                          <div className="flex min-w-0 items-center gap-2" title={`Mother Gotram: ${member.motherGotram}`}>
+                      
+                          <div className="col-span-2 flex min-w-0 items-center gap-2" title={`Gotram (Father: ${member.fatherGotram}, Mother: ${member.motherGotram})`}>
                             <FaStar className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate"><span className="font-semibold text-gray-700">Mother Gotram:</span> {member.motherGotram}</span>
+                            <span className="min-w-0 whitespace-normal break-words"><span className="font-semibold text-gray-700">Gotram</span> (Father: {member.fatherGotram}, Mother: {member.motherGotram})</span>
                           </div>
                         </div>
 
