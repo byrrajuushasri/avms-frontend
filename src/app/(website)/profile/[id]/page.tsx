@@ -19,6 +19,7 @@ interface Profile {
 
   name?: string | null;
   full_name?: string | null;
+  surname?: string | null;
   email?: string | null;
   mobile?: string | null;
 
@@ -67,6 +68,22 @@ interface MatrimonialSessionUser {
   account_type?: string;
   matrimonial_id?: number | string | null;
 }
+
+const getSurnameFromRecord = (value: unknown, depth = 0): string => {
+  if (depth > 4 || !value || typeof value !== "object") return "";
+  if (Array.isArray(value)) {
+    return value.map((item) => getSurnameFromRecord(item, depth + 1)).find(Boolean) || "";
+  }
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.surname === "string" && record.surname.trim()) {
+    return record.surname.trim();
+  }
+
+  return [record.data, record.member, record.membership, record.profile]
+    .map((nested) => getSurnameFromRecord(nested, depth + 1))
+    .find(Boolean) || "";
+};
 
 const editableProfileFields: Array<{
   key: string;
@@ -474,6 +491,58 @@ const response = await fetch(apiUrl, {
           throw new Error(
             "Profile data not found."
           );
+        }
+
+        if (!getSurnameFromRecord(profileData) && profileData.member_id) {
+          let membershipSurname = "";
+
+          try {
+            const memberResponse = await fetch(
+              `${API_BASE_URL}/membership/member/${encodeURIComponent(profileData.member_id)}`,
+              { cache: "no-store", headers: { Accept: "application/json" } }
+            );
+            if (memberResponse.ok) {
+              membershipSurname = getSurnameFromRecord(await memberResponse.json());
+            }
+          } catch {
+            // Try the membership list below if the single-member lookup fails.
+          }
+
+          if (!membershipSurname) {
+            try {
+              const token = localStorage.getItem("access_token");
+              const membersResponse = await fetch(
+                `${API_BASE_URL}/membership-register`,
+                {
+                  cache: "no-store",
+                  headers: {
+                    Accept: "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  },
+                }
+              );
+              if (membersResponse.ok) {
+                const membersResult = await membersResponse.json();
+                const members = Array.isArray(membersResult)
+                  ? membersResult
+                  : Array.isArray(membersResult?.data)
+                    ? membersResult.data
+                    : [];
+                const matchingMember = members.find(
+                  (member: Record<string, unknown>) =>
+                    String(member.member_id || "").trim().toLowerCase() ===
+                    profileData?.member_id?.trim().toLowerCase()
+                );
+                membershipSurname = getSurnameFromRecord(matchingMember);
+              }
+            } catch {
+              // Keep the profile usable even if membership data is unavailable.
+            }
+          }
+
+          if (membershipSurname) {
+            profileData = { ...profileData, surname: membershipSurname };
+          }
         }
 
         setProfile(profileData);

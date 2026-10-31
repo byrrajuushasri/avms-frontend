@@ -3,15 +3,11 @@
 
 import {
   FaMapMarkerAlt,
-  FaGraduationCap,
   FaBriefcase,
   FaRupeeSign,
-  FaBirthdayCake,
-  FaRulerVertical,
+  FaPalette,
   FaCheckCircle,
   FaPrayingHands,
-  FaHeart,
-  FaUser,
   FaUsers,
   FaGlobe,
   FaEnvelope,
@@ -23,12 +19,17 @@ interface Profile {
   member_id?: string | null;
   name?: string | null;
   full_name?: string | null;
+  surname?: string | null;
   email?: string | null;
   mobile?: string | null;
   date_of_birth?: string | null;
   dob?: string | null;
   height?: string | null;
+  color?: string | null;
   education?: string | null;
+  brother_details?: string | null;
+  sister_details?: string | null;
+  family_status?: string | null;
   occupation?: string | null;
   profession?: string | null;
   annual_income?: string | number | null;
@@ -41,12 +42,14 @@ interface Profile {
   religion?: string | null;
   caste?: string | null;
   gotram?: string | null;
+  father_gotram?: string | null;
+  mother_gotram?: string | null;
+  grandmother_gotram?: string | null;
   mother_tongue?: string | null;
-  marital_status?: string | null;
-  physical_status?: string | null;
   about?: string | null;
   about_me?: string | null;
   description?: string | null;
+  preferred_requirements?: string | null;
   gender?: string | null;
   status?: string | null;
   [key: string]: unknown;
@@ -73,13 +76,12 @@ export default function ProfileInfo({
     );
   }
 
-  const name = profile.full_name || profile.name || "Profile";
-
-  const memberId =
-    profile.member_id ||
-    (profile.id
-      ? `AVM${String(profile.id).padStart(6, "0")}`
-      : "AVM");
+  const nameBase = profile.full_name || profile.name || "Profile";
+  const surname = profile.surname?.trim() || "";
+  const name =
+    surname && !nameBase.toLowerCase().endsWith(surname.toLowerCase())
+      ? `${nameBase} ${surname}`
+      : nameBase;
 
   const calculateAge = (dob?: string | null): number | null => {
     if (!dob) return null;
@@ -101,7 +103,22 @@ export default function ProfileInfo({
     return age >= 0 && age <= 100 ? age : null;
   };
 
-  const age = calculateAge(profile.date_of_birth || profile.dob);
+  const rawDateOfBirth = profile.date_of_birth || profile.dob || null;
+  const age = calculateAge(rawDateOfBirth);
+  const parsedDateOfBirth = rawDateOfBirth ? new Date(rawDateOfBirth) : null;
+  const formattedDateOfBirth =
+    parsedDateOfBirth && !Number.isNaN(parsedDateOfBirth.getTime())
+      ? parsedDateOfBirth.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : rawDateOfBirth;
+  const dateOfBirthAndAge = formattedDateOfBirth
+    ? `${formattedDateOfBirth}${age !== null ? ` (${age})` : ""}`
+    : age !== null
+      ? `${age} Years`
+      : null;
   const profession = profile.occupation || profile.profession;
   const income = profile.annual_income ?? profile.income;
 
@@ -112,6 +129,7 @@ export default function ProfileInfo({
 
   const about =
     profile.about_me || profile.about || profile.description;
+  const preferredRequirements = profile.preferred_requirements?.trim();
   const email = profile.email?.trim();
   const mobile = profile.mobile?.trim();
 
@@ -120,15 +138,40 @@ export default function ProfileInfo({
 
   const details = [
     {
-      label: "Age",
-      value: age !== null ? `${age} Years` : null,
-      icon: FaBirthdayCake,
+      label: "Gotram",
+      value: profile.gotram,
+      icon: FaPrayingHands,
     },
-    { label: "Height", value: profile.height, icon: FaRulerVertical },
     {
-      label: "Education",
-      value: profile.education,
-      icon: FaGraduationCap,
+      label: "Father Gotram",
+      value: profile.father_gotram,
+      icon: FaPrayingHands,
+    },
+    {
+      label: "Mother Gotram",
+      value: profile.mother_gotram,
+      icon: FaPrayingHands,
+    },
+    {
+      label: "Grandmother Gotram",
+      value: profile.grandmother_gotram,
+      icon: FaPrayingHands,
+    },
+    { label: "Color", value: profile.color, icon: FaPalette },
+    {
+      label: "Brother Details",
+      value: profile.brother_details,
+      icon: FaUsers,
+    },
+    {
+      label: "Sister Details",
+      value: profile.sister_details,
+      icon: FaUsers,
+    },
+    {
+      label: "Family Status",
+      value: profile.family_status,
+      icon: FaUsers,
     },
     {
       label: "Profession",
@@ -162,23 +205,11 @@ export default function ProfileInfo({
   const personalDetails = [
     { label: "Religion", value: profile.religion, icon: FaGlobe },
     { label: "Caste", value: profile.caste, icon: FaUsers },
-    { label: "Gotram", value: profile.gotram, icon: FaPrayingHands },
     {
       label: "Mother Tongue",
       value: profile.mother_tongue,
       icon: FaGlobe,
     },
-    {
-      label: "Marital Status",
-      value: profile.marital_status,
-      icon: FaHeart,
-    },
-    {
-      label: "Physical Status",
-      value: profile.physical_status,
-      icon: FaUser,
-    },
-    { label: "Gender", value: profile.gender, icon: FaUser },
     { label: "Sangham", value: profile.sangham, icon: FaUsers },
   ].filter(
     (item) =>
@@ -194,10 +225,6 @@ export default function ProfileInfo({
         <div className="absolute -right-10 -top-12 h-36 w-36 rounded-full border-[20px] border-white/[0.06]" />
 
         <div className="relative flex flex-wrap items-center gap-2">
-          <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-xs font-semibold">
-            ID: {memberId}
-          </span>
-
           {isVerified && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-green-700">
               <FaCheckCircle />
@@ -206,11 +233,7 @@ export default function ProfileInfo({
           )}
         </div>
 
-        <p className="relative mt-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f1d58e]">
-          Matrimony Profile
-        </p>
-
-        <h1 className="relative mt-1 break-words text-2xl font-bold leading-tight sm:text-3xl">
+        <h1 className="relative mt-3 break-words text-2xl font-bold leading-tight sm:text-3xl">
           {name}
         </h1>
 
@@ -222,9 +245,9 @@ export default function ProfileInfo({
         )}
 
         <div className="relative mt-2 flex flex-wrap gap-2 text-xs text-white/90">
-          {age !== null && (
+          {dateOfBirthAndAge && (
             <span className="rounded-lg bg-white/10 px-2.5 py-1">
-              {age} Years
+              {dateOfBirthAndAge}
             </span>
           )}
           {profile.height && (
@@ -334,6 +357,21 @@ export default function ProfileInfo({
             </p>
           </section>
         )}
+
+        {/* PREFERRED REQUIREMENTS */}
+        <section className="rounded-xl border border-[#ead7ad] bg-[#fffaf0] p-4">
+          <div className="mb-2 flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#800018] text-sm text-white">
+              <FaCheckCircle />
+            </div>
+            <h2 className="text-lg font-bold text-[#690015]">
+              Preferred Requirements
+            </h2>
+          </div>
+          <p className="whitespace-pre-line break-words text-sm leading-6 text-gray-600">
+            {preferredRequirements || "No preferred requirements provided."}
+          </p>
+        </section>
 
         {/* CONTACT DETAILS */}
         <section className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 sm:p-5">
