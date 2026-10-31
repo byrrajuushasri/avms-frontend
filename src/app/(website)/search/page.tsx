@@ -20,9 +20,9 @@ import {
   FaTimes,
   FaSlidersH,
   FaCheck,
-  FaUser,
   FaStar,
   FaRulerVertical,
+  FaCalendarAlt,
 } from "react-icons/fa";
 
 interface Profile {
@@ -30,6 +30,7 @@ interface Profile {
   member_id?: string | null;
   name?: string | null;
   full_name?: string | null;
+  surname?: string | null;
 
   photo?: string | null;
   profile_photo?: string | null;
@@ -58,6 +59,7 @@ interface Profile {
 
   gender?: string | null;
   status?: string | null;
+  marital_status?: string | null;
 
   mother_tongue?: string | null;
   language?: string | null;
@@ -73,6 +75,7 @@ interface MatchProfile {
   memberId: string;
   name: string;
   age: number | null;
+  dateOfBirth: string;
   height: string;
   language: string;
   community: string;
@@ -81,8 +84,8 @@ interface MatchProfile {
   state: string;
   education: string;
   profession: string;
-  gender: string;
-  maritalStatus: string;
+  fatherGotram: string;
+  motherGotram: string;
   image: string;
 }
 
@@ -135,6 +138,34 @@ const getRequestList = (data: unknown): InterestRequest[] => {
       ? response.data
       : [];
   return requests as InterestRequest[];
+};
+
+const getSurname = (value: unknown, depth = 0): string => {
+  if (depth > 3 || !value || typeof value !== "object") return "";
+  if (Array.isArray(value)) {
+    return value.map((item) => getSurname(item, depth + 1)).find(Boolean) || "";
+  }
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.surname === "string" && record.surname.trim()) {
+    return record.surname.trim();
+  }
+
+  return [record.data, record.member, record.membership, record.profile]
+    .map((nested) => getSurname(nested, depth + 1))
+    .find(Boolean) || "";
+};
+
+const getProfileDisplayName = (profile?: Profile | null): string => {
+  const name = profile?.name?.trim() || profile?.full_name?.trim() || "";
+  const surname = getSurname(profile);
+
+  if (!name) return surname || "Matrimonial profile";
+  if (!surname || name.toLowerCase().endsWith(surname.toLowerCase())) {
+    return name;
+  }
+
+  return `${name} ${surname}`;
 };
 
 const BACKEND_URL =
@@ -358,8 +389,36 @@ export default function MatchesPage() {
           }
         }
 
+        // The matrimonial list can omit membership fields such as surname.
+        // Resolve missing surnames from the linked membership record.
+        const profilesWithSurname: Profile[] = [];
+        for (let index = 0; index < profileList.length; index += 8) {
+          const batch = profileList.slice(index, index + 8);
+          const enrichedBatch = await Promise.all(
+            batch.map(async (profile) => {
+              if (profile.surname || !profile.member_id) return profile;
+
+              try {
+                const memberResponse = await fetch(
+                  `${API_BASE_URL}/membership/member/${encodeURIComponent(profile.member_id)}`,
+                  { cache: "no-store", headers: { Accept: "application/json" } }
+                );
+                if (!memberResponse.ok) return profile;
+
+                const memberResult = await memberResponse.json();
+                const surname = getSurname(memberResult);
+
+                return surname ? { ...profile, surname } : profile;
+              } catch {
+                return profile;
+              }
+            })
+          );
+          profilesWithSurname.push(...enrichedBatch);
+        }
+
         if (!cancelled) {
-          setProfiles(profileList);
+          setProfiles(profilesWithSurname);
         }
 
         // FETCH INTEREST REQUESTS
@@ -615,13 +674,26 @@ export default function MatchesPage() {
         const memberId =
           profile.member_id || `AV${databaseId.padStart(5, "0")}`;
 
-        const name = profile.full_name || profile.name || "Profile";
+        const name = getProfileDisplayName(profile);
 
         const calculatedAge = calculateAge(
           profile.date_of_birth ||
             profile.dob ||
             profile.dateOfBirth
         );
+        const rawDateOfBirth =
+          profile.date_of_birth || profile.dob || profile.dateOfBirth;
+        const parsedDateOfBirth = rawDateOfBirth
+          ? new Date(rawDateOfBirth)
+          : null;
+        const dateOfBirth =
+          parsedDateOfBirth && !Number.isNaN(parsedDateOfBirth.getTime())
+            ? parsedDateOfBirth.toLocaleDateString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "Date of birth not available";
 
         const profileCity =
           profile.city ||
@@ -636,6 +708,7 @@ export default function MatchesPage() {
           memberId: String(memberId),
           name: String(name),
           age: calculatedAge,
+          dateOfBirth,
 
           height: String(profile.height || "Height not available"),
 
@@ -647,7 +720,7 @@ export default function MatchesPage() {
             profile.community || profile.caste || "Arya Vysya"
           ),
 
-          nakshatra: String(profile.nakshatra || ""),
+          nakshatra: String(profile.nakshatra || profile.nakshatram || ""),
 
           city: String(profileCity),
 
@@ -657,15 +730,15 @@ export default function MatchesPage() {
             profile.education || "Education not available"
           ),
 
+          fatherGotram: String(profile.father_gotram || "Not available"),
+
+          motherGotram: String(profile.mother_gotram || "Not available"),
+
           profession: String(
             profile.occupation ||
               profile.profession ||
               "Profession not available"
           ),
-
-          gender: String(profile.gender || "Gender not available"),
-
-          maritalStatus: String(profile.status || "Status not available"),
 
           image: getImageUrl(photo),
         };
@@ -957,7 +1030,7 @@ export default function MatchesPage() {
                 {incomingRequests.map((request) => {
                   const requester = request.profile;
                   const requesterId = requester?.id;
-                  const requesterName = requester?.full_name || requester?.name || "Matrimonial profile";
+                  const requesterName = getProfileDisplayName(requester);
 
                   return (
                     <article key={request.id} className="flex flex-col gap-3 rounded-xl border border-rose-100 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1061,9 +1134,9 @@ export default function MatchesPage() {
                             <FaRulerVertical className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.height}</span>
                           </div>
-                          <div className="flex min-w-0 items-center gap-2" title={member.gender}>
-                            <FaUser className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.gender}</span>
+                          <div className="flex min-w-0 items-center gap-2" title={member.dateOfBirth}>
+                            <FaCalendarAlt className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.dateOfBirth}</span>
                           </div>
                            
                           <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
@@ -1081,6 +1154,14 @@ export default function MatchesPage() {
                           <div className="flex min-w-0 items-center gap-2" title={member.profession}>
                             <FaBriefcase className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.profession}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={`Father Gotram: ${member.fatherGotram}`}>
+                            <FaStar className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate"><span className="font-semibold text-gray-700">Father Gotram:</span> {member.fatherGotram}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={`Mother Gotram: ${member.motherGotram}`}>
+                            <FaStar className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate"><span className="font-semibold text-gray-700">Mother Gotram:</span> {member.motherGotram}</span>
                           </div>
                         </div>
 
