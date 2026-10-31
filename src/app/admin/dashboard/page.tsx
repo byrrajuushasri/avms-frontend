@@ -353,6 +353,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] =
     useState(true);
 
+  const [currentDateTime, setCurrentDateTime] =
+    useState<Date | null>(null);
+
   const [error, setError] =
     useState("");
 
@@ -364,6 +367,14 @@ export default function AdminDashboard() {
 
   const [loggedInUser, setLoggedInUser] =
     useState<LoggedInUser | null>(null);
+
+  useEffect(() => {
+    const updateDateTime = () => setCurrentDateTime(new Date());
+    updateDateTime();
+
+    const intervalId = window.setInterval(updateDateTime, 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   /* =======================================================
      GET LOGGED IN USER
@@ -959,22 +970,33 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={fetchMembers}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
-          >
-            <FaSyncAlt
-              className={
-                loading
-                  ? "animate-spin"
-                  : ""
-              }
-            />
+          <div className="flex flex-wrap items-center gap-3">
+            {currentDateTime && (
+              <div
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-600"
+                aria-live="off"
+              >
+                <FaClock className="text-[#8B1E3F]" aria-hidden="true" />
+                <time dateTime={currentDateTime.toISOString()}>
+                  {new Intl.DateTimeFormat("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "medium",
+                    timeZone: "Asia/Kolkata",
+                  }).format(currentDateTime)}
+                </time>
+              </div>
+            )}
 
-            Refresh
-          </button>
+            <button
+              type="button"
+              onClick={fetchMembers}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <FaSyncAlt className={loading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </div>
 
         </div>
 
