@@ -531,9 +531,9 @@ export default function AdminDashboard() {
 
         const token =
           typeof window !== "undefined"
-            ? localStorage.getItem(
-                "token",
-              )
+            ? localStorage.getItem("adminToken") ||
+              localStorage.getItem("token") ||
+              localStorage.getItem("access_token")
             : null;
 
         /* =================================================
@@ -632,7 +632,7 @@ export default function AdminDashboard() {
           memberArray,
         );
 
-        // Premium totals on this dashboard refer only to matrimonial profiles.
+        // Resolve profiles missing from the list endpoint (which can be gender-filtered).
         try {
           const matrimonyResponse = await fetch(
             `${BACKEND_URL}/matrimonial-users`,
@@ -653,7 +653,7 @@ export default function AdminDashboard() {
           }
 
           const matrimonyData = await matrimonyResponse.json();
-          const profileArray = Array.isArray(matrimonyData)
+          const profileArray: Member[] = Array.isArray(matrimonyData)
             ? matrimonyData
             : Array.isArray(matrimonyData?.data)
               ? matrimonyData.data
@@ -661,7 +661,68 @@ export default function AdminDashboard() {
                 ? matrimonyData.profiles
                 : [];
 
-          setMatrimonyProfiles(profileArray);
+          const listedMemberIds = new Set(
+            profileArray
+              .map((profile) => String(profile.member_id ?? ""))
+              .filter(Boolean),
+          );
+          const missingMemberIds = Array.from(
+            new Set(
+              memberArray
+                .map((member) => String(member.member_id ?? ""))
+                .filter((memberId) => memberId && !listedMemberIds.has(memberId)),
+            ),
+          );
+          const resolvedProfiles: Member[] = [...profileArray];
+
+          for (let index = 0; index < missingMemberIds.length; index += 8) {
+            const batch = missingMemberIds.slice(index, index + 8);
+            const batchProfiles = await Promise.all(
+              batch.map(async (memberId) => {
+                try {
+                  const profileResponse = await fetch(
+                    `${BACKEND_URL}/matrimonial-users/${encodeURIComponent(memberId)}`,
+                    {
+                      cache: "no-store",
+                      headers: token
+                        ? { Authorization: `Bearer ${token}` }
+                        : {},
+                    },
+                  );
+                  if (!profileResponse.ok) return null;
+
+                  const profileData = await profileResponse.json();
+                  const profile = profileData?.data ?? profileData;
+                  return profile && typeof profile === "object"
+                    ? { ...profile, member_id: profile.member_id ?? memberId }
+                    : null;
+                } catch {
+                  return null;
+                }
+              }),
+            );
+            resolvedProfiles.push(
+              ...batchProfiles.filter((profile): profile is Member => Boolean(profile)),
+            );
+          }
+
+          const membershipById = new Map(
+            memberArray
+              .filter((member) => member.member_id)
+              .map((member) => [String(member.member_id), member]),
+          );
+          const uniqueProfiles = new Map<string, Member>();
+          resolvedProfiles.forEach((profile) => {
+            const memberId = String(profile.member_id ?? "");
+            const member = membershipById.get(memberId);
+            const key = memberId || String(profile.id ?? "");
+            uniqueProfiles.set(key, {
+              ...profile,
+              gender: profile.gender || member?.gender,
+            });
+          });
+
+          setMatrimonyProfiles(Array.from(uniqueProfiles.values()));
         } catch (matrimonyError) {
           console.error("DASHBOARD MATRIMONY PROFILES ERROR:", matrimonyError);
           setMatrimonyProfiles([]);
