@@ -264,6 +264,47 @@ export default function ProfileInfo({
       </div>
 
       <div className="space-y-3 p-3 sm:p-4">
+         {/* CONTACT DETAILS */}
+        <section className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 sm:p-5">
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="h-6 w-1 rounded-full bg-[#d9a928]" />
+            <div>
+              <h2 className="text-lg font-bold text-[#690015]">
+                Contact Details
+              </h2>
+              <p className="text-[11px] text-gray-500">
+                Available to the profile owner and accepted connections
+              </p>
+            </div>
+          </div>
+
+          {email || mobile ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {email && (
+                <a
+                  href={`mailto:${email}`}
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee6e0] bg-white p-3 text-sm font-semibold text-[#800018] hover:bg-[#fffaf0]"
+                >
+                  <FaEnvelope className="shrink-0" aria-hidden="true" />
+                  <span className="break-all">{email}</span>
+                </a>
+              )}
+              {mobile && (
+                <a
+                  href={`tel:${mobile}`}
+                  className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee6e0] bg-white p-3 text-sm font-semibold text-[#800018] hover:bg-[#fffaf0]"
+                >
+                  <FaPhone className="shrink-0" aria-hidden="true" />
+                  <span>{mobile}</span>
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="rounded-lg bg-white/80 px-3 py-3 text-sm text-gray-600">
+              Contact details are shown after a request is accepted.
+            </p>
+          )}
+        </section>
         {/* PROFILE OVERVIEW */}
         <section>
           <div className="mb-2 flex items-center gap-2">
@@ -373,47 +414,7 @@ export default function ProfileInfo({
           </p>
         </section>
 
-        {/* CONTACT DETAILS */}
-        <section className="rounded-xl border border-[#ead7ad] bg-gradient-to-br from-[#fffaf0] to-white p-4 sm:p-5">
-          <div className="mb-3 flex items-center gap-2.5">
-            <span className="h-6 w-1 rounded-full bg-[#d9a928]" />
-            <div>
-              <h2 className="text-lg font-bold text-[#690015]">
-                Contact Details
-              </h2>
-              <p className="text-[11px] text-gray-500">
-                Available to the profile owner and accepted connections
-              </p>
-            </div>
-          </div>
-
-          {email || mobile ? (
-            <div className="grid gap-2 sm:grid-cols-2">
-              {email && (
-                <a
-                  href={`mailto:${email}`}
-                  className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee6e0] bg-white p-3 text-sm font-semibold text-[#800018] hover:bg-[#fffaf0]"
-                >
-                  <FaEnvelope className="shrink-0" aria-hidden="true" />
-                  <span className="break-all">{email}</span>
-                </a>
-              )}
-              {mobile && (
-                <a
-                  href={`tel:${mobile}`}
-                  className="flex min-w-0 items-center gap-3 rounded-xl border border-[#eee6e0] bg-white p-3 text-sm font-semibold text-[#800018] hover:bg-[#fffaf0]"
-                >
-                  <FaPhone className="shrink-0" aria-hidden="true" />
-                  <span>{mobile}</span>
-                </a>
-              )}
-            </div>
-          ) : (
-            <p className="rounded-lg bg-white/80 px-3 py-3 text-sm text-gray-600">
-              Contact details are shown after a request is accepted.
-            </p>
-          )}
-        </section>
+       
       </div>
     </div>
   );
