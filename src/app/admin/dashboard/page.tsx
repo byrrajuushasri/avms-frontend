@@ -7,7 +7,8 @@ import {
   FaUsers,
   FaUserCheck,
   FaCrown,
-  FaRupeeSign,
+  FaMale,
+  FaFemale,
   FaArrowRight,
   FaSearch,
   FaCheckCircle,
@@ -346,6 +347,9 @@ export default function AdminDashboard() {
   const [members, setMembers] =
     useState<Member[]>([]);
 
+  const [matrimonyProfiles, setMatrimonyProfiles] =
+    useState<Member[]>([]);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -617,6 +621,41 @@ export default function AdminDashboard() {
           memberArray,
         );
 
+        // Premium totals on this dashboard refer only to matrimonial profiles.
+        try {
+          const matrimonyResponse = await fetch(
+            `${BACKEND_URL}/matrimonial-users`,
+            {
+              method: "GET",
+              cache: "no-store",
+              headers: {
+                Accept: "application/json",
+                ...(token
+                  ? { Authorization: `Bearer ${token}` }
+                  : {}),
+              },
+            },
+          );
+
+          if (!matrimonyResponse.ok) {
+            throw new Error(`Matrimony API failed: ${matrimonyResponse.status}`);
+          }
+
+          const matrimonyData = await matrimonyResponse.json();
+          const profileArray = Array.isArray(matrimonyData)
+            ? matrimonyData
+            : Array.isArray(matrimonyData?.data)
+              ? matrimonyData.data
+              : Array.isArray(matrimonyData?.profiles)
+                ? matrimonyData.profiles
+                : [];
+
+          setMatrimonyProfiles(profileArray);
+        } catch (matrimonyError) {
+          console.error("DASHBOARD MATRIMONY PROFILES ERROR:", matrimonyError);
+          setMatrimonyProfiles([]);
+        }
+
         if (
           memberArray.length === 0
         ) {
@@ -660,10 +699,17 @@ export default function AdminDashboard() {
       isVerified,
     ).length;
 
-  const premiumMembers =
-    members.filter(
-      isPremium,
-    ).length;
+  const pendingProfiles = members.filter(
+    (member) => normalizeText(member.status) === "pending",
+  ).length;
+
+  const matrimonyRegistrationCount = matrimonyProfiles.length;
+  const maleMatrimonyCount = matrimonyProfiles.filter(
+    (profile) => normalizeText(profile.gender) === "male",
+  ).length;
+  const femaleMatrimonyCount = matrimonyProfiles.filter(
+    (profile) => normalizeText(profile.gender) === "female",
+  ).length;
 
   /* =======================================================
      SEARCH
@@ -823,8 +869,6 @@ export default function AdminDashboard() {
         "Total Profiles",
       value:
         totalProfiles.toLocaleString(),
-      description:
-        "Registered members",
       icon: FaUsers,
       iconBg:
         "bg-violet-100",
@@ -837,8 +881,6 @@ export default function AdminDashboard() {
         "Verified Profiles",
       value:
         verifiedProfiles.toLocaleString(),
-      description:
-        "Active / verified members",
       icon:
         FaUserCheck,
       iconBg:
@@ -848,12 +890,18 @@ export default function AdminDashboard() {
     },
 
     {
+      title: "Pending Profiles",
+      value: pendingProfiles.toLocaleString(),
+      icon: FaClock,
+      iconBg: "bg-amber-100",
+      iconColor: "text-amber-600",
+    },
+
+    {
       title:
-        "Premium Members",
+        "Matrimony",
       value:
-        premiumMembers.toLocaleString(),
-      description:
-        "Premium / Gold / Platinum",
+        matrimonyRegistrationCount.toLocaleString(),
       icon:
         FaCrown,
       iconBg:
@@ -861,20 +909,19 @@ export default function AdminDashboard() {
       iconColor:
         "text-amber-600",
     },
-
     {
-      title:
-        "Total Revenue",
-      value:
-        "₹0",
-      description:
-        "Payment calculation pending",
-      icon:
-        FaRupeeSign,
-      iconBg:
-        "bg-rose-100",
-      iconColor:
-        "text-[#8B1E3F]",
+      title: "Male Profiles",
+      value: maleMatrimonyCount.toLocaleString(),
+      icon: FaMale,
+      iconBg: "bg-sky-100",
+      iconColor: "text-sky-700",
+    },
+    {
+      title: "Female Profiles",
+      value: femaleMatrimonyCount.toLocaleString(),
+      icon: FaFemale,
+      iconBg: "bg-pink-100",
+      iconColor: "text-pink-700",
     },
   ];
 
@@ -964,7 +1011,7 @@ export default function AdminDashboard() {
             STATS
         ================================================= */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
 
           {stats.map(
             (item) => {
@@ -976,43 +1023,29 @@ export default function AdminDashboard() {
                   key={
                     item.title
                   }
-                  className="group bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  className="group bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
                 >
 
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-center justify-between gap-3">
 
                     <div>
 
-                      <p className="text-sm font-medium text-gray-500">
+                      <p className="text-xs sm:text-sm font-medium text-gray-500">
                         {
                           item.title
                         }
                       </p>
 
-                      <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
+                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">
                         {loading
                           ? "..."
                           : item.value}
                       </h3>
 
-                      <div className="flex items-center gap-2 mt-3">
-
-                        <span className="text-xs font-semibold text-gray-500">
-                          Live data
-                        </span>
-
-                        <span className="text-xs text-gray-400">
-                          {
-                            item.description
-                          }
-                        </span>
-
-                      </div>
-
                     </div>
 
                     <div
-                      className={`w-12 h-12 rounded-xl ${item.iconBg} ${item.iconColor} flex items-center justify-center text-lg`}
+                      className={`w-9 h-9 shrink-0 rounded-lg ${item.iconBg} ${item.iconColor} flex items-center justify-center text-sm`}
                     >
                       <Icon />
                     </div>

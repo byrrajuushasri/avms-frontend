@@ -128,7 +128,7 @@ export default function ContactPage() {
                   </h3>
 
                   <p className="text-gray-500">
-                    support@aryavysyamatrimony.com
+                    support@aaryavysyamatrimony.com
                   </p>
 
                 </div>

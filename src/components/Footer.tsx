@@ -20,11 +20,11 @@ export default function Footer() {
         {/* Company */}
         <div>
           <h2 className="text-2xl font-bold mb-4">
-            Arya Vysya Matrimony
+            Aaryavysya Matrimony
           </h2>
 
           <p className="text-gray-200 leading-7">
-            Trusted Arya Vysya Matrimony platform helping families find
+            Trusted Aaryavysya Matrimony platform helping families find
             genuine and verified bride & groom profiles across India.
           </p>
 
@@ -110,7 +110,7 @@ export default function Footer() {
       </div>
 
       {/* Bottom */}
-     <div className="border-t border-rose-800"> <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5 text-center"> <p className="text-sm text-gray-300"> © 2026 Arya Vysya Matrimony. All Rights Reserved. </p> </div> </div>
+     <div className="border-t border-rose-800"> <div className="mx-auto flex max-w-7xl items-center justify-center px-6 py-5 text-center"> <p className="text-sm text-gray-300"> © 2026 Aaryavysya Matrimony. All Rights Reserved. </p> </div> </div>
 
     </footer>
   );

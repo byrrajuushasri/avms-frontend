@@ -166,7 +166,7 @@ export default function PrivacyPolicyPage() {
             </div>
 
             <a
-              href="mailto:noreply@aryavysyamahasabha.com"
+              href="mailto:noreply@aaryavysyamahasabha.com"
               className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-[#800018] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-[#800018] focus:ring-offset-2"
             >
               Email Us <span className="ml-2" aria-hidden="true">↗</span>
@@ -176,7 +176,7 @@ export default function PrivacyPolicyPage() {
           <div className="border-t border-[#eee4d5] bg-[#fffaf3] px-4 py-3 sm:px-5">
             <p className="break-all text-sm text-gray-700">
               <span className="font-semibold text-[#800018]">Email: </span>
-              noreply@aryavysyamahasabha.com
+              noreply@aaryavysyamahasabha.com
             </p>
           </div>
         </section>
