@@ -21,6 +21,8 @@ import {
   FaSlidersH,
   FaCheck,
   FaUser,
+  FaStar,
+  FaRulerVertical,
 } from "react-icons/fa";
 
 interface Profile {
@@ -79,6 +81,8 @@ interface MatchProfile {
   state: string;
   education: string;
   profession: string;
+  gender: string;
+  maritalStatus: string;
   image: string;
 }
 
@@ -111,6 +115,26 @@ const EMPTY_REQUEST_COUNTS: InterestRequestCounts = {
   requests: 0,
   accepted: 0,
   sent: 0,
+};
+
+const normalizeRequestStatus = (status: unknown): InterestRequestStatus => {
+  const normalized = String(status || "Pending").toLowerCase();
+  if (normalized === "accepted") return "Accepted";
+  if (normalized === "rejected") return "Rejected";
+  return "Pending";
+};
+
+const getRequestList = (data: unknown): InterestRequest[] => {
+  if (Array.isArray(data)) return data as InterestRequest[];
+  if (!data || typeof data !== "object") return [];
+
+  const response = data as Record<string, unknown>;
+  const requests = Array.isArray(response.requests)
+    ? response.requests
+    : Array.isArray(response.data)
+      ? response.data
+      : [];
+  return requests as InterestRequest[];
 };
 
 const BACKEND_URL =
@@ -384,13 +408,15 @@ export default function MatchesPage() {
           }
 
           if (!cancelled) {
-            const receivedList = Array.isArray(receivedData?.requests)
-              ? (receivedData.requests as InterestRequest[])
-              : [];
+            const receivedList = getRequestList(receivedData).map((request) => ({
+              ...request,
+              status: normalizeRequestStatus(request.status),
+            }));
 
-            const sentList = Array.isArray(sentData)
-              ? (sentData as InterestRequest[])
-              : [];
+            const sentList = getRequestList(sentData).map((request) => ({
+              ...request,
+              status: normalizeRequestStatus(request.status),
+            }));
 
             const counts = receivedData?.counts;
 
@@ -494,12 +520,13 @@ export default function MatchesPage() {
       }
 
       const status: InterestRequestStatus =
-        result?.request?.status || "Pending";
+        normalizeRequestStatus(result?.request?.status);
 
       setSentRequestStatuses((current) => ({
         ...current,
         [profileId]: status,
       }));
+      setRequestCounts((current) => ({ ...current, sent: current.sent + 1 }));
 
       setRequestMessage(
         result?.message || "Interest request sent successfully."
@@ -635,6 +662,10 @@ export default function MatchesPage() {
               profile.profession ||
               "Profession not available"
           ),
+
+          gender: String(profile.gender || "Gender not available"),
+
+          maritalStatus: String(profile.status || "Status not available"),
 
           image: getImageUrl(photo),
         };
@@ -774,201 +805,48 @@ export default function MatchesPage() {
     <main className="min-h-screen bg-[#fffafa] py-8 sm:py-10">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
 
-         <div className="mb-4 flex flex-col items-center gap-2 text-center">
-          <div className="flex flex-col items-center">
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1.5 text-xs font-semibold text-[#800018]">
-              <FaHeart />
-              Arya Vysya Matrimony
-            </span>
-
-            <h2 className="text-base font-bold text-gray-900">
-              Find Your{" "}
-              <span className="text-[#800018]">Perfect Match</span>
-            </h2>
-          </div>
-        </div>
-        {/* USER INTEREST ACTIVITY */}
-        {loggedInUser && (
-          <section className="mb-4 rounded-2xl border border-rose-100 bg-white p-3 shadow-sm sm:p-4">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-base font-bold text-gray-900">
-                  Your Interest Activity
-                </h2>
-
-                <p className="mt-1 text-xs text-gray-500">
-                  Check who is interested and manage your requests.
-                </p>
+        <div className="mb-5 flex flex-col gap-4 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+          <h2 className="text-left text-lg font-bold text-gray-900 sm:text-xl">
+            Find Your <span className="text-[#800018]">Perfect Match</span>
+          </h2>
+          {loggedInUser && (
+            <div className="flex flex-wrap items-center gap-2 md:justify-end">
+              <button type="button" onClick={() => setShowIncomingRequests(true)} className="rounded-lg bg-amber-50 px-3 py-2 text-center transition hover:bg-amber-100">
+                <p className="text-[10px] font-medium text-gray-600">Pending</p>
+                <p className="text-sm font-bold text-[#800018]">{requestCounts.requests}</p>
+              </button>
+              <button type="button" onClick={() => setShowIncomingRequests(true)} className="rounded-lg bg-green-50 px-3 py-2 text-center transition hover:bg-green-100">
+                <p className="text-[10px] font-medium text-gray-600">Accepted</p>
+                <p className="text-sm font-bold text-green-700">{requestCounts.accepted}</p>
+              </button>
+              <div className="rounded-lg bg-rose-50 px-3 py-2 text-center">
+                <p className="text-[10px] font-medium text-gray-600">Requests sent</p>
+                <p className="text-sm font-bold text-[#800018]">{requestCounts.sent}</p>
               </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-2">
-                  <p className="text-xs text-gray-600">Requests sent</p>
-
-                  <p className="text-xl font-bold text-[#800018]">
-                    {requestCounts.sent}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowIncomingRequests((current) => !current)
-                  }
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#800018] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#600012]"
-                >
-                  {showIncomingRequests ? "Back to Search" : "View Requests"}
-
-                  <span className="rounded-full bg-white/20 px-2 py-0.5">
-                    {requestCounts.likes}
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {[
-                {
-                  label: "Likes received",
-                  value: requestCounts.likes,
-                },
-                {
-                  label: "Pending requests",
-                  value: requestCounts.requests,
-                },
-                {
-                  label: "Accepted",
-                  value: requestCounts.accepted,
-                },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-xl border border-rose-100 bg-rose-50/60 px-2.5 py-2"
-                >
-                  <p className="text-[10px] font-medium text-gray-600">
-                    {item.label}
-                  </p>
-
-                  <p className="mt-0.5 text-lg font-bold text-[#800018]">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {(requestError || requestMessage) && (
-              <p
-                role={requestError ? "alert" : "status"}
-                className={`mt-4 rounded-lg px-3 py-2 text-sm ${
-                  requestError
-                    ? "bg-red-50 text-red-700"
-                    : "bg-green-50 text-green-700"
-                }`}
+              <button
+                type="button"
+                onClick={() => setShowIncomingRequests((current) => !current)}
+                className="rounded-lg bg-[#800018] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012]"
               >
-                {requestError || requestMessage}
-              </p>
-            )}
-
-            {/* RECEIVED REQUESTS */}
-            {showIncomingRequests && (
-              <div className="mt-5 border-t border-rose-100 pt-5">
-                <h3 className="text-base font-bold text-gray-900">
-                  Requests Received
-                </h3>
-
-                {requestsLoading ? (
-                  <p className="mt-4 text-sm text-gray-500">
-                    Loading your requests...
-                  </p>
-                ) : incomingRequests.length > 0 ? (
-                  <div className="mt-4 grid grid-cols-1 gap-3">
-                    {incomingRequests.map((request) => {
-                      const profileId = request.profile?.id;
-
-                      const profileName =
-                        request.profile?.full_name ||
-                        request.profile?.name ||
-                        "Matrimonial profile";
-
-                      return (
-                        <article
-                          key={request.id}
-                          className="flex flex-col gap-4 rounded-xl border border-rose-100 p-4 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                          <div>
-                            <p className="font-semibold text-gray-900">
-                              {profileName}
-                            </p>
-
-                            <p className="mt-1 text-xs text-gray-500">
-                              Request status: {request.status}
-                            </p>
-
-                            {request.status === "Pending" && (
-                              <p className="mt-1 text-xs text-gray-500">
-                                Accept this request to unlock the profile.
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            {request.status === "Pending" && (
-                              <button
-                                type="button"
-                                disabled={
-                                  acceptingRequestId === request.id
-                                }
-                                onClick={() =>
-                                  acceptInterestRequest(request.id)
-                                }
-                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#800018] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#600012] disabled:cursor-not-allowed disabled:opacity-60"
-                              >
-                                <FaCheck />
-
-                                {acceptingRequestId === request.id
-                                  ? "Accepting..."
-                                  : "Accept"}
-                              </button>
-                            )}
-
-                            {profileId != null &&
-                              request.status === "Accepted" && (
-                                <Link
-                                  href={`/profile/${profileId}`}
-                                  className="inline-flex items-center justify-center rounded-lg border border-rose-200 px-4 py-2 text-sm font-semibold text-[#800018] transition hover:bg-rose-50"
-                                >
-                                  View Profile
-                                </Link>
-                              )}
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="mt-4 rounded-xl bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-                    You have not received any interest requests yet.
-                  </p>
-                )}
-              </div>
-            )}
-          </section>
+                {showIncomingRequests ? "Back to Matches" : "View Requests"}
+              </button>
+            </div>
+          )}
+        </div>
+        {(requestError || requestMessage) && !showIncomingRequests && (
+          <p
+            role={requestError ? "alert" : "status"}
+            className={`mb-4 rounded-lg px-3 py-2 text-sm ${requestError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}
+          >
+            {requestError || requestMessage}
+          </p>
         )}
+
 
         {/* SEARCH PANEL */}
         <section className="mb-4 rounded-2xl border border-rose-100 bg-white p-3 shadow-sm sm:p-4">
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[#800018]">
-                <FaSlidersH />
-              </div>
-
-              <div>
-                <h2 className="text-base font-bold text-gray-900">
-                  Search Profiles
-                </h2>
-              </div>
-            </div>
+    
 
             {(search || age || city) && (
               <button
@@ -1061,26 +939,63 @@ export default function MatchesPage() {
           </div>
         </section>
 
+        {showIncomingRequests && (
+          <section className="mb-5 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-bold text-gray-900">Requests Received</h2>
+            {(requestError || requestMessage) && (
+              <p
+                role={requestError ? "alert" : "status"}
+                className={`mt-3 rounded-lg px-3 py-2 text-sm ${requestError ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"}`}
+              >
+                {requestError || requestMessage}
+              </p>
+            )}
+            {requestsLoading ? (
+              <p className="mt-4 text-sm text-gray-500">Loading your requests...</p>
+            ) : incomingRequests.length > 0 ? (
+              <div className="mt-4 grid gap-3">
+                {incomingRequests.map((request) => {
+                  const requester = request.profile;
+                  const requesterId = requester?.id;
+                  const requesterName = requester?.full_name || requester?.name || "Matrimonial profile";
+
+                  return (
+                    <article key={request.id} className="flex flex-col gap-3 rounded-xl border border-rose-100 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-semibold text-gray-900">{requesterName}</p>
+                        <p className="mt-1 text-xs text-gray-500">Request status: {request.status}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {request.status === "Pending" && (
+                          <button
+                            type="button"
+                            disabled={acceptingRequestId === request.id}
+                            onClick={() => acceptInterestRequest(request.id)}
+                            className="rounded-lg bg-[#800018] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#600012] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {acceptingRequestId === request.id ? "Accepting..." : "Accept"}
+                          </button>
+                        )}
+                        {request.status === "Accepted" && requesterId != null && (
+                          <Link href={`/profile/${encodeURIComponent(String(requesterId))}`} className="rounded-lg border border-rose-200 px-4 py-2 text-sm font-semibold text-[#800018] transition hover:bg-rose-50">
+                            View Profile
+                          </Link>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-4 rounded-xl bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">You have not received any interest requests yet.</p>
+            )}
+          </section>
+        )}
+
         {/* PROFILE RESULTS */}
         {!showIncomingRequests && (
           <>
-            <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Matching Profiles
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Profiles matching your preferences
-                </p>
-              </div>
-
-              <div className="w-fit rounded-full border border-rose-100 bg-white px-4 py-2 text-sm font-semibold text-[#800018] shadow-sm">
-                {filteredMatches.length}{" "}
-                {filteredMatches.length === 1 ? "Profile" : "Profiles"}
-              </div>
-            </div>
-
+         
             {/* HORIZONTAL PROFILE CARDS */}
             {filteredMatches.length > 0 ? (
               <div className="flex flex-col gap-4">
@@ -1136,28 +1051,37 @@ export default function MatchesPage() {
                           {member.name}
                         </h3>
 
-                        {/* DETAILS */}
-                        <div className="mt-1.5 space-y-1 text-sm leading-5 text-gray-700">
-                          <p>
-                            {member.age !== null
-                              ? `${member.age} yrs`
-                              : "Age not available"}
-                            {member.height !== "Height not available"
-                              ? `, ${member.height}`
-                              : ""}
-                            , {member.language},
-                          </p>
-
-                          <p>{member.community},</p>
-
-                          {member.nakshatra && (
-                            <p>{member.nakshatra},</p>
-                          )}
-
-                          <p>
-                            {member.education}, {member.profession},{" "}
-                            {member.city}, {member.state}
-                          </p>
+                        {/* COMPACT PROFILE DETAILS */}
+                        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs leading-4 text-gray-600">
+                          <div className="flex min-w-0 items-center gap-2" title={member.age !== null ? `${member.age} yrs` : "Age not available"}>
+                            <FaBirthdayCake className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.age !== null ? `${member.age} yrs` : "Age not available"}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={member.height}>
+                            <FaRulerVertical className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.height}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={member.gender}>
+                            <FaUser className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.gender}</span>
+                          </div>
+                           
+                          <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
+                            <FaStar className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.nakshatra || "Nakshatra not available"}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={`${member.city}, ${member.state}`}>
+                            <FaMapMarkerAlt className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.city}, {member.state}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={member.education}>
+                            <FaGraduationCap className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.education}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={member.profession}>
+                            <FaBriefcase className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.profession}</span>
+                          </div>
                         </div>
 
                       </div>
@@ -1194,7 +1118,7 @@ export default function MatchesPage() {
                                   ? "Sending..."
                                   : sentRequestStatuses[member.id]
                                     ? `Request ${sentRequestStatuses[member.id]}`
-                                    : "SEND INTEREST"}
+                                    : "SEND  REQUEST"}
                               </button>
 
                             </>

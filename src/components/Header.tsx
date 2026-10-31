@@ -58,18 +58,17 @@ export default function Header() {
       try {
         const user = storedUser ? JSON.parse(storedUser) : null;
         const profileId = user?.matrimonial_id ?? user?.id;
-        setProfileHref(
-          token && user?.account_type === "matrimonial" && profileId != null
-            ? "/profile/" + encodeURIComponent(String(profileId))
-            : null,
-        );
+        const isMatrimonial = token && user?.account_type === "matrimonial";
+        setProfileHref(isMatrimonial && profileId != null ? "/profile/" + encodeURIComponent(String(profileId)) : null);
       } catch {
         setProfileHref(null);
       }
     };
     syncAccount();
     window.addEventListener("storage", syncAccount);
-    return () => window.removeEventListener("storage", syncAccount);
+    return () => {
+      window.removeEventListener("storage", syncAccount);
+    };
   }, [pathname]);
 
   const handleLogout = () => {
