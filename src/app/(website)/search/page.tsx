@@ -82,6 +82,7 @@ interface MatchProfile {
   community: string;
   nakshatra: string;
   city: string;
+  address: string;
   state: string;
   education: string;
   profession: string;
@@ -770,6 +771,11 @@ export default function MatchesPage() {
 
           city: String(profileCity),
 
+          address: String(
+            profile.address ||
+              [profileCity, profile.state].filter(Boolean).join(", ")
+          ),
+
           state: String(profile.state || "Telangana"),
 
           education: String(
@@ -1192,9 +1198,9 @@ export default function MatchesPage() {
                             <FaBriefcase className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.profession}</span>
                           </div>
-                          <div className="flex min-w-0 items-center gap-2" title={`${member.city}, ${member.state}`}>
+                          <div className="flex min-w-0 items-center gap-2" title={member.address}>
                             <FaMapMarkerAlt className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.city}, {member.state}</span>
+                            <span className="truncate">{member.address}</span>
                           </div>
                           <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
                             <FaStar className="shrink-0 text-[#a33a50]" />
