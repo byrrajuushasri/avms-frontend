@@ -66,6 +66,7 @@ interface Profile {
   nakshatra?: string | null;
   community?: string | null;
   caste?: string | null;
+  preferred_requirements?: string | null;
 
   [key: string]: unknown;
 }
@@ -86,6 +87,7 @@ interface MatchProfile {
   profession: string;
   fatherGotram: string;
   motherGotram: string;
+  preferredRequirements: string;
   image: string;
 }
 
@@ -214,6 +216,10 @@ export default function MatchesPage() {
   const [age, setAge] = useState("");
   const [city, setCity] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPreferences, setSelectedPreferences] = useState<{
+    name: string;
+    requirements: string;
+  } | null>(null);
 
   const [sentRequestStatuses, setSentRequestStatuses] = useState<
     Record<string, InterestRequestStatus>
@@ -389,14 +395,50 @@ export default function MatchesPage() {
           }
         }
 
+        // Join the membership table so names include the member's surname.
+        const surnameByMemberId = new Map<string, string>();
+        try {
+          const membersResponse = await fetch(
+            `${API_BASE_URL}/membership-register`,
+            {
+              cache: "no-store",
+              headers: {
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (membersResponse.ok) {
+            const membersResult = await membersResponse.json();
+            const members = Array.isArray(membersResult)
+              ? membersResult
+              : Array.isArray(membersResult?.data)
+                ? membersResult.data
+                : [];
+
+            members.forEach((member: Profile) => {
+              if (member.member_id) {
+                const surname = getSurname(member);
+                if (surname) surnameByMemberId.set(String(member.member_id), surname);
+              }
+            });
+          }
+        } catch {
+          // Fall back to looking up each linked membership record below.
+        }
+
         // The matrimonial list can omit membership fields such as surname.
-        // Resolve missing surnames from the linked membership record.
+        // Resolve missing values from the member table, then use the member lookup as fallback.
         const profilesWithSurname: Profile[] = [];
         for (let index = 0; index < profileList.length; index += 8) {
           const batch = profileList.slice(index, index + 8);
           const enrichedBatch = await Promise.all(
             batch.map(async (profile) => {
-              if (profile.surname || !profile.member_id) return profile;
+              if (getSurname(profile) || !profile.member_id) return profile;
+
+              const memberSurname = surnameByMemberId.get(String(profile.member_id));
+              if (memberSurname) return { ...profile, surname: memberSurname };
 
               try {
                 const memberResponse = await fetch(
@@ -686,7 +728,7 @@ export default function MatchesPage() {
         const parsedDateOfBirth = rawDateOfBirth
           ? new Date(rawDateOfBirth)
           : null;
-        const dateOfBirth =
+        const formattedDateOfBirth =
           parsedDateOfBirth && !Number.isNaN(parsedDateOfBirth.getTime())
             ? parsedDateOfBirth.toLocaleDateString("en-GB", {
                 day: "2-digit",
@@ -694,6 +736,10 @@ export default function MatchesPage() {
                 year: "numeric",
               })
             : "Date of birth not available";
+        const dateOfBirth =
+          calculatedAge !== null && formattedDateOfBirth !== "Date of birth not available"
+            ? `${formattedDateOfBirth} (${calculatedAge})`
+            : formattedDateOfBirth;
 
         const profileCity =
           profile.city ||
@@ -733,6 +779,8 @@ export default function MatchesPage() {
           fatherGotram: String(profile.father_gotram || "Not available"),
 
           motherGotram: String(profile.mother_gotram || "Not available"),
+
+          preferredRequirements: String(profile.preferred_requirements || ""),
 
           profession: String(
             profile.occupation ||
@@ -1108,44 +1156,33 @@ export default function MatchesPage() {
                     {/* RIGHT PROFILE DETAILS */}
                     <div className="flex min-w-0 flex-1 flex-col justify-between">
                       <div>
-                        {/* MEMBER ID */}
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="rounded-full bg-rose-50 px-3 py-1 text-xs font-semibold text-[#800018]">
-                            ID: {member.memberId}
-                          </span>
-
-                          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                            Matrimonial Profile
-                          </span>
+                          <h3 className="text-lg font-bold text-gray-900">
+                            {member.name}
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedPreferences({
+                                name: member.name,
+                                requirements: member.preferredRequirements,
+                              })
+                            }
+                            className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-[#800018] transition hover:bg-rose-100"
+                          >
+                            View Preferred Requirements
+                          </button>
                         </div>
-
-                        {/* NAME */}
-                        <h3 className="mt-2 text-lg font-bold text-gray-900">
-                          {member.name}
-                        </h3>
 
                         {/* COMPACT PROFILE DETAILS */}
                         <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs leading-4 text-gray-600">
-                          <div className="flex min-w-0 items-center gap-2" title={member.age !== null ? `${member.age} yrs` : "Age not available"}>
-                            <FaBirthdayCake className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.age !== null ? `${member.age} yrs` : "Age not available"}</span>
-                          </div>
-                          <div className="flex min-w-0 items-center gap-2" title={member.height}>
-                            <FaRulerVertical className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.height}</span>
-                          </div>
                           <div className="flex min-w-0 items-center gap-2" title={member.dateOfBirth}>
                             <FaCalendarAlt className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.dateOfBirth}</span>
                           </div>
-                           
-                          <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
-                            <FaStar className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.nakshatra || "Nakshatra not available"}</span>
-                          </div>
-                          <div className="flex min-w-0 items-center gap-2" title={`${member.city}, ${member.state}`}>
-                            <FaMapMarkerAlt className="shrink-0 text-[#a33a50]" />
-                            <span className="truncate">{member.city}, {member.state}</span>
+                          <div className="flex min-w-0 items-center gap-2" title={member.height}>
+                            <FaRulerVertical className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.height}</span>
                           </div>
                           <div className="flex min-w-0 items-center gap-2" title={member.education}>
                             <FaGraduationCap className="shrink-0 text-[#a33a50]" />
@@ -1154,6 +1191,14 @@ export default function MatchesPage() {
                           <div className="flex min-w-0 items-center gap-2" title={member.profession}>
                             <FaBriefcase className="shrink-0 text-[#a33a50]" />
                             <span className="truncate">{member.profession}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={`${member.city}, ${member.state}`}>
+                            <FaMapMarkerAlt className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.city}, {member.state}</span>
+                          </div>
+                          <div className="flex min-w-0 items-center gap-2" title={member.nakshatra || "Nakshatra not available"}>
+                            <FaStar className="shrink-0 text-[#a33a50]" />
+                            <span className="truncate">{member.nakshatra || "Nakshatra not available"}</span>
                           </div>
                           <div className="flex min-w-0 items-center gap-2" title={`Father Gotram: ${member.fatherGotram}`}>
                             <FaStar className="shrink-0 text-[#a33a50]" />
@@ -1289,6 +1334,41 @@ export default function MatchesPage() {
               Next
             </button>
           </nav>
+        )}
+
+        {selectedPreferences && (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setSelectedPreferences(null)}
+          >
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="preferred-requirements-title"
+              className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 id="preferred-requirements-title" className="text-lg font-bold text-gray-900">
+                    Preferred Requirements
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500">{selectedPreferences.name}</p>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close preferred requirements"
+                  onClick={() => setSelectedPreferences(null)}
+                  className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              <p className="mt-5 whitespace-pre-wrap break-words rounded-xl bg-rose-50/70 p-4 text-sm leading-6 text-gray-700">
+                {selectedPreferences.requirements.trim() || "No preferred requirements added."}
+              </p>
+            </section>
+          </div>
         )}
       </div>
     </main>
