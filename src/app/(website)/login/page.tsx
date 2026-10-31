@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  FaGoogle,
-  FaEnvelope,
-  FaLock,
-  FaHeart,
-} from "react-icons/fa";
+import { FaEnvelope, FaLock, FaHeart } from "react-icons/fa";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -217,42 +212,6 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Login"}
             </button>
 
-            {/* Divider */}
-
-            <div className="flex items-center gap-3">
-
-              <div className="flex-1 h-px bg-gray-200"></div>
-
-              <span className="text-gray-400 text-sm">
-                or continue with
-              </span>
-
-              <div className="flex-1 h-px bg-gray-200"></div>
-
-            </div>
-
-            {/* Social */}
-
-            <div className="flex justify-center">
-  <button
-    type="button"
-    className="
-      h-10
-      w-50
-      rounded-xl
-      border
-      border-pink-100
-      hover:bg-pink-50
-      flex
-      items-center
-      justify-center
-      transition
-    "
-  >
-    <FaGoogle className="text-red-500 text-xl" />
-  </button>
-</div>
-
             {/* Register */}
 
             <p className="text-center text-sm text-gray-600">
@@ -260,7 +219,7 @@ export default function LoginPage() {
               Don't have an account?
 
               <Link
-                href="/register"
+                href="/membership"
                 className="ml-1 font-semibold text-rose-600 hover:underline"
               >
                 Register Now
