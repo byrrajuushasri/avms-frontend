@@ -17,6 +17,7 @@ import {
   FaCrown,
   FaTimes,
   FaSignInAlt,
+  FaClock,
 } from "react-icons/fa";
 
 type MenuItem = {
@@ -50,6 +51,15 @@ export default function Header() {
   const pathname = usePathname();
   const [profileHref, setProfileHref] = useState<string | null>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [currentDateTime, setCurrentDateTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const updateDateTime = () => setCurrentDateTime(new Date());
+    updateDateTime();
+
+    const intervalId = window.setInterval(updateDateTime, 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const syncAccount = () => {
@@ -362,6 +372,21 @@ export default function Header() {
         </div>
 
       </div>
+
+      {currentDateTime && (
+        <div className="border-b border-[#f1eadf] bg-[#fffaf2]">
+          <div className="mx-auto flex max-w-[1500px] items-center justify-center gap-2 px-3 py-1.5 text-[10px] font-medium text-[#800018] sm:justify-end sm:px-6 sm:text-xs">
+            <FaClock aria-hidden="true" />
+            <time dateTime={currentDateTime.toISOString()}>
+              {new Intl.DateTimeFormat("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "medium",
+                timeZone: "Asia/Kolkata",
+              }).format(currentDateTime)}
+            </time>
+          </div>
+        </div>
+      )}
 
       {/* DESKTOP NAVIGATION */}
       <nav className="hidden border-b border-[#a34b59] bg-[#800018] md:block">
