@@ -2900,7 +2900,7 @@ const normalFields = {
                       </div>
 
                       <h4 className="text-xl font-bold text-rose-800 sm:text-2xl">
-                        Your Preference Details
+                        Your Reference Details
                       </h4>
 
                     </div>
