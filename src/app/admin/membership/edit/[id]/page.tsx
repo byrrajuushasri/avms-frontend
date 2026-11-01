@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Cropper, { type Area } from "react-easy-crop";
+import {
+  getCountries,
+  getCountryCallingCode,
+  parsePhoneNumberFromString,
+} from "libphonenumber-js";
+import type { CountryCode } from "libphonenumber-js";
 
 import {
   FaArrowLeft,
@@ -15,6 +21,27 @@ import AdminDialog, {
   type AdminDialogOptions,
 } from "@/components/admin/AdminDialog";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
+
+const preferredCountries: CountryCode[] = [
+  "IN",
+  "US",
+  "GB",
+  "AE",
+  "CA",
+  "AU",
+  "SG",
+  "SA",
+  "QA",
+  "KW",
+  "OM",
+];
+
+const countryList: CountryCode[] = [
+  ...preferredCountries,
+  ...getCountries().filter(
+    (country) => !preferredCountries.includes(country),
+  ),
+];
 
 interface Member {
   id: number;
@@ -137,6 +164,9 @@ export default function EditMemberPage() {
     password: "",
     created_at: "",
   });
+  const [selectedCountry, setSelectedCountry] =
+    useState<CountryCode>("IN");
+  const [mobileNational, setMobileNational] = useState("");
 
   const [photoFile, setPhotoFile] =
     useState<File | null>(null);
@@ -273,6 +303,17 @@ export default function EditMemberPage() {
         }
 
         const photo = data?.photo || "";
+        const parsedMobile = parsePhoneNumberFromString(
+          data?.mobile || "",
+        );
+        const phoneCountry =
+          parsedMobile?.country ||
+          (parsedMobile?.countryCallingCode === "1" ? "US" : "IN");
+        setSelectedCountry(phoneCountry);
+        setMobileNational(
+          parsedMobile?.nationalNumber ||
+            String(data?.mobile || "").replace(/\D/g, ""),
+        );
 
         // =====================================================
         // SET MEMBER
@@ -393,6 +434,37 @@ export default function EditMemberPage() {
     }));
   };
 
+  const handleMobileChange = (value: string) => {
+    const nationalNumber = value.replace(/\D/g, "");
+    const maxDigits = selectedCountry === "IN" ? 10 : 15;
+
+    if (nationalNumber.length > maxDigits) {
+      return;
+    }
+
+    setMobileNational(nationalNumber);
+    const parsedNumber = nationalNumber
+      ? parsePhoneNumberFromString(nationalNumber, selectedCountry)
+      : undefined;
+
+    setMember((prev) => ({
+      ...prev,
+      mobile: parsedNumber?.isValid() ? parsedNumber.number : "",
+    }));
+  };
+
+  const handleCountryChange = (country: CountryCode) => {
+    setSelectedCountry(country);
+    const parsedNumber = mobileNational
+      ? parsePhoneNumberFromString(mobileNational, country)
+      : undefined;
+
+    setMember((prev) => ({
+      ...prev,
+      mobile: parsedNumber?.isValid() ? parsedNumber.number : "",
+    }));
+  };
+
   // =========================================================
   // PHOTO CHANGE
   // =========================================================
@@ -500,6 +572,15 @@ export default function EditMemberPage() {
       return;
     }
 
+    const parsedMobile = mobileNational
+      ? parsePhoneNumberFromString(mobileNational, selectedCountry)
+      : undefined;
+
+    if (!parsedMobile?.isValid()) {
+      setError("Enter a valid mobile number for the selected country.");
+      return;
+    }
+
     try {
       setSaving(true);
       setError("");
@@ -545,7 +626,7 @@ export default function EditMemberPage() {
 
       formData.append(
         "mobile",
-        member.mobile.trim()
+        parsedMobile.number
       );
 
       formData.append(
@@ -1032,14 +1113,45 @@ export default function EditMemberPage() {
                   Mobile Number *
                 </label>
 
-                <input
-                  type="text"
-                  name="mobile"
-                  value={member.mobile}
-                  onChange={handleChange}
-                  required
-                  className="w-full h-11 px-4 rounded-xl border border-gray-200 text-sm outline-none focus:border-[#8B1E3F]"
-                />
+                <div className="flex items-stretch gap-2">
+                  <select
+                    value={selectedCountry}
+                    aria-label="Country calling code"
+                    onChange={(event) =>
+                      handleCountryChange(
+                        event.target.value as CountryCode,
+                      )
+                    }
+                    className="h-11 w-36 shrink-0 rounded-xl border border-gray-200 bg-white px-2 text-sm outline-none focus:border-[#8B1E3F]"
+                  >
+                    {countryList.map((country) => (
+                      <option key={country} value={country}>
+                        {country} (+{getCountryCallingCode(country)})
+                      </option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="tel"
+                    value={mobileNational}
+                    onChange={(event) =>
+                      handleMobileChange(event.target.value)
+                    }
+                    placeholder={
+                      selectedCountry === "IN"
+                        ? "Enter 10-digit mobile number"
+                        : "Enter phone number"
+                    }
+                    autoComplete="tel-national"
+                    inputMode="numeric"
+                    maxLength={selectedCountry === "IN" ? 10 : 15}
+                    required
+                    className="h-11 min-w-0 flex-1 rounded-xl border border-gray-200 px-4 text-sm outline-none focus:border-[#8B1E3F]"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Calling code: +{getCountryCallingCode(selectedCountry)}
+                </p>
                 {member.gender === "Female" && (
                   <p className="mt-2 text-sm font-semibold text-red-600">
                     Female candidates must enter a parent&apos;s phone number only. Their own phone number is not allowed.
