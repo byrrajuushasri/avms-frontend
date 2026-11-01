@@ -228,7 +228,7 @@ export default function Header() {
 
       {/* TRADITIONAL HEADER DECORATION */}
       <div className="border-b border-[#f1eadf] bg-white px-3 py-0.5">
-        <div className="mx-auto grid max-w-[1500px] grid-cols-3 items-center text-center text-[#800018]">
+        <div className="mx-auto grid max-w-[1500px] grid-cols-[auto_1fr_auto] items-center text-center text-[#800018]">
           <div className="justify-self-start whitespace-nowrap text-[9px] font-semibold sm:text-[10px]">
             అవిఘ్నమస్తు
           </div>
@@ -237,8 +237,28 @@ export default function Header() {
             హరి ఓం
           </div>
 
-          <div className="justify-self-end whitespace-nowrap text-[9px] font-semibold sm:text-[10px]">
-            కళ్యాణమస్తు
+          <div className="flex items-center justify-self-end gap-1 whitespace-nowrap">
+            {currentDateTime && (
+              <>
+                <FaClock
+                  aria-hidden="true"
+                  className="text-[7px] sm:text-[9px]"
+                />
+                <time
+                  dateTime={currentDateTime.toISOString()}
+                  className="text-[7px] font-medium sm:text-[9px]"
+                >
+                  {new Intl.DateTimeFormat("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                    timeZone: "Asia/Kolkata",
+                  }).format(currentDateTime)}
+                </time>
+              </>
+            )}
+            <span className="text-[9px] font-semibold sm:text-[10px]">
+              కళ్యాణమస్తు
+            </span>
           </div>
         </div>
       </div>
@@ -372,21 +392,6 @@ export default function Header() {
         </div>
 
       </div>
-
-      {currentDateTime && (
-        <div className="border-b border-[#f1eadf] bg-[#fffaf2]">
-          <div className="mx-auto flex max-w-[1500px] items-center justify-center gap-2 px-3 py-1.5 text-[10px] font-medium text-[#800018] sm:justify-end sm:px-6 sm:text-xs">
-            <FaClock aria-hidden="true" />
-            <time dateTime={currentDateTime.toISOString()}>
-              {new Intl.DateTimeFormat("en-IN", {
-                dateStyle: "medium",
-                timeStyle: "medium",
-                timeZone: "Asia/Kolkata",
-              }).format(currentDateTime)}
-            </time>
-          </div>
-        </div>
-      )}
 
       {/* DESKTOP NAVIGATION */}
       <nav className="hidden border-b border-[#a34b59] bg-[#800018] md:block">
