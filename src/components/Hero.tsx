@@ -32,6 +32,7 @@ const organizers = [
   {
     name: "ఊరే మధుసూదన్",
     role: "ప్రధాన కార్యదర్శి",
+    image: "/about/voore.jpg",
     phone: "+91 98851 91943",
     tel: "+919885191943",
     email: "vooremadhusudan@gmail.com",
