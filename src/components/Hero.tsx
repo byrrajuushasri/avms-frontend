@@ -175,11 +175,11 @@ export default function Hero() {
       <section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-3 pb-5 pt-5 sm:px-5 sm:pb-7 sm:pt-6">
 
         <div className="mx-auto max-w-5xl text-center">
-          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#a67816] sm:text-xs">
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#a67816] sm:text-[10px]">
             Champapet Arya Vysya Sangham
           </p>
 
-          <h1 className="mx-auto mt-2 max-w-4xl font-serif text-lg font-bold leading-relaxed text-[#690015] sm:text-xl">
+          <h1 className="mx-auto mt-2 max-w-4xl font-serif text-base font-bold leading-relaxed text-[#690015] sm:text-lg">
             ఆర్య వైశ్య వివాహ ఉచిత పరిచయ వేదిక
           </h1>
 
@@ -194,7 +194,7 @@ export default function Hero() {
 
           {/* Organizers */}
           <div className="mb-5 text-center sm:mb-6">
-            <h2 className="mt-1 font-serif text-xl font-bold text-[#690015] sm:text-2xl">
+            <h2 className="mt-1 font-serif text-lg font-bold text-[#690015] sm:text-xl">
               మా నిర్వాహక బృందం
             </h2>
 
