@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { createPageMetadata } from "@/lib/seo";
 
 export const metadata = createPageMetadata({
@@ -165,12 +167,13 @@ export default function PrivacyPolicyPage() {
               </p>
             </div>
 
-            <a
-              href="mailto:noreply@aaryavysyamahasabha.com"
+            <Link
+              href="/contact"
               className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-[#800018] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#600012] focus:outline-none focus:ring-2 focus:ring-[#800018] focus:ring-offset-2"
             >
-              Email Us <span className="ml-2" aria-hidden="true">↗</span>
-            </a>
+              Contact Us
+              <span className="ml-2" aria-hidden="true">↗</span>
+            </Link>
           </div>
 
           <div className="border-t border-[#eee4d5] bg-[#fffaf3] px-4 py-3 sm:px-5">

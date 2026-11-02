@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+:where(button, a, label)[class~="bg-rose-600"],
+:where(button, a, label)[class~="bg-[#8B1E3F]"],
+:where(button, a, label)[class~="bg-[#650014]"],
+:where(button, a, label)[class~="bg-[#800018]"],
+:where(button, a, label)[class~="bg-gradient-to-r"] {
+  background-color: #800018;
+  background-image: none;
+}
+
+:where(button, a, label):hover[class~="bg-rose-600"],
+:where(button, a, label):hover[class~="bg-[#8B1E3F]"],
+:where(button, a, label):hover[class~="bg-[#650014]"],
+:where(button, a, label):hover[class~="bg-[#800018]"],
+:where(button, a, label):hover[class~="bg-gradient-to-r"] {
+  background-color: #600012;
+}
+
 /* AVMS Homepage Marquee */
 .marquee-track {
   display: flex;

@@ -70,7 +70,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="bg-[#fff8f8]">
+    <main className="bg-white">
 
       {/* Hero Section */}
 
@@ -78,7 +78,7 @@ export default function ContactPage() {
 
         <div className="max-w-7xl mx-auto px-6 text-center">
 
-          <h1 className="text-2xl text-rose-600 ">
+          <h1 className="text-2xl text-[#800018]">
             Contact Us
           </h1>
 
@@ -100,7 +100,7 @@ export default function ContactPage() {
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
 
-            <h2 className="text-2xl text-rose-600 mb-8">
+            <h2 className="text-2xl text-[#800018] mb-8">
               Send Us a Message
             </h2>
 
@@ -112,7 +112,7 @@ export default function ContactPage() {
                 placeholder="Full Name"
                 required
                 maxLength={150}
-                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
+                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-[#800018]"
               />
 
               <input
@@ -121,7 +121,7 @@ export default function ContactPage() {
                 placeholder="Email Address"
                 required
                 maxLength={150}
-                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
+                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-[#800018]"
               />
 
               <input
@@ -129,7 +129,7 @@ export default function ContactPage() {
                 name="mobile"
                 placeholder="Mobile Number"
                 maxLength={30}
-                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
+                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-[#800018]"
               />
 
               <input
@@ -138,7 +138,7 @@ export default function ContactPage() {
                 placeholder="Subject"
                 required
                 maxLength={200}
-                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
+                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-[#800018]"
               />
 
               <textarea
@@ -147,7 +147,7 @@ export default function ContactPage() {
                 placeholder="Your Message"
                 required
                 maxLength={10000}
-                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-rose-500"
+                className="w-full border border-gray-300 rounded-xl p-4 outline-none focus:border-[#800018]"
               />
 
               {messageStatus && (
@@ -166,7 +166,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full bg-[#800018] hover:bg-[#600012] text-white py-4 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? "Sending..." : "Send Message"}
               </button>
@@ -179,7 +179,7 @@ export default function ContactPage() {
 
           <div>
 
-            <h2 className=" text-2xl text-rose-600 mb-8">
+            <h2 className="text-2xl text-[#800018] mb-8">
               Contact Information
             </h2>
 
@@ -187,7 +187,7 @@ export default function ContactPage() {
 
               <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
-                <div className="bg-rose-100 w-14 h-14 rounded-full flex items-center justify-center text-rose-600 text-xl">
+                <div className="bg-[#800018]/10 w-14 h-14 rounded-full flex items-center justify-center text-[#800018] text-xl">
                   <FaPhoneAlt />
                 </div>
 
@@ -207,7 +207,7 @@ export default function ContactPage() {
 
               <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
-                <div className="bg-rose-100 w-14 h-14 rounded-full flex items-center justify-center text-rose-600 text-xl">
+                <div className="bg-[#800018]/10 w-14 h-14 rounded-full flex items-center justify-center text-[#800018] text-xl">
                   <FaEnvelope />
                 </div>
 
@@ -227,7 +227,7 @@ export default function ContactPage() {
 
               <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
-                <div className="bg-rose-100 w-14 h-14 rounded-full flex items-center justify-center text-rose-600 text-xl">
+                <div className="bg-[#800018]/10 w-14 h-14 rounded-full flex items-center justify-center text-[#800018] text-xl">
                   <FaMapMarkerAlt />
                 </div>
 
@@ -267,7 +267,7 @@ export default function ContactPage() {
 
               <div className="bg-white rounded-2xl shadow-lg p-6 flex gap-5">
 
-                <div className="bg-rose-100 w-14 h-14 rounded-full flex items-center justify-center text-rose-600 text-xl">
+                <div className="bg-[#800018]/10 w-14 h-14 rounded-full flex items-center justify-center text-[#800018] text-xl">
                   <FaClock />
                 </div>
 
@@ -297,7 +297,7 @@ export default function ContactPage() {
       <section className="pb-12 pt-8 sm:pb-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="mb-6 text-center">
-            <h2 className="text-2xl font-bold text-rose-600">
+            <h2 className="text-2xl font-bold text-[#800018]">
               Our Location
             </h2>
 
@@ -324,7 +324,7 @@ export default function ContactPage() {
               href="https://www.google.com/maps/place/17%C2%B020'50.2%22N+78%C2%B031'04.1%22E/@17.3472834,78.5152157,831m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d17.3472834!4d78.5177906"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-6 py-3 font-semibold text-white transition hover:bg-rose-700"
+              className="inline-flex items-center justify-center rounded-xl bg-[#800018] px-6 py-3 font-semibold text-white transition hover:bg-[#600012]"
             >
               Open in Google Maps
             </a>

@@ -1527,7 +1527,7 @@ const normalFields = {
 
             <div className="mb-4 flex items-center gap-3">
 
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-600 text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#800018] text-white">
                 <FaCheckCircle />
               </div>
 
@@ -1730,7 +1730,7 @@ const normalFields = {
 
                 <div className="rounded-2xl border border-pink-200 bg-white px-6 py-5 text-center shadow-xl">
 
-                  <FaLock className="mx-auto mb-3 text-2xl text-pink-600" />
+                  <FaLock className="mx-auto mb-3 text-2xl text-[#800018]" />
 
                   <p className="font-semibold text-[#8B1E3F]">
                     Please verify Membership first
@@ -2794,7 +2794,7 @@ const normalFields = {
 
                   <div className="mb-7 text-center">
 
-                    <div className="inline-flex items-center gap-2 rounded-full bg-rose-700 px-6 py-3 text-lg font-bold text-white shadow">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-[#800018] px-6 py-3 text-lg font-bold text-white shadow">
 
                       <FaHeart className="text-pink-200" />
 

@@ -52,7 +52,7 @@ export default function AboutPage() {
               <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
                 <div className="shrink-0 rounded-2xl border border-[#e8d4d6] bg-[#faf5f4] p-2">
                   <img
-                    src="/about/beld.jpeg"
+                    src="/about/beld.jpg"
                     alt="బెల్డ గురుమూర్తి గుప్త"
                     className="h-52 w-44 rounded-xl object-cover object-top sm:h-56 sm:w-44"
                   />

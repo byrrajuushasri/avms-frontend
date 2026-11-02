@@ -1893,7 +1893,7 @@ setMobileNational("");
           {/* HEADER */}
           <div className="border-b border-gray-100 px-6 py-7 text-center sm:px-8">
 
-            <h1 className="text-2xl font-bold text-rose-600 sm:text-3xl">
+            <h1 className="text-2xl font-bold text-[#800018] sm:text-3xl">
               Membership Registration
             </h1>
 
