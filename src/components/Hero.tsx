@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 
 import {
@@ -72,16 +73,18 @@ function OrganizerCard({
       {person.image && (
         <div className="flex shrink-0 items-center justify-center p-3 sm:p-0">
           <Image
-  src={person.image}
-  alt={`${person.name} - AVMS organizer`}
-  width={208}
-  height={240}
-  quality={75}
-  sizes="(max-width: 639px) 176px, (max-width: 1023px) 192px, 208px"
-  priority={isFirstOrganizer}
-  loading={isFirstOrganizer ? "eager" : "lazy"}
-  className="h-48 w-44 rounded-xl border-2 border-[#eadcb8] object-cover shadow-md sm:h-56 sm:w-48 lg:h-60 lg:w-52"
-/>
+            src={person.image}
+            alt={`${person.name} - AVMS organizer`}
+            width={208}
+            height={240}
+            quality={75}
+            sizes="(max-width: 639px) 176px, (max-width: 1023px) 192px, 208px"
+            preload={isFirstOrganizer}
+            fetchPriority={isFirstOrganizer ? "high" : "auto"}
+            loading={isFirstOrganizer ? undefined : "lazy"}
+            decoding="async"
+            className="h-48 w-44 rounded-xl border-2 border-[#eadcb8] object-cover shadow-md sm:h-56 sm:w-48 lg:h-60 lg:w-52"
+          />
         </div>
       )}
 
@@ -168,8 +171,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-
-    
 
       {/* Hero Heading */}
       <section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-3 pb-5 pt-5 sm:px-5 sm:pb-7 sm:pt-6">
