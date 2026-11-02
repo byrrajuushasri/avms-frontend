@@ -92,12 +92,12 @@ function OrganizerCard({
             {person.name}
           </h3>
 
-          <p className="mt-1 text-center text-sm font-semibold text-[#a67816] sm:text-left">
+          <p className="mt-1 break-words text-center text-sm font-semibold text-[#a67816] sm:text-left">
             {person.role}
           </p>
 
           {person.additionalRole && (
-            <p className="mt-1 text-center text-sm text-[#725454] sm:text-left">
+            <p className="mt-1 break-words text-center text-sm text-[#725454] sm:text-left">
               {person.additionalRole}
             </p>
           )}
@@ -201,7 +201,7 @@ export default function Hero() {
             <div className="mx-auto mt-2 h-1 w-12 rounded-full bg-[#d9a928]" />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:gap-5">
+          <div className="grid auto-rows-fr grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 xl:gap-5">
             {organizers.map((person) => (
               <OrganizerCard
                 key={person.name}
