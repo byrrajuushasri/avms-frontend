@@ -25,7 +25,7 @@ const organizers = [
     name: "బెల్డ గురుమూర్తి గుప్త",
     role: "నిర్వహకులు మరియు ఉపాధ్యక్షులు",
     additionalRole: "సరూర్‌నగర్ మండల ఆర్య వైశ్య సంఘం",
-    image: "/about/beld.jpg",
+    image: "/about/beldaguru.jpg",
     phone: "+91 92461 19408",
     tel: "+919246119408",
     email: "beldaguru@gmail.com",
