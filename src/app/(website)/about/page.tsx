@@ -141,7 +141,7 @@ export default function AboutPage() {
                   </p>
 
                   <p>
-                    ఈ వేదిక 143వది 4-10-2026న జరిగినది. మరిన్ని
+                    ఈ వేదిక 144వది 1-11-2026న జరిగినది. మరిన్ని
                     వేదికలు భావి తరాలకు అందాలని, శ్రీ వాసవి కన్యకా
                     పరమేశ్వరి అమ్మవారి అనుగ్రహం ఉండాలని ఆకాంక్షిస్తూ
                     ఈ సేవా కార్యక్రమాన్ని కొనసాగిస్తున్నాము.
@@ -206,9 +206,9 @@ export default function AboutPage() {
                   <FaUsers className="text-lg text-[#f0d58f]" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold">143వ పరిచయ వేదిక</p>
+                  <p className="text-sm font-bold">144వ పరిచయ వేదిక</p>
                   <p className="mt-0.5 text-xs text-white/80">
-                    04 అక్టోబర్ 2026
+                    01 నవంబర్ 2026
                   </p>
                 </div>
               </div>
@@ -284,9 +284,9 @@ export default function AboutPage() {
             {/* 143rd */}
             <JourneyCard
               icon={<FaUsers />}
-              title="143వ"
+              title="144వ"
               subtitle="పరిచయ వేదిక"
-              detail="04-10-2026"
+              detail="01-11-2026"
             />
 
             {/* ONLINE */}
