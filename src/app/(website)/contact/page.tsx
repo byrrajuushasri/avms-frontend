@@ -70,7 +70,7 @@ export default function ContactPage() {
   };
 
   return (
-    <main className="bg-white">
+    <main className="bg-gradient-to-b from-[#fffaf0] via-white to-white ">
 
       {/* Hero Section */}
 
@@ -78,13 +78,10 @@ export default function ContactPage() {
 
         <div className="max-w-7xl mx-auto px-6 text-center">
 
-          <h1 className="text-2xl text-[#800018]">
+          <h1 className="text-2xl font-bold text-[#800018]">
             Contact Us
           </h1>
 
-          <p className="mt-5 text-lg text-gray-600">
-            We&apos;d love to hear from you. Get in touch with our support team.
-          </p>
 
         </div>
 
@@ -100,7 +97,7 @@ export default function ContactPage() {
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
 
-            <h2 className="text-2xl text-[#800018] mb-8">
+            <h2 className="text-2xl font-bold text-[#800018] mb-8">
               Send Us a Message
             </h2>
 
@@ -163,13 +160,15 @@ export default function ContactPage() {
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-[#800018] hover:bg-[#600012] text-white py-4 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {submitting ? "Sending..." : "Send Message"}
-              </button>
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mx-auto bg-[#800018] hover:bg-[#600012] text-white px-5 py-2.5 text-sm rounded-lg font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {submitting ? "Sending..." : "Send Message"}
+                </button>
+              </div>
 
             </form>
 
@@ -179,7 +178,7 @@ export default function ContactPage() {
 
           <div>
 
-            <h2 className="text-2xl text-[#800018] mb-8">
+            <h2 className="text-2xl font-bold text-[#800018] mb-8">
               Contact Information
             </h2>
 

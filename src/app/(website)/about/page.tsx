@@ -17,7 +17,7 @@ const maroon = "#800018";
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#faf8f6] text-gray-700">
+    <main className="min-h-screen overflow-hidden bg-gradient-to-b from-[#fffaf0] via-white to-white  text-gray-700">
       {/* PAGE HEADER */}
       <header className="border-b border-[#eadbdc] bg-white px-3 py-5 sm:px-6 sm:py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 sm:gap-5">
@@ -52,7 +52,7 @@ export default function AboutPage() {
               <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
                 <div className="shrink-0 rounded-2xl border border-[#e8d4d6] bg-[#faf5f4] p-2">
                   <img
-                    src="/about/beld.jpg"
+                    src="/about/beldaguru.jpg"
                     alt="బెల్డ గురుమూర్తి గుప్త"
                     className="h-52 w-44 rounded-xl object-cover object-top sm:h-56 sm:w-44"
                   />

@@ -80,7 +80,7 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
 
       {/* Background Blur */}
       <div className="absolute -left-52 top-24 w-[500px] h-[500px] rounded-full bg-pink-200/40 blur-[120px]" />
@@ -96,7 +96,7 @@ export default function LoginPage() {
 
      
       {/* Login Card */}
-      <div className="relative z-10 flex items-center justify-center px-6 py-10">
+      <div className="relative z-10 flex items-center justify-center px-6 pt-10 pb-6">
 
         <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-[30px] border border-pink-100 shadow-[0_20px_60px_rgba(233,30,99,0.12)] p-10">
 

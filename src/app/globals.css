@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+html {
+  background: #fffaf0;
+}
+
+body {
+  background: #fffaf0;
+  color: #604b4b;
+}
+
 :where(button, a, label)[class~="bg-rose-600"],
 :where(button, a, label)[class~="bg-[#8B1E3F]"],
 :where(button, a, label)[class~="bg-[#650014]"],
