@@ -1886,7 +1886,7 @@ setMobileNational("");
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-white px-4 py-8 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-b from-[#fffaf0] via-white to-white px-4 py-8 sm:px-6 lg:px-8">
 
         <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl">
 

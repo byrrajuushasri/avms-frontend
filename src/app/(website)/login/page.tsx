@@ -80,7 +80,7 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#fffaf0] via-white to-white">
 
       {/* Background Blur */}
       <div className="absolute -left-52 top-24 w-[500px] h-[500px] rounded-full bg-pink-200/40 blur-[120px]" />

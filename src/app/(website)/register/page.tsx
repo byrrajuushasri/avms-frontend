@@ -1425,7 +1425,7 @@ const normalFields = {
   ========================================================= */
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#fffdfd] via-[#fff7f8] to-[#fdecef]">
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#fffaf0] via-white to-white">
       {dialog && (
         <AdminDialog
           {...dialog}
