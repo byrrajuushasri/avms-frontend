@@ -19,7 +19,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-gradient-to-b from-[#fffaf0] via-white to-white  text-gray-700">
       {/* PAGE HEADER */}
-      <header className="border-b border-[#eadbdc] bg-white px-3 py-5 sm:px-6 sm:py-3">
+      <header className=" px-3 py-5 sm:px-6 sm:py-3">
         <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 sm:gap-5">
           <h1 className="text-right text-[8px] font-extrabold leading-5 text-[#800018] sm:text-lg md:text-sm">
             చంపాపేట ఆర్య వైశ్య సంఘం

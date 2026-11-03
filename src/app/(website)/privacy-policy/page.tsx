@@ -62,17 +62,15 @@ const policies = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-[#faf8f5] text-gray-800">
+    <main className="min-h-screen bg-gradient-to-b from-[#fffaf0] via-white to-white  text-gray-800">
       {/* Compact Page Header */}
-      <header className="border-b border-[#eadfce] bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
-          <p className="mb-1 text-center text-xs font-semibold uppercase tracking-[0.18em] text-[#a67816]">
-            Telangana State Arya Vysya Mahasabha
-          </p>
+      <header className="    ">
+        <div className="mx-auto max-w-3xl px-2 py-6 sm:px-3 sm:py-4">
+         
 
-          <h1 className="text-center text-2xl font-bold text-[#800018] sm:text-3xl">
+          <h3 className="text-center text-1xl font-bold text-[#800018] sm:text-xl">
             గోప్యతా విధానం
-          </h1>
+          </h3>
 
           <p className="mx-auto mt-2 max-w-xl text-center text-sm leading-6 text-gray-500">
             Privacy Policy & Matrimonial Member Guidelines
@@ -109,7 +107,7 @@ export default function PrivacyPolicyPage() {
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#a67816]">
             Our Privacy Commitment
           </p>
-          <h2 className="mt-1 text-xl font-bold text-[#800018] sm:text-2xl">
+          <h2 className="mt-1 text-xl font-bold text-[#800018] sm:text- xl">
             గోప్యత & సభ్యుల మార్గదర్శకాలు
           </h2>
           <p className="mt-1 text-sm text-gray-500">
