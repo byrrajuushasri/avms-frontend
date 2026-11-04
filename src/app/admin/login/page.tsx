@@ -267,16 +267,18 @@ export default function LoginPage() {
       localStorage.removeItem(
         "user"
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(
         "LOGIN ERROR:",
         err
       );
 
-      setError(
-        err?.message ||
-          "Unable to connect to the server."
-      );
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Unable to connect to the server.";
+
+      setError(message);
     } finally {
       setLoading(false);
     }

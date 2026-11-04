@@ -6,19 +6,19 @@ import { useEffect, useState } from "react";
 
 import {
   FaHome,
-  FaUsers,
   FaCrown,
   FaCog,
   FaHeart,
-  FaBuilding,
-  FaPhotoVideo,
   FaSignOutAlt,
   FaTimes,
   FaChevronLeft,
   FaChevronRight,
   FaNewspaper,
   FaEnvelope,
+  FaHistory,
 } from "react-icons/fa";
+
+import { recordAdminLogout } from "@/lib/admin-logs";
 
 /* =========================================================
    MENU + ROLE PERMISSIONS
@@ -35,7 +35,19 @@ const menu = [
     ],
   },
 
-  
+  {
+    name: "Admin Logs",
+    path: "/admin/logs",
+    icon: FaHistory,
+    roles: [
+      "admin",
+      "super_admin",
+      "state_admin",
+      "district_admin",
+      "mandal_admin",
+      "sangam_admin",
+    ],
+  },
 
   {
     name: "Members",
@@ -122,34 +134,22 @@ export default function AdminSidebar({
   const [userName, setUserName] = useState("");
   const [loaded, setLoaded] = useState(false);
 
-  /* =========================================================
-     GET LOGGED-IN USER
-  ========================================================= */
-
   useEffect(() => {
     try {
       const storedAdmin = localStorage.getItem("admin");
-
       const token =
         localStorage.getItem("adminToken") ||
         localStorage.getItem("token");
-
-      /* -----------------------------------------
-         No token = logout
-      ----------------------------------------- */
 
       if (!token) {
         router.replace("/admin/login");
         return;
       }
 
-      /* -----------------------------------------
-         Get user from localStorage
-      ----------------------------------------- */
-
       if (storedAdmin) {
         const user = JSON.parse(storedAdmin);
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRole(user?.role || "user");
         setUserName(user?.full_name || "");
       } else {
@@ -181,7 +181,13 @@ export default function AdminSidebar({
      LOGOUT
   ========================================================= */
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await recordAdminLogout();
+    } catch (error) {
+      console.error("Failed to record admin logout:", error);
+    }
+
     localStorage.removeItem("adminToken");
     localStorage.removeItem("admin");
     localStorage.removeItem("token");

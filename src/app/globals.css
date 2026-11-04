@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  --color-pink-600: #800018;
+}
+
 html {
   background: #fffaf0;
 }

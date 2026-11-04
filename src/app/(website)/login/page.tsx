@@ -104,7 +104,7 @@ export default function LoginPage() {
 
           <div className="text-center">
 
-          <h2 className="text-2xl  text-[#8B1E3F]">
+          <h2 className="text-2xl  text-[#800018]">
               Welcome Back!
             </h2>
 
@@ -126,7 +126,7 @@ export default function LoginPage() {
 
               <div className="mt-2 flex items-center h-12 px-4 rounded-xl border border-[#f2d9df] bg-white focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-pink-100 transition-all">
 
-                <FaEnvelope className="text-rose-500 mr-3" />
+                <FaEnvelope className="text-[#800018] mr-3" />
 
                 <input
                   type="text"
@@ -154,7 +154,7 @@ export default function LoginPage() {
 
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-rose-500 hover:underline"
+                  className="text-sm text-[#800018] hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -163,7 +163,7 @@ export default function LoginPage() {
 
               <div className="flex items-center h-12 px-4 rounded-xl border border-[#f2d9df] bg-white focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-pink-100 transition-all">
 
-                <FaLock className="text-rose-500 mr-3" />
+                <FaLock className="text-[#800018] mr-3" />
 
                 <input
                   type="password"
@@ -180,7 +180,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <p role="alert" className="text-sm text-red-600">
+              <p role="alert" className="text-sm text-[#800018]">
                 {error}
               </p>
             )}
@@ -193,7 +193,7 @@ export default function LoginPage() {
 
                 <input
                   type="checkbox"
-                  className="accent-rose-600"
+                  className="accent-[#800018]"
                 />
 
                 Remember Me
@@ -220,7 +220,7 @@ export default function LoginPage() {
 
               <Link
                 href="/membership"
-                className="ml-1 font-semibold text-rose-600 hover:underline"
+                className="ml-1 font-semibold text-[#800018] hover:underline"
               >
                 Register Now
               </Link>
