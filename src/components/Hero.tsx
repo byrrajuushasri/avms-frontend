@@ -175,6 +175,12 @@ export default function Hero() {
       {/* Hero Heading */}
       <section className="relative bg-gradient-to-b from-[#fffaf0] via-white to-white px-3 pb-5 pt-5 sm:px-5 sm:pb-7 sm:pt-6">
 
+        <p className="absolute right-3 top-1 z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[#d9a928]/60 bg-gradient-to-r from-[#fff7df] via-white to-[#fff7df] px-2.5 py-0 text-[8px] font-bold tracking-wide text-[#800018] shadow-[0_3px_10px_rgba(105,0,21,0.12)] ring-1 ring-inset ring-[#d9a928]/20 sm:right-5 sm:px-3 sm:py-0 sm:text-xs">
+          <span aria-hidden="true">🪔</span>
+          <span>నూతన వధూవరులందరికీ దీపావళి శుభాకాంక్షలు</span>
+          <span aria-hidden="true">🪔</span>
+        </p>
+
         <div className="mx-auto max-w-5xl text-center">
           <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#a67816] sm:text-[10px]">
             Champapet Arya Vysya Sangham
