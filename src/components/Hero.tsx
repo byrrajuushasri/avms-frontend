@@ -31,7 +31,7 @@ const organizers = [
     email: "beldaguru@gmail.com",
   },
   {
-    name: "ఊరే మధుసూదన్",
+    name: "ఊరే మధుసూదన్ గుప్త",
     role: "ప్రధాన కార్యదర్శి",
     image: "/about/voore.jpg",
     phone: "+91 98851 91943",
