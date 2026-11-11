@@ -56,6 +56,12 @@ const organizers = [
     tel: "+9198488330591",
     email: "nareshchittanur@gmail.com",
   },
+  {
+    name: "శ్రీ సాయిరాం విశ్వనాథం గుప్త గారు",
+    role: "వ్యవస్థాపక, గౌరవ అధ్యక్షుడు",
+    image: "/about/viswanath.jpg",
+    additionalRole:"గత 12 సంవత్సరాల నుంచి ఈ వేదిక విజయవంతముగా నిర్వహించడానికి సంఘములో అనుమతి మరియు ఆమోదానికి సహకరించిన అప్పటి అధ్యక్షుడు"
+  },
 ];
 
 function OrganizerCard({
