@@ -25,6 +25,7 @@ interface MatrimonialUser {
   profile_category: string | null;
   surname: string | null;
   name: string;
+  gender?: string | null;
   father_name: string | null;
   mother_name: string | null;
   gotram: string | null;
@@ -33,6 +34,8 @@ interface MatrimonialUser {
   rasi: string | null;
   color: string | null;
   date_of_birth: string | null;
+  requests_sent?: number | null;
+  requests_received?: number | null;
   height: string | null;
   education: string | null;
   occupation: string | null;
@@ -95,7 +98,7 @@ export default function AdminDashboard() {
         for (let index = 0; index < memberIds.length; index += 8) {
           const batch = memberIds.slice(index, index + 8);
           const results = await Promise.all(
-            batch.map(async (memberId) => {
+            batch.map(async (memberId): Promise<MatrimonialUser | null> => {
               try {
                 const [profileResponse, memberResponse] = await Promise.all([
                   fetch(
@@ -120,6 +123,9 @@ export default function AdminDashboard() {
                 const matrimonialProfile = profile as MatrimonialUser;
                 return {
                   ...matrimonialProfile,
+                  gender:
+                    matrimonialProfile.gender ||
+                    (typeof member?.gender === "string" ? member.gender : null),
                   email:
                     matrimonialProfile.email ||
                     (typeof member?.email === "string" ? member.email : null),
@@ -155,7 +161,7 @@ export default function AdminDashboard() {
       let profiles: MatrimonialUser[] = [];
       const memberDetailsById = new Map<
         string,
-        { email: string | null; mobile: string | null }
+        { email: string | null; mobile: string | null; gender: string | null }
       >();
 
       if (response.ok) {
@@ -194,12 +200,14 @@ export default function AdminDashboard() {
                 member_id?: string;
                 email?: string | null;
                 mobile?: string | null;
+                gender?: string | null;
               }) => {
                 if (!member.member_id) return;
 
                 memberDetailsById.set(member.member_id, {
                   email: member.email || null,
                   mobile: member.mobile || null,
+                  gender: member.gender || null,
                 });
               }
             );
@@ -213,6 +221,7 @@ export default function AdminDashboard() {
                 ...profile,
                 email: profile.email || memberDetails?.email || null,
                 mobile: profile.mobile || memberDetails?.mobile || null,
+                gender: profile.gender || memberDetails?.gender || null,
               };
             });
 
@@ -252,6 +261,7 @@ export default function AdminDashboard() {
           ...profile,
           email: profile.email || memberDetails?.email || null,
           mobile: profile.mobile || memberDetails?.mobile || null,
+          gender: profile.gender || memberDetails?.gender || null,
         };
       });
 
@@ -471,6 +481,38 @@ export default function AdminDashboard() {
   const isPending = (status: string) =>
     !status || status.toLowerCase() === "pending";
 
+  const getAge = (dateOfBirth: string | null | undefined) => {
+    if (!dateOfBirth) return null;
+
+    const [year, month, day] = dateOfBirth
+      .slice(0, 10)
+      .split("-")
+      .map(Number);
+    const birthDate = new Date(year, month - 1, day);
+
+    if (
+      !year ||
+      !month ||
+      !day ||
+      birthDate.getFullYear() !== year ||
+      birthDate.getMonth() !== month - 1 ||
+      birthDate.getDate() !== day
+    ) {
+      return null;
+    }
+
+    const today = new Date();
+    const age =
+      today.getFullYear() -
+      year -
+      (today.getMonth() < month - 1 ||
+      (today.getMonth() === month - 1 && today.getDate() < day)
+        ? 1
+        : 0);
+
+    return age >= 0 ? age : null;
+  };
+
   return (
     <main className="mx-auto min-h-screen max-w-[1600px] bg-gray-50/80 px-3 py-6 sm:px-6 lg:px-8 lg:py-8">
       {/* PAGE HEADER */}
@@ -546,37 +588,53 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* TABLE: NO overflow-hidden ON THIS WRAPPER */}
-        <div className="w-full overflow-visible">
-          <table className="w-full table-fixed border-collapse">
+        {/* TABLE */}
+        <div className="w-full overflow-x-auto">
+          <table className="w-full min-w-[1120px] border-collapse">
             <colgroup>
-              <col className="w-[30%] sm:w-[22%]" />
-              <col className="w-[14%] sm:w-[12%]" />
-              <col className="w-[22%] sm:w-[24%]" />
-              <col className="w-[16%] sm:w-[16%]" />
-              <col className="w-[12%] sm:w-[12%]" />
-              <col className="w-[6%] sm:w-[14%]" />
+              <col className="w-[60px]" />
+              <col className="w-[110px]" />
+              <col className="w-[180px]" />
+              <col className="w-[90px]" />
+              <col className="w-[60px]" />
+              <col className="w-[130px]" />
+              <col className="w-[120px]" />
+              <col className="w-[145px]" />
+              <col className="w-[125px]" />
+              <col className="w-[100px]" />
             </colgroup>
 
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-1.5 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
-                  Name
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  S.No
                 </th>
-                <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                   Member ID
                 </th>
-                <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
-                  Email
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Name
                 </th>
-                <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
-                  Phone
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Gender
                 </th>
-                <th className="px-1 py-3 text-left text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Age
+                </th>
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Mobile
+                </th>
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Requests Sent
+                </th>
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Requests Received
+                </th>
+                <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                   Status
                 </th>
-                <th className="px-1 py-3 text-center text-[9px] font-semibold uppercase tracking-wide text-gray-500 sm:px-3 sm:text-[10px]">
-                  Actions
+                <th className="px-3 py-3 text-center text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  Action
                 </th>
               </tr>
             </thead>
@@ -584,20 +642,29 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-12 text-center text-sm text-gray-500">
+                  <td colSpan={10} className="px-3 py-12 text-center text-sm text-gray-500">
                     Loading matrimonial members...
                   </td>
                 </tr>
               ) : currentUsers.length > 0 ? (
-                currentUsers.map((user) => (
+                currentUsers.map((user, rowIndex) => (
                   <tr
                     key={user.id}
                     className={`transition-colors hover:bg-gray-50 ${
                       openMenuId === user.id ? "relative z-20" : "relative z-0"
                     }`}
                   >
+                    <td className="px-3 py-3 text-sm text-gray-600">
+                      {indexOfFirstRow + rowIndex + 1}
+                    </td>
+
+                    {/* MEMBER ID */}
+                    <td className="break-words px-3 py-3 text-xs text-gray-600">
+                      {user.member_id || "-"}
+                    </td>
+
                     {/* NAME */}
-                    <td className="px-1.5 py-3 align-middle sm:px-3">
+                    <td className="px-3 py-3 align-middle">
                       <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
                         <img
                           src={getPhotoUrl(
@@ -615,51 +682,50 @@ export default function AdminDashboard() {
                           }}
                         />
                         <div className="min-w-0">
-                          <p className="break-words text-[10px] font-semibold leading-tight text-gray-800 sm:text-xs">
+                          <p className="break-words text-xs font-semibold leading-tight text-gray-800">
                             {user.name} {user.surname || ""}
                           </p>
-                          <p className="mt-1 text-[9px] text-gray-400 sm:text-[10px]">
+                          <p className="mt-1 text-[10px] text-gray-400">
                             #{user.id}
                           </p>
                         </div>
                       </div>
                     </td>
 
-                    {/* MEMBER ID */}
-                    <td className="break-words px-1 py-3 text-[9px] leading-tight text-gray-600 sm:px-3 sm:text-xs">
-                      {user.member_id || "-"}
+                    {/* GENDER */}
+                    <td className="px-3 py-3 text-sm text-gray-600">
+                      {user.gender || "-"}
                     </td>
 
-                    {/* EMAIL */}
-                    <td className="px-1 py-3 sm:px-3">
-                      {user.email ? (
-                        <a
-                          href={`mailto:${user.email}`}
-                          className="block break-all text-[9px] leading-tight text-gray-600 hover:text-[#8B1E3F] sm:text-xs"
-                        >
-                          {user.email}
-                        </a>
-                      ) : (
-                        <span className="text-[9px] text-gray-400 sm:text-xs">-</span>
-                      )}
+                    {/* AGE */}
+                    <td className="px-3 py-3 text-sm text-gray-600">
+                      {getAge(user.date_of_birth) ?? "-"}
                     </td>
 
                     {/* PHONE */}
-                    <td className="break-words px-1 py-3 sm:px-3">
+                    <td className="break-words px-3 py-3">
                       {user.mobile ? (
                         <a
                           href={`tel:${user.mobile}`}
-                          className="text-[9px] leading-tight text-gray-600 hover:text-[#8B1E3F] sm:text-xs"
+                          className="text-xs text-gray-600 hover:text-[#8B1E3F]"
                         >
                           {user.mobile}
                         </a>
                       ) : (
-                        <span className="text-[9px] text-gray-400 sm:text-xs">-</span>
+                        <span className="text-xs text-gray-400">-</span>
                       )}
                     </td>
 
+                    {/* REQUEST COUNTS */}
+                    <td className="px-3 py-3 text-sm text-gray-600">
+                      {user.requests_sent ?? "-"}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-gray-600">
+                      {user.requests_received ?? "-"}
+                    </td>
+
                     {/* STATUS */}
-                    <td className="px-1 py-3 sm:px-3">
+                    <td className="px-3 py-3">
                       <span
                         className={`inline-block max-w-full break-words rounded-full px-1.5 py-1 text-[9px] font-semibold leading-tight sm:px-2 sm:text-[10px] ${
                           isPending(user.status)
@@ -680,7 +746,7 @@ export default function AdminDashboard() {
                     </td>
 
                     {/* ACTIONS */}
-                    <td className="relative px-1 py-3 text-center sm:px-3">
+                    <td className="relative px-3 py-3 text-center">
                       <div className="relative inline-block">
                         <button
                           type="button"
@@ -788,7 +854,7 @@ export default function AdminDashboard() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-3 py-12 text-center">
+                  <td colSpan={10} className="px-3 py-12 text-center">
                     <FaUsers className="mx-auto mb-3 text-2xl text-gray-300" />
                     <p className="text-sm font-semibold text-gray-700">
                       No members found
