@@ -35,7 +35,9 @@ interface MatrimonialUser {
   color: string | null;
   date_of_birth: string | null;
   requests_sent?: number | null;
+  requests_sent_accepted?: number | null;
   requests_received?: number | null;
+  requests_received_accepted?: number | null;
   height: string | null;
   education: string | null;
   occupation: string | null;
@@ -57,6 +59,14 @@ interface MatrimonialUser {
   updated_at: string;
 }
 
+interface AdminRequestCount {
+  profile_id: number;
+  requests_sent: number;
+  requests_sent_accepted: number;
+  requests_received: number;
+  requests_received_accepted: number;
+}
+
 const BACKEND_URL = (
   process.env.NEXT_PUBLIC_BACKEND_URL ||
   "https://avms-backend-production.up.railway.app"
@@ -71,6 +81,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<MatrimonialUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [requestCountError, setRequestCountError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -84,6 +95,7 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setError("");
+      setRequestCountError("");
 
       const token = getAdminToken();
       const authHeaders = token
@@ -269,7 +281,84 @@ export default function AdminDashboard() {
         profiles.map((profile) => [profile.member_id || profile.id, profile])
       );
 
-      setUsers(Array.from(profilesById.values()));
+      let profilesWithCounts = Array.from(profilesById.values());
+
+      try {
+        const countsResponse = await fetch(
+          `${BACKEND_URL}/matrimonial-users/admin/request-counts`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              ...authHeaders,
+            },
+            cache: "no-store",
+          }
+        );
+
+        if (!countsResponse.ok) {
+          throw new Error(
+            `Request counts request failed (${countsResponse.status}).`
+          );
+        }
+
+        const countsData: unknown = await countsResponse.json();
+        if (!Array.isArray(countsData)) {
+          throw new Error("The request counts response has an invalid format.");
+        }
+
+        const countsByProfileId = new Map<number, AdminRequestCount>();
+        countsData.forEach((value: unknown) => {
+          if (!value || typeof value !== "object") {
+            throw new Error("The request counts response has an invalid entry.");
+          }
+
+          const count = value as Record<string, unknown>;
+          if (
+            typeof count.profile_id !== "number" ||
+            typeof count.requests_sent !== "number" ||
+            typeof count.requests_sent_accepted !== "number" ||
+            typeof count.requests_received !== "number" ||
+            typeof count.requests_received_accepted !== "number"
+          ) {
+            throw new Error("The request counts response has invalid totals.");
+          }
+
+          countsByProfileId.set(count.profile_id, {
+            profile_id: count.profile_id,
+            requests_sent: count.requests_sent,
+            requests_sent_accepted: count.requests_sent_accepted,
+            requests_received: count.requests_received,
+            requests_received_accepted: count.requests_received_accepted,
+          });
+        });
+
+        profilesWithCounts = profilesWithCounts.map((profile) => {
+          const counts = countsByProfileId.get(profile.id);
+          return {
+            ...profile,
+            requests_sent: counts?.requests_sent ?? 0,
+            requests_sent_accepted: counts?.requests_sent_accepted ?? 0,
+            requests_received: counts?.requests_received ?? 0,
+            requests_received_accepted:
+              counts?.requests_received_accepted ?? 0,
+          };
+        });
+      } catch (countsError) {
+        console.error("Error fetching matrimonial request counts:", countsError);
+        setRequestCountError(
+          "Request totals could not be loaded. Check the backend deployment and admin permissions."
+        );
+        profilesWithCounts = profilesWithCounts.map((profile) => ({
+          ...profile,
+          requests_sent: null,
+          requests_sent_accepted: null,
+          requests_received: null,
+          requests_received_accepted: null,
+        }));
+      }
+
+      setUsers(profilesWithCounts);
       setCurrentPage(1);
     } catch (err) {
       console.error("Error fetching matrimonial users:", err);
@@ -588,6 +677,14 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {requestCountError && (
+          <div className="px-4 pb-4 sm:px-6" role="alert">
+            <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              {requestCountError}
+            </div>
+          </div>
+        )}
+
         {/* TABLE */}
         <div className="w-full overflow-x-auto">
           <table className="w-full min-w-[1120px] border-collapse">
@@ -625,10 +722,10 @@ export default function AdminDashboard() {
                   Mobile
                 </th>
                 <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                  Requests Sent
+                  Sent / Accepted
                 </th>
                 <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                  Requests Received
+                  Received / Accepted
                 </th>
                 <th className="px-3 py-3 text-left text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                   Status
@@ -718,10 +815,14 @@ export default function AdminDashboard() {
 
                     {/* REQUEST COUNTS */}
                     <td className="px-3 py-3 text-sm text-gray-600">
-                      {user.requests_sent ?? "-"}
+                      {user.requests_sent == null
+                        ? "-"
+                        : `${user.requests_sent}/${user.requests_sent_accepted ?? 0}`}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-600">
-                      {user.requests_received ?? "-"}
+                      {user.requests_received == null
+                        ? "-"
+                        : `${user.requests_received}/${user.requests_received_accepted ?? 0}`}
                     </td>
 
                     {/* STATUS */}
