@@ -693,7 +693,9 @@ export default function MatchesPage() {
         accepted: current.accepted + 1,
       }));
 
-      setRequestMessage("Request accepted. You can now view the profile.");
+      setRequestMessage(
+        result?.message || "Request accepted. You can now view the profile."
+      );
     } catch (acceptError) {
       setRequestError(
         acceptError instanceof Error
