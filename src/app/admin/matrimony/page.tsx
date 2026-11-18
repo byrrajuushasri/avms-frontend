@@ -13,6 +13,7 @@ import {
   FaTrash,
   FaTimes,
   FaCheck,
+  FaEnvelope,
 } from "react-icons/fa";
 import { getStorageImageUrl } from "@/lib/storage-image-url";
 import AdminDialog, {
@@ -87,6 +88,9 @@ export default function AdminDashboard() {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [sendingReminderId, setSendingReminderId] = useState<number | null>(
+    null,
+  );
   const [dialog, setDialog] = useState<AdminDialogOptions | null>(null);
 
   const rowsPerPage = 5;
@@ -480,6 +484,59 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleSendReminder = async (user: MatrimonialUser) => {
+    try {
+      setSendingReminderId(user.id);
+      setOpenMenuId(null);
+      setError("");
+
+      const token = getAdminToken();
+      const response = await fetch(
+        `${BACKEND_URL}/matrimonial-users/${user.id}/send-reminder`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        },
+      );
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          Array.isArray(data?.message)
+            ? data.message.join(", ")
+            : data?.message || `Failed to send reminder (${response.status})`,
+        );
+      }
+
+      if (!data?.email_sent) {
+        throw new Error(
+          data?.message || "The reminder email could not be sent.",
+        );
+      }
+
+      setDialog({
+        title: "Reminder email sent",
+        message: `The profile reminder was sent to ${user.email || `${user.name}'s registered email address`}.`,
+        tone: "success",
+      });
+    } catch (err) {
+      console.error("Send matrimony reminder error:", err);
+      setDialog({
+        title: "Unable to send reminder",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to send the matrimony profile reminder.",
+        tone: "error",
+      });
+    } finally {
+      setSendingReminderId(null);
+    }
+  };
+
   const handleDelete = async (id: number, name: string) => {
     try {
       setDeletingId(id);
@@ -858,7 +915,8 @@ export default function AdminDashboard() {
                           onClick={() => toggleMenu(user.id)}
                           disabled={
                             deletingId === user.id ||
-                            approvingId === user.id
+                            approvingId === user.id ||
+                            sendingReminderId !== null
                           }
                           className="flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-[#8B1E3F] disabled:opacity-50 sm:h-8 sm:w-8"
                         >
@@ -917,6 +975,19 @@ export default function AdminDashboard() {
                               <FaEdit className="text-gray-400" />
                               Edit
                             </Link>
+
+                            <button
+                              type="button"
+                              role="menuitem"
+                              disabled={sendingReminderId !== null}
+                              onClick={() => void handleSendReminder(user)}
+                              className="flex w-full items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 disabled:opacity-50"
+                            >
+                              <FaEnvelope className="text-blue-500" />
+                              {sendingReminderId === user.id
+                                ? "Sending..."
+                                : "Send mail"}
+                            </button>
 
                             <div className="my-1 border-t border-gray-100" />
 
@@ -1066,7 +1137,12 @@ export default function AdminDashboard() {
       {dialog && (
         <AdminDialog
           {...dialog}
-          busy={dialog.busy || deletingId !== null || approvingId !== null}
+          busy={
+            dialog.busy ||
+            deletingId !== null ||
+            approvingId !== null ||
+            sendingReminderId !== null
+          }
           onClose={() => setDialog(null)}
         />
       )}
