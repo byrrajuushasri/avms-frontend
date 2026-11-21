@@ -74,15 +74,14 @@ const BACKEND_URL = (
 ).replace(/\/+$/, "");
 
 const getAdminToken = () =>
+  localStorage.getItem("access_token") ||
   localStorage.getItem("adminToken") ||
-  localStorage.getItem("token") ||
-  localStorage.getItem("access_token");
+  localStorage.getItem("token");
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<MatrimonialUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [requestCountError, setRequestCountError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
@@ -100,7 +99,6 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setError("");
-      setRequestCountError("");
 
       const token = getAdminToken();
       const authHeaders = token
@@ -301,59 +299,68 @@ export default function AdminDashboard() {
           }
         );
 
-        if (!countsResponse.ok) {
-          throw new Error(
-            `Request counts request failed (${countsResponse.status}).`
-          );
-        }
-
-        const countsData: unknown = await countsResponse.json();
-        if (!Array.isArray(countsData)) {
-          throw new Error("The request counts response has an invalid format.");
-        }
-
-        const countsByProfileId = new Map<number, AdminRequestCount>();
-        countsData.forEach((value: unknown) => {
-          if (!value || typeof value !== "object") {
-            throw new Error("The request counts response has an invalid entry.");
-          }
-
-          const count = value as Record<string, unknown>;
-          if (
-            typeof count.profile_id !== "number" ||
-            typeof count.requests_sent !== "number" ||
-            typeof count.requests_sent_accepted !== "number" ||
-            typeof count.requests_received !== "number" ||
-            typeof count.requests_received_accepted !== "number"
-          ) {
-            throw new Error("The request counts response has invalid totals.");
-          }
-
-          countsByProfileId.set(count.profile_id, {
-            profile_id: count.profile_id,
-            requests_sent: count.requests_sent,
-            requests_sent_accepted: count.requests_sent_accepted,
-            requests_received: count.requests_received,
-            requests_received_accepted: count.requests_received_accepted,
-          });
-        });
-
-        profilesWithCounts = profilesWithCounts.map((profile) => {
-          const counts = countsByProfileId.get(profile.id);
-          return {
+        if (countsResponse.status === 401) {
+          profilesWithCounts = profilesWithCounts.map((profile) => ({
             ...profile,
-            requests_sent: counts?.requests_sent ?? 0,
-            requests_sent_accepted: counts?.requests_sent_accepted ?? 0,
-            requests_received: counts?.requests_received ?? 0,
-            requests_received_accepted:
-              counts?.requests_received_accepted ?? 0,
-          };
-        });
+            requests_sent: null,
+            requests_sent_accepted: null,
+            requests_received: null,
+            requests_received_accepted: null,
+          }));
+        } else if (!countsResponse.ok) {
+          profilesWithCounts = profilesWithCounts.map((profile) => ({
+            ...profile,
+            requests_sent: null,
+            requests_sent_accepted: null,
+            requests_received: null,
+            requests_received_accepted: null,
+          }));
+        } else {
+          const countsData: unknown = await countsResponse.json();
+          if (!Array.isArray(countsData)) {
+            throw new Error("The request counts response has an invalid format.");
+          }
+
+          const countsByProfileId = new Map<number, AdminRequestCount>();
+          countsData.forEach((value: unknown) => {
+            if (!value || typeof value !== "object") {
+              throw new Error("The request counts response has an invalid entry.");
+            }
+
+            const count = value as Record<string, unknown>;
+            if (
+              typeof count.profile_id !== "number" ||
+              typeof count.requests_sent !== "number" ||
+              typeof count.requests_sent_accepted !== "number" ||
+              typeof count.requests_received !== "number" ||
+              typeof count.requests_received_accepted !== "number"
+            ) {
+              throw new Error("The request counts response has invalid totals.");
+            }
+
+            countsByProfileId.set(count.profile_id, {
+              profile_id: count.profile_id,
+              requests_sent: count.requests_sent,
+              requests_sent_accepted: count.requests_sent_accepted,
+              requests_received: count.requests_received,
+              requests_received_accepted: count.requests_received_accepted,
+            });
+          });
+
+          profilesWithCounts = profilesWithCounts.map((profile) => {
+            const counts = countsByProfileId.get(profile.id);
+            return {
+              ...profile,
+              requests_sent: counts?.requests_sent ?? 0,
+              requests_sent_accepted: counts?.requests_sent_accepted ?? 0,
+              requests_received: counts?.requests_received ?? 0,
+              requests_received_accepted:
+                counts?.requests_received_accepted ?? 0,
+            };
+          });
+        }
       } catch (countsError) {
         console.error("Error fetching matrimonial request counts:", countsError);
-        setRequestCountError(
-          "Request totals could not be loaded. Check the backend deployment and admin permissions."
-        );
         profilesWithCounts = profilesWithCounts.map((profile) => ({
           ...profile,
           requests_sent: null,
@@ -679,21 +686,8 @@ export default function AdminDashboard() {
             Manage and monitor all registered matrimonial members.
           </p>
         </div>
-
-        <Link
-          href="/admin/matrimony/add"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f8eef2] px-5 py-3 font-semibold text-gray-900 shadow-sm transition hover:bg-[#f2e4ea]"
-        >
-          <FaPlus />
-          Add Matrimonial
-        </Link>
-      </div>
-
-      {/* MAIN CARD: KEEP OVERFLOW VISIBLE */}
-      <section className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-        {/* SEARCH AND GENDER TABS */}
-        <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-5 sm:flex-row sm:items-center sm:px-6">
-          <div className="flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-xl border border-gray-200 bg-white p-1">
             {([
               ["all", "All"],
               ["male", "Males"],
@@ -710,14 +704,27 @@ export default function AdminDashboard() {
                 className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
                   genderFilter === value
                     ? "bg-[#8B1E3F] text-white shadow-sm"
-                    : "text-gray-600 hover:bg-white"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 {label}
               </button>
             ))}
           </div>
+          <Link
+            href="/admin/matrimony/add"
+            className="inline-flex items-center justify-center gap-2 self-start rounded-lg bg-[#8B1E3F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#741934] sm:self-auto sm:px-4 sm:text-sm"
+          >
+            <FaPlus className="text-[10px]" />
+            Add Matrimonial
+          </Link>
+        </div>
+      </div>
 
+      {/* MAIN CARD: KEEP OVERFLOW VISIBLE */}
+      <section className="rounded-2xl border border-gray-100 bg-white shadow-sm">
+        {/* TABLE SEARCH */}
+        <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-5 sm:flex-row sm:items-center sm:px-6">
           <div className="relative flex-1">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400" />
 
@@ -764,14 +771,6 @@ export default function AdminDashboard() {
             >
               Retry
             </button>
-          </div>
-        )}
-
-        {requestCountError && (
-          <div className="px-4 pb-4 sm:px-6" role="alert">
-            <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              {requestCountError}
-            </div>
           </div>
         )}
 

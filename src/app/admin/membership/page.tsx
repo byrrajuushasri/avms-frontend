@@ -489,14 +489,39 @@ export default function MembershipPage() {
               Manage all registered members.
             </p>
           </div>
-
-          <Link
-            href="/admin/membership/add"
-            className="inline-flex items-center justify-center gap-2 self-start rounded-lg bg-[#8B1E3F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#741934] sm:self-auto sm:px-4 sm:text-sm"
-          >
-            <FaPlus className="text-[10px]" />
-            Add Member
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-lg border border-gray-200 bg-white p-1">
+              {([
+                ["all", "All"],
+                ["male", "Males"],
+                ["female", "Females"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setGenderFilter(value);
+                    setCurrentPage(1);
+                    setOpenActionId(null);
+                  }}
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                    genderFilter === value
+                      ? "bg-[#8B1E3F] text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Link
+              href="/admin/membership/add"
+              className="inline-flex items-center justify-center gap-2 self-start rounded-lg bg-[#8B1E3F] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#741934] sm:self-auto sm:px-4 sm:text-sm"
+            >
+              <FaPlus className="text-[10px]" />
+              Add Member
+            </Link>
+          </div>
         </div>
 
         {error && (
@@ -517,7 +542,7 @@ export default function MembershipPage() {
             It clips the absolutely positioned Actions dropdown.
         */}
         <section className="relative w-full rounded-lg border border-gray-200 bg-white shadow-sm sm:rounded-xl">
-          {/* TOOLBAR — SINGLE SEARCH */}
+          {/* TABLE TOOLBAR */}
           <div className="flex flex-col gap-3 border-b border-gray-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">
@@ -529,31 +554,6 @@ export default function MembershipPage() {
             </div>
 
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-              <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-1">
-                {([
-                  ["all", "All"],
-                  ["male", "Males"],
-                  ["female", "Females"],
-                ] as const).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => {
-                      setGenderFilter(value);
-                      setCurrentPage(1);
-                      setOpenActionId(null);
-                    }}
-                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                      genderFilter === value
-                        ? "bg-[#8B1E3F] text-white shadow-sm"
-                        : "text-gray-600 hover:bg-white"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-
               <div className="relative w-full sm:w-64">
                 <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
                 <input
