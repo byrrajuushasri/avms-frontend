@@ -96,7 +96,7 @@ function OrganizerCard({
             fetchPriority={isFirstOrganizer ? "high" : "auto"}
             loading={isFirstOrganizer ? undefined : "lazy"}
             decoding="async"
-            className="h-48 w-44 rounded-xl object-cover shadow-md sm:h-56 sm:w-48 lg:h-60 lg:w-52"
+            className="h-48 w-44 rounded-xl object-cover sm:h-56 sm:w-48 lg:h-60 lg:w-52"
           />
         </div>
       )}
