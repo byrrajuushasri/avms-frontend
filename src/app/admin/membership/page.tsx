@@ -72,6 +72,7 @@ export default function MembershipPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
@@ -179,10 +180,17 @@ export default function MembershipPage() {
 
   const filteredMembers = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    if (!keyword) return members;
+    return members.filter((member) => {
+      const gender = String(member.gender || "").trim().toLowerCase();
+      const matchesGender =
+        genderFilter === "all" ||
+        (genderFilter === "male" && (gender === "male" || gender === "m")) ||
+        (genderFilter === "female" && (gender === "female" || gender === "f"));
 
-    return members.filter((member) =>
-      [
+      if (!matchesGender) return false;
+      if (!keyword) return true;
+
+      return [
         member.member_id,
         member.avs_id,
         member.matrimony_code,
@@ -199,9 +207,9 @@ export default function MembershipPage() {
         String(value || "")
           .toLowerCase()
           .includes(keyword),
-      ),
-    );
-  }, [members, search]);
+      );
+    });
+  }, [members, search, genderFilter]);
 
   const totalItems = filteredMembers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
@@ -520,19 +528,46 @@ export default function MembershipPage() {
               </p>
             </div>
 
-            <div className="relative w-full sm:max-w-xs">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setCurrentPage(1);
-                  setOpenActionId(null);
-                }}
-                placeholder="Search name, AVS ID, phone..."
-                className="h-9 w-full rounded-lg border border-gray-200 pl-8 pr-3 text-xs text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10 sm:text-sm"
-              />
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+              <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+                {([
+                  ["all", "All"],
+                  ["male", "Males"],
+                  ["female", "Females"],
+                ] as const).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setGenderFilter(value);
+                      setCurrentPage(1);
+                      setOpenActionId(null);
+                    }}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+                      genderFilter === value
+                        ? "bg-[#8B1E3F] text-white shadow-sm"
+                        : "text-gray-600 hover:bg-white"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setCurrentPage(1);
+                    setOpenActionId(null);
+                  }}
+                  placeholder="Search name, AVS ID, phone..."
+                  className="h-9 w-full rounded-lg border border-gray-200 pl-8 pr-3 text-xs text-gray-700 outline-none focus:border-[#8B1E3F] focus:ring-2 focus:ring-[#8B1E3F]/10 sm:text-sm"
+                />
+              </div>
             </div>
           </div>
 

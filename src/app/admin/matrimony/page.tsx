@@ -85,6 +85,7 @@ export default function AdminDashboard() {
   const [requestCountError, setRequestCountError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [genderFilter, setGenderFilter] = useState<"all" | "male" | "female">("all");
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [approvingId, setApprovingId] = useState<number | null>(null);
@@ -385,6 +386,13 @@ export default function AdminDashboard() {
   const searchValue = search.toLowerCase().trim();
 
   const filteredUsers = users.filter((user) => {
+    const gender = String(user.gender || "").trim().toLowerCase();
+    const matchesGender =
+      genderFilter === "all" ||
+      (genderFilter === "male" && (gender === "male" || gender === "m")) ||
+      (genderFilter === "female" && (gender === "female" || gender === "f"));
+
+    if (!matchesGender) return false;
     if (!searchValue) return true;
 
     return [
@@ -683,8 +691,33 @@ export default function AdminDashboard() {
 
       {/* MAIN CARD: KEEP OVERFLOW VISIBLE */}
       <section className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-        {/* SINGLE SEARCH BAR */}
+        {/* SEARCH AND GENDER TABS */}
         <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-5 sm:flex-row sm:items-center sm:px-6">
+          <div className="flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+            {([
+              ["all", "All"],
+              ["male", "Males"],
+              ["female", "Females"],
+            ] as const).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => {
+                  setGenderFilter(value);
+                  setCurrentPage(1);
+                  setOpenMenuId(null);
+                }}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  genderFilter === value
+                    ? "bg-[#8B1E3F] text-white shadow-sm"
+                    : "text-gray-600 hover:bg-white"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="relative flex-1">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400" />
 

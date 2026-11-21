@@ -361,6 +361,8 @@ export default function AdminDashboard() {
 
   const [search, setSearch] =
     useState("");
+  const [genderFilter, setGenderFilter] =
+    useState<"all" | "male" | "female">("all");
 
   const [currentPage, setCurrentPage] =
     useState(1);
@@ -794,12 +796,26 @@ export default function AdminDashboard() {
           .trim()
           .toLowerCase();
 
-      if (!searchValue) {
-        return members;
-      }
-
       return members.filter(
         (member) => {
+          const memberGender =
+            String(member.gender ?? "")
+              .trim()
+              .toLowerCase();
+          const matchesGender =
+            genderFilter === "all" ||
+            (genderFilter === "male" &&
+              (memberGender === "male" || memberGender === "m")) ||
+            (genderFilter === "female" &&
+              (memberGender === "female" || memberGender === "f"));
+
+          if (!matchesGender) {
+            return false;
+          }
+          if (!searchValue) {
+            return true;
+          }
+
           const name =
             getMemberName(
               member,
@@ -863,7 +879,7 @@ export default function AdminDashboard() {
           );
         },
       );
-    }, [members, search]);
+    }, [members, search, genderFilter]);
 
   /* =======================================================
      PAGINATION
@@ -1181,9 +1197,33 @@ export default function AdminDashboard() {
 
           {/* SEARCH */}
 
-          <div className="p-4 sm:p-5 border-b border-gray-100">
+          <div className="flex flex-col gap-3 p-4 sm:p-5 border-b border-gray-100 sm:flex-row sm:items-center sm:justify-between">
 
-            <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 max-w-md">
+            <div className="flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+              {([
+                ["all", "All"],
+                ["male", "Males"],
+                ["female", "Females"],
+              ] as const).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => {
+                    setGenderFilter(value);
+                    setCurrentPage(1);
+                  }}
+                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                    genderFilter === value
+                      ? "bg-[#8B1E3F] text-white shadow-sm"
+                      : "text-gray-600 hover:bg-white"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 w-full sm:max-w-md">
 
               <FaSearch className="text-gray-400 text-sm" />
 
@@ -1196,12 +1236,10 @@ export default function AdminDashboard() {
                 }
                 onChange={(
                   e,
-                ) =>
-                  setSearch(
-                    e.target
-                      .value,
-                  )
-                }
+                ) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
 
               {search && (
